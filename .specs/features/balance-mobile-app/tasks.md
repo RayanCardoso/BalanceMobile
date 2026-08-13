@@ -349,7 +349,7 @@ Money takes a `number`, not `number | null`. Rendering an *absent* expected amou
 
 `Picker` is generic over `string | number`, and one test presses a numeric option and asserts `onChange` received `0` rather than `'0'` — the expense type is an integer enum and a stringified value would be rejected by the API. Its options are keyed by value **and index**, because two categories may legitimately carry the same name (spec edge case) and must stay separate options.
 
-#### T14: Add the month navigator
+#### T14: Add the month navigator ✅
 
 **Where**: `mobile/src/shared/ui/MonthNavigator.tsx`
 **What**: Shows the current month in Portuguese with previous and next controls, built on `shiftMonth`.
@@ -357,6 +357,11 @@ Money takes a `number`, not `number | null`. Rendering an *absent* expected amou
 **Requirement**: DASH-01
 **Tests**: screen layer — the label for a given month, and pressing each control reporting the right target month including across a year boundary
 **Gate**: `full`
+**Status**: ✅ Complete. `src/shared/ui/MonthNavigator.tsx` + `MonthNavigator.test.tsx`, 6 tests. Gate: `tsc` exit 0, 113 passed 0 failed (was 107). Phase 3 closed.
+
+Every expected month is a **literal pair** — `(2026, 7)`, `(2025, 12)`, `(2027, 1)` — never a `shiftMonth` call inside the assertion, which would mirror the component and agree with it on any wrong answer (L-010). Both year boundaries are covered in both directions: January back to December 2025 and December forward to January 2027.
+
+The component holds no state. It reports the target month and re-renders whatever the screen passes back, so one screen owns which month its queries are keyed on. The last test pins that: pressing "next" leaves `Agosto de 2026` on screen, which is what keeps the navigator from drifting out of step with the month the data was fetched for.
 
 ---
 
