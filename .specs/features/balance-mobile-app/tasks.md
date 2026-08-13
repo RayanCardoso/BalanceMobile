@@ -4,7 +4,10 @@
 **Design**: `.specs/features/balance-mobile-app/design.md`
 **Status**: Awaiting approval
 
-48 tasks across 10 phases. Every task ends in one atomic commit.
+49 tasks across 11 phases. Every task ends in one atomic commit.
+
+Two tasks change the **backend** repository and commit there, not here: T46 and T49, both in Phase 0.
+Everything else is mobile-only.
 
 ---
 
@@ -56,20 +59,52 @@ Which layer proves what. A task's `Tests` field must agree with this table.
 
 | Phase | Theme | Tasks | Batch |
 | ----- | ----- | ----- | ----- |
+| 0 | Backend prerequisites (commits land in `backend/`) | T46, T49 | 1 |
 | 1 | Project scaffold and pure helpers | T1–T5 | 1 |
-| 2 | Shared kernel: http, session, keys | T6–T10 | 1 |
+| 2 | Shared kernel: http, session, keys | T6–T10 | 2 |
 | 3 | Shared UI primitives | T11–T14 | 2 |
-| 4 | Authentication and the route guard | T15–T19 | 2 |
-| 5 | Catalogue: people, categories, accounts | T20–T24 | 3 |
-| 6 | Income | T25–T30 | 4 |
-| 7 | Expenses and installment plans | T31–T35 | 5 |
-| 8 | Recurring bills | T36–T41 | 6 |
-| 9 | Dashboard and navigation shell | T42–T45 | 7 |
-| 10 | Integration, CORS and web check | T46–T48 | 7 |
+| 4 | Authentication and the route guard | T15–T19 | 3 |
+| 5 | Catalogue: people, categories, accounts | T20–T24 | 4 |
+| 6 | Income | T25–T30 | 5 |
+| 7 | Expenses and installment plans | T31–T35 | 6 |
+| 8 | Recurring bills | T36–T41 | 7 |
+| 9 | Dashboard and navigation shell | T42–T45 | 8 |
+| 10 | Documentation and web check | T47, T48 | 8 |
+
+**Phase 0 comes first because T39 depends on T49.** Correcting a recurring payment needs the payment's
+id, which the monthly line does not currently carry; adding it after Phase 8 would mean building the
+correction screen against a response that cannot support it.
 
 ---
 
 ## Task Breakdown
+
+### Phase 0: Backend prerequisites
+
+Both tasks change `backend/` and commit **in that repository**, on its `feature/expense-tracking`
+branch. Neither touches income code — backend decision AD-006 still holds.
+
+No intra-phase dependencies: T46 and T49 are independent.
+
+#### T46: Allow the Expo web origin through CORS
+
+**Where**: `backend/src/Balance.Api/Program.cs`
+**What**: Add the Expo web dev origin to the existing named `FrontendDevServer` policy, keeping the Vite origin. Still no `AllowAnyOrigin`. Device builds need no CORS — React Native is not a browser and does not enforce it.
+**Depends on**: none
+**Requirement**: DASH-01
+**Tests**: the backend's own suite must stay green — 349 passed, 0 failed — proving the pipeline change broke nothing
+**Gate**: `test` (run in `backend/`: `dotnet test Balance.sln --nologo`)
+
+#### T49: Expose the payment id on the monthly recurring line
+
+**Where**: `backend/src/Balance.Communication/Responses/ResponseMonthlyExpenseJson.cs`
+**What**: Add a nullable `PaymentId` to `ResponseRecurringExpenseLineJson`, populated in `GetMonthlyExpenseUseCase` from the month's payment and null when none exists. Without it, `PUT /api/recurring-expense/payment/{id}` is unreachable from a monthly line, so a bill paid in a previous app session can never be corrected.
+**Depends on**: none
+**Requirement**: REC-03
+**Tests**: backend use case + endpoint layers — a month with a payment returning that payment's exact id, and a month without one returning null. Assert the id **value**, not merely that the field exists (backend lesson L-004: this is precisely how a wrong `dueDay` shipped)
+**Gate**: `test` (run in `backend/`: `dotnet test Balance.sln --nologo`)
+
+---
 
 ### Phase 1: Project scaffold and pure helpers
 
@@ -507,10 +542,10 @@ T37 -> T41
 #### T39: Add the record and correct payment screen
 
 **Where**: `mobile/app/(app)/recurring/payment.tsx`
-**What**: One screen that POSTs a new payment when the month has none and PUTs the existing one when it does, so the user never meets `PAYMENT_ALREADY_RECORDED` as a dead end.
+**What**: One screen that POSTs a new payment when the month's line has a null `paymentId` and PUTs to that id when it does not, so the user never meets `PAYMENT_ALREADY_RECORDED` as a dead end. The id comes from the monthly line (T49), so correction works after an app restart.
 **Depends on**: T36
 **Requirement**: REC-03
-**Tests**: screen layer — a month with no payment sending POST and a month with one sending PUT to the payment's id (spec REC AC4); the month refreshing afterwards
+**Tests**: screen layer — a line with a null `paymentId` sending POST, and a line carrying one sending PUT to **that exact id** (spec REC AC4); the month refreshing afterwards
 **Gate**: `full`
 
 #### T40: Add the change recurring value screen
@@ -579,26 +614,16 @@ T44 -> T45
 
 ---
 
-### Phase 10: Integration, CORS and web check
+### Phase 10: Documentation and web check
 
 ```
-T46 -> T48
 T47 -> T48
 ```
-
-#### T46: Allow the Expo web origin through CORS
-
-**Where**: `backend/src/Balance.Api/Program.cs`
-**What**: Add the Expo web dev origin to the existing named `FrontendDevServer` policy. **This is the only backend change in this feature** and lands as its own commit in the backend repository, not the mobile one. Device builds need no CORS — React Native is not a browser.
-**Depends on**: none
-**Requirement**: DASH-01
-**Tests**: the backend's own suite must stay green — 349 passed, 0 failed
-**Gate**: `test` (run in `backend/`: `dotnet test Balance.sln --nologo`)
 
 #### T47: Document configuration and running
 
 **Where**: `mobile/README.md`
-**What**: `EXPO_PUBLIC_API_URL` and why a physical device needs the machine's LAN IP rather than `localhost`; the NVM Node 20 invocation; how to run tests, web and Expo Go; and the known limit that correcting a recurring payment recorded in a previous app session is unreachable until the API exposes the payment id on the monthly line.
+**What**: `EXPO_PUBLIC_API_URL` and why a physical device needs the machine's LAN IP rather than `localhost`; the NVM Node 20 invocation; how to run tests, web and Expo Go; and the backend version this app requires — it depends on `paymentId` from T49, so an older API breaks payment correction.
 **Depends on**: none
 **Requirement**: UX-02
 **Tests**: none — documentation. Its accuracy is checked by following it in T48
@@ -634,7 +659,7 @@ T47 -> T48
 | EXP-03 | T10, T32, T34 |
 | REC-01 | T36, T37, T38 |
 | REC-02 | T37, T33 |
-| REC-03 | T36, T39 |
+| REC-03 | T36, T39, T49 |
 | REC-04 | T36, T40, T41 |
 | INST-01 | T35 |
 | UX-01 | T2, T3, T4, T11, T45 |
