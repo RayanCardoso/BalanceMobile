@@ -490,7 +490,7 @@ T22 -> T24
 T23 -> T24
 ```
 
-#### T20: Add the catalogue API hooks
+#### T20: Add the catalogue API hooks ✅
 
 **Where**: `mobile/src/features/catalogue/api/useCatalogue.ts`
 **What**: Queries for people, categories and accounts, and mutations creating each, every mutation invalidating its own list key.
@@ -498,6 +498,17 @@ T23 -> T24
 **Requirement**: CAT-01, CAT-02
 **Tests**: hook layer — each mutation's payload, and that it invalidates the matching key so the list refreshes without a manual reload (spec CAT AC2)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/catalogue/api/useCatalogue.ts` + `useCatalogue.test.tsx`, 9 tests over `renderHook` and a routed `fetch` mock, so every payload asserted is the one the real `httpClient` serialised. Gate: `tsc` exit 0, 158 passed 0 failed (was 149).
+
+**Spec CAT AC2 is asserted as the list changing, never as the mutation succeeding.** Each of the three invalidation tests lets the list settle, then re-stubs what the API would answer, then mutates, then asserts the list now reads both names and that the GET route was called **twice**. Nothing re-reads that route unless the mutation invalidated the key the query registered under, so the second list arriving is the criterion itself. A success-only assertion would pass with no invalidation at all.
+
+**Discrimination sensor run.** `invalidateQueries` was removed from `useCreatePerson`. Exactly one test failed — the people AC2 test, reporting `['Rayan']` where `['Rayan', 'Marina']` was required — while the payload and success assertions passed unchanged, which is what shows they were not carrying the criterion. Reverted; the suite is back to 158 passed.
+
+The three payloads are literal JSON strings (L-010), so a renamed or reordered field cannot agree with itself. `priority` is pinned as the integer `0`, not `'0'` — the API's `ExpensePriority` is an enum and a stringified value would be rejected.
+
+Each `onSuccess` **returns** its invalidation promise, so the mutation stays pending until the refreshed list has arrived. A form closing on success then closes over data that is already correct.
+
+**Additive file, recorded rather than silent:** `src/features/catalogue/model/catalogue.ts` holds the three wire types, which is where `design.md`'s folder layout puts them (`features/catalogue/{api,model,ui}`). `CategoryPriority` is the union `0 | 1 | 2` rather than `number`, so T22's label map is exhaustive by the type checker instead of by a default branch nobody looked at.
 
 #### T21: Add the people screen
 
