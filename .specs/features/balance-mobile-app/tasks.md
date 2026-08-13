@@ -252,7 +252,7 @@ Each test loads a fresh copy of the store through `jest.isolateModules`. Resetti
 
 `restore` does not repopulate `name`: storage holds only the token, and the name is display copy the sign-in response carries. Recorded here rather than left as a silent gap.
 
-#### T9: Add the http client
+#### T9: Add the http client ✅
 
 **Where**: `mobile/src/shared/api/httpClient.ts`
 **What**: `request<T>(method, path, body?)` reading the base URL from `EXPO_PUBLIC_API_URL`, attaching the bearer token and `Accept-Language: pt-BR`, mapping 400 → `ApiError`, 401 → `UnauthorizedError`, a `fetch` rejection → `NetworkError`, and 204 → null.
@@ -260,6 +260,20 @@ Each test loads a fresh copy of the store through `jest.isolateModules`. Resetti
 **Requirement**: AUTH-03, UX-02
 **Tests**: httpClient layer — every mapping above with a mocked `fetch`, the header present when a token exists and absent when it does not, and the API's `errorMessages` reaching `ApiError.messages` intact
 **Gate**: `full`
+**Status**: ✅ Complete. `src/shared/api/httpClient.ts` + `httpClient.test.ts`, 16 tests over a mocked `fetch`. Gate: `tsc` exit 0, 71 passed 0 failed (was 55).
+
+Two acceptance criteria live in this module and nowhere else, so both are pinned twice — once on the type produced, once on a type **not** produced:
+
+- **AUTH AC5** — a 401 rejects with `UnauthorizedError`, and the same call is asserted **not** to reject with `ApiError`.
+- **UX AC5** — a rejected `fetch` rejects with `NetworkError`, and is asserted **not** to be an `ApiError`.
+
+The negative half is what makes them discriminating. An implementation collapsing every failure into one type passes every "an error was thrown" assertion; the two `.rejects.not.toBeInstanceOf(ApiError)` tests are what it fails.
+
+**Discrimination sensor run.** Both branches were temporarily rewritten to `throw new ApiError([])`. Exactly four tests failed — the two positives and the two negatives — and the mutation was reverted; the suite is back to 71 passed.
+
+Also covered: the bearer header present with a token and **absent** without one, `Accept-Language: pt-BR`, the JSON body serialised, the base URL defaulting to `http://localhost:5126/api`, each of `get` / `post` / `put` sending its own verb, a 400's `errorMessages` reaching `ApiError.messages` element for element, and 204 resolving null.
+
+Non-400 failures (404, 500) also become `ApiError`, carrying `errorMessages` when the envelope has them and an **empty** array when it does not — the transport layer writes no user copy of its own. The generic fallback wording belongs to the screens and is T45's sweep. Recorded rather than left implicit.
 
 #### T10: Add query keys and the QueryClient provider
 
