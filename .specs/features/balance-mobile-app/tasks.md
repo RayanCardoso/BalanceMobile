@@ -451,7 +451,7 @@ The screen and its test live in `src/features/auth/ui/` for the reason T16 recor
 
 **Known intermediate state:** the `(app)` group has no routes until T43 and no layout until T44, so a signed-in session has nothing to render on a device between here and Phase 9. The `full` gate does not reach it and the `web` gate (T48) runs after Phase 9.
 
-#### T19: Add sign-out and session expiry handling
+#### T19: Add sign-out and session expiry handling ✅
 
 **Where**: `mobile/src/features/auth/api/useSignOut.ts`
 **What**: `signOut` clearing the token and calling `queryClient.clear()`, plus wiring `UnauthorizedError` from any request to the same path.
@@ -459,6 +459,21 @@ The screen and its test live in `src/features/auth/ui/` for the reason T16 recor
 **Requirement**: AUTH-03
 **Tests**: hook layer — sign-out emptying the query cache so a second account cannot read the first's data, and a 401 from an authorised call driving the session to `signedOut` (spec AUTH AC5, AC6)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/auth/api/useSignOut.ts` + `useSignOut.test.tsx`, 7 tests; `RootLayout.tsx` installs the handler on the client the app runs on. Gate: `tsc` exit 0, 149 passed 0 failed (was 142). Phase 4 closed.
+
+**Spec AUTH AC6 is asserted by reading the cache, not by watching `clear` get called.** The cache is seeded with the first account's people and dashboard, both are confirmed present, and after `endSession` each key reads `undefined` and `getQueryCache().getAll()` is empty. Asserting the call would prove the line ran; only reading it back proves the second account cannot see the first's month.
+
+**Spec AUTH AC5 is wired once, globally**, on the query cache's and the mutation cache's `onError`, so a 401 from any authorised request ends the session whichever screen was asking. Both paths are pinned separately — a query 401 and a mutation 401 — because they are two different callbacks and wiring one is easy to mistake for wiring both. A third test drives a 401 through **the root layout's own client**, so the reaction is proved on the client the app actually runs on rather than only on one the test set up.
+
+The reaction is scoped to a session that was signed in. The API answers a wrong password with 401 too, and treating that as an expired token would empty the cache on every typo and cast doubt on the sign-in screen's own message (AUTH AC7). One test pins that: a 401 on `/login` while signed out leaves storage untouched.
+
+**Discrimination sensor run, twice.**
+- `client.clear()` removed from `endSession`: exactly the three cache assertions failed while the token test kept passing, which is what shows the token half was not silently carrying AC6's cache half. Reverted.
+- The two `onError` installations removed: exactly the three 401 tests failed, including the one on the app's own client, while sign-out and the rejected-sign-in test passed. Reverted; the suite is back to 149 passed.
+
+Every hook in this suite is given `gcTime: 0`. Ending a session empties the cache from inside the error handler, which drops each entry before its garbage-collection timer is cancelled; the timer then outlives the suite and Jest reports a worker that will not exit.
+
+⚠️ **Spec-to-task gap, surfaced rather than papered over.** `useSignOut` is proved but nothing calls it: no remaining task adds a sign-out control to a screen. Spec AUTH AC6 begins "WHEN a user signs out", and today the user has no way to. The tab shell (T44) or the state sweep (T45) needs to mount one, or the feature ships with the criterion reachable only from a test.
 
 ---
 

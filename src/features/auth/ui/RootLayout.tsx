@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 
+import { installSessionExpiry } from '@/features/auth/api/useSignOut';
 import { createQueryClient, QueryProvider } from '@/shared/api/queryClient';
 import { useSessionStore, type SessionStatus } from '@/shared/lib/sessionStore';
 import { Loading } from '@/shared/ui/states';
@@ -17,6 +18,10 @@ import { Loading } from '@/shared/ui/states';
 
 /** One client for the whole tree. `signOut` clears it, so one account never reads another's data. */
 export const queryClient = createQueryClient();
+
+// Spec AUTH AC5: a 401 from any authorised request ends the session, which puts the guard below
+// back on the auth group. Wired once, here, rather than per screen.
+installSessionExpiry(queryClient);
 
 export function SessionGate({ status }: { status: SessionStatus }): React.JSX.Element {
   if (status === 'loading') {
