@@ -13,23 +13,28 @@ Everything else is mobile-only.
 
 ## Gate Check Commands
 
-The system `node` is v12.6.0 and cannot run this toolchain. Every command below runs on the NVM Node 20
-binary, invoked by absolute path — `nvm use` needs administrator rights and is not available.
+The system `node` is v12.6.0 and cannot run this toolchain. `nvm use` needs administrator rights and is
+not available, so Node 20 is reached by path.
 
-Set once per shell:
+**Prepending the NVM directory to `PATH` is required, not optional.** Invoking `npm-cli.js` with the
+Node 20 binary is not enough on its own: npm spawns the package script — `jest`, `tsc`, `expo` — as a
+child process that resolves `node` from `PATH`, finds v12, and dies on optional chaining with
+`SyntaxError: Unexpected token .` pointing inside `node_modules`. That looks like a broken dependency
+and is not one. Set this once per shell, in PowerShell:
 
-```bash
-export NODE_DIR="$APPDATA/nvm/v20.19.4"
-alias rn="\"$NODE_DIR/node.exe\" \"$NODE_DIR/node_modules/npm/bin/npm-cli.js\""
+```powershell
+$n = "$env:APPDATA\nvm\v20.19.4"
+$env:PATH = "$n;$env:PATH"
+node --version   # must print v20.19.4 before going any further
 ```
 
-| Gate | Command |
+| Gate | Command (with `$n` set and `PATH` prepended as above) |
 | ---- | ------- |
-| `types` | `"$NODE_DIR/node.exe" node_modules/typescript/bin/tsc --noEmit` — zero errors |
-| `test` | `rn test -- --watchAll=false` — every test green |
+| `types` | `& "$n\node.exe" node_modules/typescript/bin/tsc --noEmit` — zero errors |
+| `test` | `& "$n\node.exe" "$n\node_modules\npm\bin\npm-cli.js" test -- --watchAll=false` — every test green |
 | `full` | `types` then `test` — both must pass |
-| `commit` | `"C:\Program Files\LibreOffice\program\python.exe" ../backend/.claude/skills/tlc-spec-driven/scripts/check_commit.py --message "<msg>"` |
-| `web` | `rn run web` renders the screen in a browser without a red box or console error |
+| `commit` | `& "C:\Program Files\LibreOffice\program\python.exe" ..\backend\.claude\skills\tlc-spec-driven\scripts\check_commit.py --message "<msg>"` |
+| `web` | `& "$n\node.exe" "$n\node_modules\npm\bin\npm-cli.js" run web` renders in a browser with no red box and no console error |
 
 `full` subsumes `types` and `test`; a task gated `full` does not repeat them.
 
