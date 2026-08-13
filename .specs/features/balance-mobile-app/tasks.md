@@ -208,7 +208,7 @@ T9 -> T10
 
 T6 and T7 have no intra-phase dependency and may be done in either order.
 
-#### T6: Add the API error types
+#### T6: Add the API error types ✅
 
 **Where**: `mobile/src/shared/api/ApiError.ts`
 **What**: `ApiError` carrying `messages: string[]`, plus `UnauthorizedError` and `NetworkError`. Screens branch on type, never on a status code.
@@ -216,6 +216,9 @@ T6 and T7 have no intra-phase dependency and may be done in either order.
 **Requirement**: UX-02
 **Tests**: pure-function layer — each type is distinguishable by `instanceof` and carries its messages
 **Gate**: `full`
+**Status**: ✅ Complete. `src/shared/api/ApiError.ts` + `ApiError.test.ts`, 10 tests. Every pair of types is asserted in **both** directions — `new NetworkError() instanceof ApiError` is pinned to `false`, not merely `new NetworkError() instanceof NetworkError` to `true` — because a single shared type would satisfy the one-directional form while making spec UX AC5 unreachable. `ApiError.messages` is asserted with `toEqual` on a two-element array, so order and content are both pinned. Gate: `tsc` exit 0, 38 passed 0 failed (was 28).
+
+Each constructor calls `Object.setPrototypeOf`. A class extending a built-in loses its prototype when downlevelled, and every `instanceof` in the app would then collapse to the same branch — the exact confusion these three types exist to prevent.
 
 #### T7: Add token storage with a web fallback
 
