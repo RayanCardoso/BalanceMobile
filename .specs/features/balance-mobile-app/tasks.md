@@ -429,7 +429,7 @@ Spec AUTH AC2's "show the month dashboard" is asserted as the session reaching `
 
 No client-side rule about name, email or password length exists. Those belong to the API's `RegisterUserValidator` (MAD-001), and its wording is what the screen shows.
 
-#### T18: Add the root layout and route guard
+#### T18: Add the root layout and route guard ✅
 
 **Where**: `mobile/app/_layout.tsx`
 **What**: `QueryClientProvider`, session `restore` on mount, and a guard rendering `(auth)` when signed out and `(app)` when signed in. While `status` is `loading` it renders a splash, never the sign-in screen.
@@ -437,6 +437,19 @@ No client-side rule about name, email or password length exists. Those belong to
 **Requirement**: AUTH-02
 **Tests**: route-guard layer — one test per session status, including that `loading` renders neither group; a stored token reaching the app group without a credential prompt (spec AUTH AC3)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/auth/ui/RootLayout.tsx` + `RootLayout.test.tsx`, 7 tests; `app/_layout.tsx` mounts it, `app/(auth)/_layout.tsx` makes the auth group one navigator, and the scaffold's `app/index.tsx` was deleted as T1 said it must be. Gate: `tsc` exit 0, 142 passed 0 failed (was 135).
+
+**All three statuses are asserted separately, and `loading` is asserted to render neither group** — `queryByTestId('group-(auth)')` and `group-(app)` both null, not merely "something rendered". `signedIn` and `signedOut` are each pinned in both directions: the group that must appear, and the group that must not. A guard that mounted both would satisfy a one-sided check while leaving the sign-in screen reachable from inside the app.
+
+Spec AUTH AC3 gets a dedicated test over the real store: with a token in storage, neither group is mounted in the frame before the read resolves, the app group appears once it does, and the auth group is asserted null **again afterwards** — so "went straight there" means it was never passed through, not just that it ended up right. AC4 is the mirror with empty storage.
+
+**Discrimination sensor run.** The guard was rewritten two-state, `guard={status !== 'signedIn'}` with the `loading` branch removed. Exactly three tests failed — both `loading` assertions and the AC3 no-flash test — while the `signedIn` and `signedOut` tests passed unchanged, which is what shows they were not carrying the criterion on their own. Reverted; the suite is back to 142 passed.
+
+`Stack` and `Stack.Protected` are mocked as what they are: `Protected` renders its children only while its `guard` holds, which is exactly how the real one drops a group from the navigator. The real ones need a navigation container, and the decision under test is which group the status produces.
+
+The screen and its test live in `src/features/auth/ui/` for the reason T16 records — a `.tsx` beside `app/_layout.tsx` would be published as a route.
+
+**Known intermediate state:** the `(app)` group has no routes until T43 and no layout until T44, so a signed-in session has nothing to render on a device between here and Phase 9. The `full` gate does not reach it and the `web` gate (T48) runs after Phase 9.
 
 #### T19: Add sign-out and session expiry handling
 

@@ -1,0 +1,53 @@
+import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+
+import { createQueryClient, QueryProvider } from '@/shared/api/queryClient';
+import { useSessionStore, type SessionStatus } from '@/shared/lib/sessionStore';
+import { Loading } from '@/shared/ui/states';
+
+/**
+ * The only thing standing between a signed-out user and the whole app.
+ *
+ * The session has three states and the guard reads all three, because the interesting one is
+ * `loading`. Reading the token out of secure storage is asynchronous, so a two-state guard renders
+ * the sign-in screen for the frame between mount and that read resolving - which is spec AUTH AC3
+ * failing, visibly, on every cold start of a signed-in app. While `loading`, **neither** group is
+ * mounted.
+ */
+
+/** One client for the whole tree. `signOut` clears it, so one account never reads another's data. */
+export const queryClient = createQueryClient();
+
+export function SessionGate({ status }: { status: SessionStatus }): React.JSX.Element {
+  if (status === 'loading') {
+    return <Loading />;
+  }
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={status === 'signedIn'}>
+        <Stack.Screen name="(app)" />
+      </Stack.Protected>
+      <Stack.Protected guard={status === 'signedOut'}>
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+    </Stack>
+  );
+}
+
+export function RootLayout(): React.JSX.Element {
+  const status = useSessionStore((state) => state.status);
+  const restore = useSessionStore((state) => state.restore);
+
+  // Spec AUTH AC3 and AC4: storage is read once at start, and which group renders follows from
+  // what it held.
+  useEffect(() => {
+    void restore();
+  }, [restore]);
+
+  return (
+    <QueryProvider client={queryClient}>
+      <SessionGate status={status} />
+    </QueryProvider>
+  );
+}
