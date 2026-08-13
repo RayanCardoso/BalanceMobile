@@ -133,6 +133,17 @@ describe('how the client maps a failure', () => {
     await expect(request('GET', '/dashboard/2026/8')).rejects.toBeInstanceOf(UnauthorizedError);
   });
 
+  it("carries a 401's errorMessages onto the UnauthorizedError", async () => {
+    respondWith(401, { errorMessages: ['E-mail e/ou senha inválidos.'] });
+
+    // Spec AUTH AC7. The API answers a wrong password with 401, so this envelope is the only
+    // wording the sign-in screen has; dropping it with the status code makes the criterion
+    // unreachable without the app writing a message of its own (MAD-004).
+    await expect(request('POST', '/login', {})).rejects.toMatchObject({
+      messages: ['E-mail e/ou senha inválidos.'],
+    });
+  });
+
   it('does not report an expired session as a validation failure', async () => {
     useSessionStore.setState({ token: 'expired-token', status: 'signedIn' });
     respondWith(401, {});

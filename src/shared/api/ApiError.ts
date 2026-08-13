@@ -21,12 +21,20 @@ export class ApiError extends Error {
   }
 }
 
-/** A 401. The stored token is gone or expired; the session has to be cleared. */
+/**
+ * A 401. On an authorised route it means the stored token is gone or expired and the session has to
+ * be cleared. On `/login` it is how the API rejects a wrong password, and that response carries the
+ * only wording the sign-in screen has to show (spec AUTH AC7), so the envelope's `errorMessages`
+ * travel on the error rather than being dropped with the status code.
+ */
 export class UnauthorizedError extends Error {
-  constructor() {
+  readonly messages: string[];
+
+  constructor(messages: string[] = []) {
     super('Sessão expirada');
     Object.setPrototypeOf(this, UnauthorizedError.prototype);
     this.name = 'UnauthorizedError';
+    this.messages = messages;
   }
 }
 

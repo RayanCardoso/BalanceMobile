@@ -38,6 +38,18 @@ describe('UnauthorizedError', () => {
   it('is not a NetworkError', () => {
     expect(new UnauthorizedError() instanceof NetworkError).toBe(false);
   });
+
+  it('carries no messages when the response had none', () => {
+    expect(new UnauthorizedError().messages).toEqual([]);
+  });
+
+  it("carries the API's messages, which is all a rejected sign-in has to show", () => {
+    // Spec AUTH AC7. A wrong password is answered with 401, so dropping the envelope here would
+    // leave the sign-in screen with nothing to render but wording of its own (MAD-004).
+    expect(new UnauthorizedError(['E-mail e/ou senha inválidos.']).messages).toEqual([
+      'E-mail e/ou senha inválidos.',
+    ]);
+  });
 });
 
 describe('NetworkError', () => {

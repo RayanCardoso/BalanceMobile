@@ -375,7 +375,7 @@ T17 -> T18
 T18 -> T19
 ```
 
-#### T15: Add the auth API hooks
+#### T15: Add the auth API hooks ✅
 
 **Where**: `mobile/src/features/auth/api/useAuth.ts`
 **What**: `useSignIn` posting to `/login` and `useSignUp` posting to `/user`, each storing the returned token through the session store on success.
@@ -383,6 +383,15 @@ T18 -> T19
 **Requirement**: AUTH-01
 **Tests**: hook layer — the exact payload posted, and the session store reaching `signedIn` with the returned token on success and staying `signedOut` on failure
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/auth/api/useAuth.ts` + `useAuth.test.tsx`, 8 tests over `renderHook` and a mocked `fetch`, so the payload asserted is the one the real `httpClient` serialised. Gate: `tsc` exit 0, 124 passed 0 failed (was 113).
+
+Both payloads are pinned as **literal** JSON strings — `'{"email":"rayan@balance.app","password":"segredo123"}'` and `'{"name":"Rayan","email":"rayan@balance.app","password":"segredo123"}'` — not rebuilt with `JSON.stringify` in the assertion, which would agree with the hook on any wrong field name (L-010). Success pins the store's `status`, `token` and `name` **and** `setToken` receiving the issued token: persisting is what AUTH AC3 reads back, and a hook that only set state in memory would pass a status-only assertion and lose the session on restart. Failure pins `status` still `signedOut`, `token` still null and `setToken` **not** called.
+
+**Deviation, recorded rather than silent.** A rejected sign-in is a **401**, not a 400: the backend's `InvalidLoginException` carries `HttpStatusCode.Unauthorized`. `httpClient` mapped 401 to an `UnauthorizedError` that dropped the envelope, which left spec AUTH AC7 — "show the message the API returned" — reachable only by the app writing wording of its own, against MAD-004. Two additive changes to Phase 2 files close it: `UnauthorizedError` now carries `messages: string[]` (defaulting to `[]`, so every existing call site is unchanged) and `httpClient` fills it from the same envelope reader the other failures use. Three tests were **added** to `ApiError.test.ts` and `httpClient.test.ts`; none was weakened, skipped or deleted.
+
+`authErrorMessages` lives with the auth feature and reads both types, because the two auth screens meet different ones — sign-in a 401, sign-up a 400. The API's wording always wins; the error's own text stands in only when the response carried no messages at all.
+
+The suite's mutation cache is destroyed in `afterEach`. A settled mutation holds a garbage-collection timer for its `gcTime`, and Jest reported a worker that would not exit until it was cancelled — `clear()` alone drops the entry and leaves the timer running.
 
 #### T16: Add the sign-in screen
 

@@ -74,7 +74,9 @@ export async function request<T>(method: HttpMethod, path: string, body?: unknow
   }
 
   if (response.status === 401) {
-    throw new UnauthorizedError();
+    // The envelope travels with the error. A wrong password is a 401 here, and its message is the
+    // only thing spec AUTH AC7 gives the sign-in screen to render.
+    throw new UnauthorizedError(await readErrorMessages(response));
   }
 
   if (response.status === 204) {
