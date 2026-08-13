@@ -510,7 +510,7 @@ Each `onSuccess` **returns** its invalidation promise, so the mutation stays pen
 
 **Additive file, recorded rather than silent:** `src/features/catalogue/model/catalogue.ts` holds the three wire types, which is where `design.md`'s folder layout puts them (`features/catalogue/{api,model,ui}`). `CategoryPriority` is the union `0 | 1 | 2` rather than `number`, so T22's label map is exhaustive by the type checker instead of by a default branch nobody looked at.
 
-#### T21: Add the people screen
+#### T21: Add the people screen ✅
 
 **Where**: `mobile/app/(app)/catalogue/people.tsx`
 **What**: Lists People with the four states, and a form creating one.
@@ -518,6 +518,17 @@ Each `onSuccess` **returns** its invalidation promise, so the mutation stays pen
 **Requirement**: CAT-01, CAT-02
 **Tests**: screen layer — loading, empty, error and data states, and a create appearing in the list
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/catalogue/ui/PeopleScreen.tsx` + `PeopleScreen.test.tsx`, 8 tests; `app/(app)/catalogue/people.tsx` is a one-line mount point, same split as T16. Gate: `tsc` exit 0, 166 passed 0 failed (was 158).
+
+All four states are asserted, and two of them carry the weight. The retry is pinned by **re-reading**: the failing stub is swapped for a working one and the list is asserted to appear after the press, so a control that renders and does nothing fails — it would look identical on screen. The loading indicator is asserted in the first frame, before the request resolves, so an empty list cannot stand in for "still loading" and read to the user as "you have no people".
+
+**Spec CAT AC5 is two criteria and gets two tests (L-003).** The rejection returns **two** `errorMessages` and both are asserted on screen, word for word (MAD-004). The second test asserts the fields' own values afterwards — `getByLabelText('Nome').props.value` reading `'Marina'` — because a screen that clears its form on failure satisfies an error-only assertion and still makes the user retype everything.
+
+Spec CAT AC2 is asserted at the screen layer the same way T20 asserts it at the hook layer, and for the reason the criterion names: nothing in the test reloads the screen, so the new person appears only if the mutation made the list read the API again.
+
+The description is asserted per row, not only the names (L-004). A person whose description is null renders no detail line rather than the string "null".
+
+**Additive file, recorded:** `src/features/catalogue/ui/errors.ts` — `apiMessages` and `listErrorMessage`, shared by the three catalogue screens so the reader is written once. It mirrors `authErrorMessages`, which lives with the auth feature; neither reaches across features. `listErrorMessage` owns exactly one sentence, for a failure the API did not describe. Telling connectivity apart from validation (spec UX AC5) stays with T45's sweep rather than being half-built here.
 
 #### T22: Add the categories screen
 
