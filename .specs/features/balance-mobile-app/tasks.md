@@ -311,7 +311,7 @@ Each message is asserted as the literal text the user reads. The retry is assert
 
 `ErrorState` stores no wording. Its message is a prop, so the API's own pt-BR copy reaches the screen unaltered (MAD-004); the only string this module owns is the retry label.
 
-#### T12: Add the money and status display components
+#### T12: Add the money and status display components ✅
 
 **Where**: `mobile/src/shared/ui/Money.tsx`
 **What**: `Money` rendering a formatted value, negative styled distinctly; `StatusBadge` taking a label and tone. The income and expense label maps live in their own features, not here.
@@ -319,6 +319,15 @@ Each message is asserted as the literal text the user reads. The retry is assert
 **Requirement**: DASH-02, INC-01
 **Tests**: screen layer — a positive, a negative and a zero value render their literal expected strings; the negative renders as negative, not as an absolute value (spec DASH AC5)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/shared/ui/Money.tsx` + `Money.test.tsx`, 7 tests, every expected string a literal and no `formatMoney` call in the test file (L-010). Gate: `tsc` exit 0, 97 passed 0 failed (was 90).
+
+Spec DASH AC5 is pinned twice: `-45.9` renders **`-R$ 45,90`**, and `R$ 45,90` is asserted **absent** from the same render. The negative half is the discriminating one — a component dropping the sign still passes a test that only looks for the digits, and the user reads a shortfall as a surplus.
+
+The sign lives in the text, not only in the colour. Colour is a second signal and is deliberately not asserted: pinning a hex value tests the stylesheet, not the behaviour the spec names.
+
+`StatusBadge` takes a label and a tone and owns neither. The label maps stay with the features (T25, T31), so income's `Recebido` and expense's `Pago` cannot be retitled by a rename on the other side.
+
+Money takes a `number`, not `number | null`. Rendering an *absent* expected amount as something other than zero is a recurring-line and variable-source concern, covered by T27 and T33 where the spec puts it.
 
 #### T13: Add the form primitives
 

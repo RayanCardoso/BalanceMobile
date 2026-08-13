@@ -249,8 +249,8 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | CAT-01 | P1: Keep the catalogue | 1 | Implementing |
 | CAT-02 | P1: Keep the catalogue | Pending | Pending |
 | DASH-01 | P1: See the month at a glance | 0 | Implementing |
-| DASH-02 | P1: See the month at a glance | Pending | Pending |
-| INC-01 | P1: Record and review income | Pending | Pending |
+| DASH-02 | P1: See the month at a glance | 3 | Implementing |
+| INC-01 | P1: Record and review income | 3 | Implementing |
 | INC-02 | P1: Record and review income | Pending | Pending |
 | INC-03 | P1: Record and review income | 2 | Implementing |
 | EXP-01 | P1: Record and review expenses | Pending | Pending |
