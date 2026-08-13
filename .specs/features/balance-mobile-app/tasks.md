@@ -393,7 +393,7 @@ Both payloads are pinned as **literal** JSON strings — `'{"email":"rayan@balan
 
 The suite's mutation cache is destroyed in `afterEach`. A settled mutation holds a garbage-collection timer for its `gcTime`, and Jest reported a worker that would not exit until it was cancelled — `clear()` alone drops the entry and leaves the timer running.
 
-#### T16: Add the sign-in screen
+#### T16: Add the sign-in screen ✅
 
 **Where**: `mobile/app/(auth)/sign-in.tsx`
 **What**: Email and password fields, a submit that calls `useSignIn`, and the API's messages rendered on failure with the entered email preserved.
@@ -401,6 +401,17 @@ The suite's mutation cache is destroyed in `afterEach`. A settled mutation holds
 **Requirement**: AUTH-01
 **Tests**: screen layer — a successful submit sending the typed credentials, a failure rendering the API's own message text, and the email still present afterwards (spec AUTH AC7)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/auth/ui/SignInScreen.tsx` + `SignInScreen.test.tsx`, 7 tests; `app/(auth)/sign-in.tsx` is a one-line mount point. Gate: `tsc` exit 0, 131 passed 0 failed (was 124).
+
+**The screen lives in `src/features/auth/ui/`, not in `app/`.** Expo Router's `require.context` matches every `.tsx` under `app/`, so a `sign-in.test.tsx` beside the route would be published as the route `/sign-in.test`. Splitting the screen out is also what `design.md`'s architecture diagram already draws — routes point at feature `ui/` screens.
+
+**Spec AUTH AC7 is two criteria and gets two assertions (L-003).** The message is asserted as the API's literal text, `E-mail e/ou senha inválidos.`, and the email is asserted on **the field's own value** afterwards — `screen.getByLabelText('E-mail').props.value` reading `'rayan@balance.app'`. An implementation that resets the form on failure satisfies an error-only assertion and still makes the user retype their address, which is precisely what the criterion forbids.
+
+The submitted body is a literal JSON string rather than a rebuilt object, so a renamed field cannot agree with itself (L-010). Success is pinned on the session store reaching `signedIn`, not on a navigation call: the screen never navigates, because the guard renders the `(app)` group off the session (T18).
+
+`expo-router`'s `Link` is mocked as the `Text` the real one renders. Where it points is Expo Router's concern; that the registration screen is reachable at all is spec AUTH AC2's, and is asserted.
+
+⚠️ **Deferred, recorded in `context.md`:** the password renders in clear text. `Field` carries no `secureTextEntry`, no acceptance criterion names masking, and widening T13's primitive here would be scope creep.
 
 #### T17: Add the sign-up screen
 

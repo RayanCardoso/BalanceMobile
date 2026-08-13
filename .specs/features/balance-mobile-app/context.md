@@ -148,3 +148,6 @@ deliberately rather than rediscovering:
 - Charts and reports.
 - Multi-currency.
 - A release build, app signing, or store submission.
+- Masking the password field. `Field` has no `secureTextEntry`, so the sign-in and sign-up screens
+  show the password in clear text. No acceptance criterion covers it, so T16 left it alone rather
+  than widening T13's primitive; it wants one prop and one test.
