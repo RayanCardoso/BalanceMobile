@@ -5,6 +5,7 @@
  */
 module.exports = {
   preset: 'jest-expo',
+  globalSetup: '<rootDir>/jest.globalSetup.js',
   // The third of the three places `@/*` has to resolve. See babel.config.js.
   moduleNameMapper: {
     '^@/assets/(.*)$': '<rootDir>/assets/$1',

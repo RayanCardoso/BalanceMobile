@@ -172,7 +172,7 @@ Formatting is hand-rolled rather than `Intl.NumberFormat`: Hermes does not guara
 
 ⚠️ **Spec-precision gap**: the task names exactly two accepted inputs, `1234,56` and `1234.56`. A pt-BR grouped string such as `1.234,56` therefore parses to null. If a user is expected to be able to type the thousands separator, the spec has to say so and this needs a follow-up task.
 
-#### T5: Add the date helpers
+#### T5: Add the date helpers ✅
 
 **Where**: `mobile/src/shared/lib/dates.ts`
 **What**: `toApiDate` / `fromApiDate` operating on `YYYY-MM-DD` **as strings**, plus `monthLabel(year, month)` and `shiftMonth(year, month, delta)` crossing year boundaries.
@@ -180,6 +180,15 @@ Formatting is hand-rolled rather than `Intl.NumberFormat`: Hermes does not guara
 **Requirement**: EXP-02, DASH-01
 **Tests**: pure-function layer — a round trip that does not shift a day, `shiftMonth` across December→January and January→December, and a test run under a non-UTC `TZ` proving no timezone drift
 **Gate**: `full`
+**Status**: ✅ Complete — `tsc --noEmit` clean, 28 tests passed, 0 failed. The module never constructs a `Date`; it works on strings and integers, which is what makes the drift structurally impossible rather than merely tested for.
+
+**The timezone test needed two corrections before it proved anything.**
+
+First, `TZ` was being assigned in a `beforeAll`. Jest sandboxes `process.env`, so that assignment never reaches V8 and the timezone silently stays put — the test would have passed under UTC while claiming to run under UTC-11. It moved to `jest.globalSetup.js`, which runs in the real Jest process before any worker forks. A guard assertion on `getTimezoneOffset()` now fails loudly if the offset ever stops applying; it is what caught the original bug.
+
+Second, the run was pinned to two offsets via `describe.each`, which `globalSetup` cannot do — one offset per run is Jest's limit without a second project config. Reduced to Pacific/Midway (UTC-11), the direction that actually breaks `DateOnly`: `new Date('2026-08-21')` parses as UTC midnight and reads back as the 20th.
+
+A third assertion was added that neither correction covered: `new Date('2026-08-21').getDate()` is asserted to be **20**, proving the hazard is genuinely reachable in this environment. Without it, the module's assertions would pass just as happily under UTC — where nothing can go wrong — and would not distinguish an implementation that avoids `Date` from one that got lucky.
 
 ---
 

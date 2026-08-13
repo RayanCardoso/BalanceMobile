@@ -1,0 +1,85 @@
+import { fromApiDate, monthLabel, shiftMonth, toApiDate } from '@/shared/lib/dates';
+
+/** Every expected value below is a literal, never a value recomputed through a `Date`. */
+
+describe('toApiDate and fromApiDate', () => {
+  it('round-trips a date without shifting a day', () => {
+    const parts = fromApiDate('2026-08-21');
+
+    expect(parts).toEqual({ year: 2026, month: 8, day: 21 });
+    expect(toApiDate(parts!)).toBe('2026-08-21');
+  });
+
+  it('pads a single-digit month and day', () => {
+    expect(toApiDate({ year: 2026, month: 3, day: 7 })).toBe('2026-03-07');
+  });
+
+  it.each([
+    ['a non-date string', 'ontem'],
+    ['an unpadded date', '2026-8-21'],
+    ['a date-time', '2026-08-21T00:00:00Z'],
+    ['an empty string', ''],
+  ])('returns null for %s', (_label, input) => {
+    expect(fromApiDate(input)).toBeNull();
+  });
+});
+
+describe('shiftMonth', () => {
+  it('crosses December into January of the next year', () => {
+    expect(shiftMonth(2026, 12, 1)).toEqual({ year: 2027, month: 1 });
+  });
+
+  it('crosses January back into December of the previous year', () => {
+    expect(shiftMonth(2026, 1, -1)).toEqual({ year: 2025, month: 12 });
+  });
+
+  it('stays inside the year for a step that does not cross it', () => {
+    expect(shiftMonth(2026, 8, 1)).toEqual({ year: 2026, month: 9 });
+  });
+});
+
+describe('monthLabel', () => {
+  it('names the month in Portuguese', () => {
+    expect(monthLabel(2026, 8)).toBe('Agosto de 2026');
+  });
+
+  it('names the first month of a year', () => {
+    expect(monthLabel(2027, 1)).toBe('Janeiro de 2027');
+  });
+});
+
+/**
+ * The regression sensor for the whole module.
+ *
+ * The suite runs under Pacific/Midway (UTC-11), pinned in `jest.globalSetup.js`. It has to be pinned
+ * there and not here: Jest sandboxes `process.env`, so assigning `TZ` inside a test never reaches V8
+ * and the timezone silently stays put — the assignment appears to work and the tests pass while
+ * proving nothing. One offset for the whole run is therefore all Jest can give without a second
+ * project config, and a negative one is the right choice: it is the direction that breaks `DateOnly`,
+ * because `new Date('2026-08-21')` parses as UTC midnight and reads back as the 20th.
+ *
+ * Three assertions in order, and all three are needed:
+ *   1. the offset really applied — otherwise everything below is vacuous;
+ *   2. the hazard is genuinely reachable here — a `Date`-based implementation *would* be wrong;
+ *   3. this module is not wrong.
+ *
+ * Without (2) these tests would pass just as happily under UTC, where nothing can go wrong, and would
+ * not discriminate between an implementation that avoids `Date` and one that got lucky.
+ */
+describe('under a negative UTC offset', () => {
+  it('really runs under that offset', () => {
+    expect(new Date('2026-08-21T12:00:00Z').getTimezoneOffset()).toBe(660);
+  });
+
+  it('exposes the hazard: a Date-based read lands on the previous day', () => {
+    expect(new Date('2026-08-21').getDate()).toBe(20);
+  });
+
+  it('reads the day the string carries', () => {
+    expect(fromApiDate('2026-08-21')).toEqual({ year: 2026, month: 8, day: 21 });
+  });
+
+  it('round-trips to the same string', () => {
+    expect(toApiDate({ year: 2026, month: 8, day: 21 })).toBe('2026-08-21');
+  });
+});
