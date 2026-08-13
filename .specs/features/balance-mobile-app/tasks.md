@@ -413,7 +413,7 @@ The submitted body is a literal JSON string rather than a rebuilt object, so a r
 
 ⚠️ **Deferred, recorded in `context.md`:** the password renders in clear text. `Field` carries no `secureTextEntry`, no acceptance criterion names masking, and widening T13's primitive here would be scope creep.
 
-#### T17: Add the sign-up screen
+#### T17: Add the sign-up screen ✅
 
 **Where**: `mobile/app/(auth)/sign-up.tsx`
 **What**: Name, email and password fields calling `useSignUp`, and a link back to sign-in.
@@ -421,6 +421,13 @@ The submitted body is a literal JSON string rather than a rebuilt object, so a r
 **Requirement**: AUTH-01
 **Tests**: screen layer — the payload sent on submit and the API's validation messages rendered on rejection
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/auth/ui/SignUpScreen.tsx` + `SignUpScreen.test.tsx`, 4 tests; `app/(auth)/sign-up.tsx` mounts it, same split as T16. Gate: `tsc` exit 0, 135 passed 0 failed (was 131).
+
+The payload is a literal JSON string, `'{"name":"Rayan","email":"rayan@balance.app","password":"segredo123"}'`, so field order and field names are both pinned (L-010). The rejection test responds with **two** `errorMessages` and asserts **both** on screen: a screen rendering only the first would satisfy a single-message assertion while hiding half of what the API said (L-003, MAD-004). The same test pins the session still `signedOut`, so a rejected registration cannot half-authenticate.
+
+Spec AUTH AC2's "show the month dashboard" is asserted as the session reaching `signedIn` with the issued token. The guard, not this screen, decides what renders; nothing here navigates.
+
+No client-side rule about name, email or password length exists. Those belong to the API's `RegisterUserValidator` (MAD-001), and its wording is what the screen shows.
 
 #### T18: Add the root layout and route guard
 
