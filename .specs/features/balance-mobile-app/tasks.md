@@ -236,7 +236,7 @@ Each constructor calls `Object.setPrototypeOf`. A class extending a built-in los
 
 The web build falls back to `localStorage`, which is not a secure store. It is the browser's only option and the web build is a development surface, not a shipped one.
 
-#### T8: Add the session store
+#### T8: Add the session store ✅
 
 **Where**: `mobile/src/shared/lib/sessionStore.ts`
 **What**: Zustand store `{ token, name, status: 'loading' | 'signedIn' | 'signedOut' }` with `restore`, `signIn`, `signOut`. `status` starts `loading` so the guard cannot flash sign-in during cold start.
@@ -244,6 +244,13 @@ The web build falls back to `localStorage`, which is not a secure store. It is t
 **Requirement**: AUTH-01, AUTH-02
 **Tests**: hook layer — `restore` with and without a stored token reaching the right status, `signIn` persisting, `signOut` clearing storage
 **Gate**: `full`
+**Status**: ✅ Complete. `src/shared/lib/sessionStore.ts` + `sessionStore.test.ts`, 8 tests, `zustand ^5.0.9`. Gate: `tsc` exit 0, 55 passed 0 failed (was 47).
+
+All three statuses are pinned, and the third one carries the weight. One test holds `getToken` unresolved, calls `restore` without awaiting, and asserts `loading` in exactly the frame the route guard renders on a cold start — then releases the promise and asserts `signedIn`. A two-state store would report `signedOut` in that frame and flash the sign-in screen at a signed-in user every start, which is spec AUTH AC3 failing.
+
+Each test loads a fresh copy of the store through `jest.isolateModules`. Resetting the singleton with `setState` instead would make the initial-status test assert the value the test itself had just written.
+
+`restore` does not repopulate `name`: storage holds only the token, and the name is display copy the sign-in response carries. Recorded here rather than left as a silent gap.
 
 #### T9: Add the http client
 
