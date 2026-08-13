@@ -136,7 +136,7 @@ Deviations, all recorded rather than silent:
 
 This commit also carries the Phase 0 spec records for T46 and T49, whose code landed in the `backend/` repo.
 
-#### T2: Configure Jest and React Native Testing Library
+#### T2: Configure Jest and React Native Testing Library ✅
 
 **Where**: `mobile/jest.config.js`
 **What**: `jest-expo` preset, `@testing-library/react-native`, `transformIgnorePatterns` for the RN stack, and a `test` script. Add one trivial passing test so a green run is observable.
@@ -144,6 +144,9 @@ This commit also carries the Phase 0 spec records for T46 and T49, whose code la
 **Requirement**: UX-01
 **Tests**: the harness itself — a placeholder test proving the runner executes
 **Gate**: `test`
+**Status**: ✅ Complete. `jest.config.js` on the `jest-expo` preset with the RN `transformIgnorePatterns`; `jest ~29.7.0`, `jest-expo ~57.0.4`, `@testing-library/react-native ^13.3.3`, `react-test-renderer 19.2.3`, `@types/jest ^29`. `"test": "jest"` script added. `__tests__/harness.test.tsx` renders a `<Text>` and queries it through RNTL, so it proves the transform, the RN environment and the queries rather than asserting a tautology. Gate: `npm test -- --watchAll=false` → 1 passed, 0 failed.
+
+Two notes: `react-test-renderer` is pinned to `19.2.3` to match the scaffold's exact React, since the latest (`19.2.8`) demands `react@^19.2.8` and npm refused the tree — resolved by matching versions, not by `--legacy-peer-deps`. And `"types": ["jest", "node"]` was added to `tsconfig.json` (T3's file) because TypeScript 6 does not pick up `@types/jest` implicitly here; without it the `types` gate breaks the moment a test file exists.
 
 #### T3: Set strict TypeScript and path aliases
 
