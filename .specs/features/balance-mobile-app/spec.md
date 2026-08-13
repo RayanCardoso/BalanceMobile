@@ -247,7 +247,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | AUTH-02 | P1: Sign in and stay signed in | 2 | Implementing |
 | AUTH-03 | P1: Sign in and stay signed in | 2 | Implementing |
 | CAT-01 | P1: Keep the catalogue | 1 | Implementing |
-| CAT-02 | P1: Keep the catalogue | Pending | Pending |
+| CAT-02 | P1: Keep the catalogue | 3 | Implementing |
 | DASH-01 | P1: See the month at a glance | 0 | Implementing |
 | DASH-02 | P1: See the month at a glance | 3 | Implementing |
 | INC-01 | P1: Record and review income | 3 | Implementing |

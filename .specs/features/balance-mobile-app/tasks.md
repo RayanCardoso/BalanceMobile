@@ -329,7 +329,7 @@ The sign lives in the text, not only in the colour. Colour is a second signal an
 
 Money takes a `number`, not `number | null`. Rendering an *absent* expected amount as something other than zero is a recurring-line and variable-source concern, covered by T27 and T33 where the spec puts it.
 
-#### T13: Add the form primitives
+#### T13: Add the form primitives ✅
 
 **Where**: `mobile/src/shared/ui/form.tsx`
 **What**: `Field` (label, value, error), `Picker` (options, selected, onChange) and `SubmitButton` disabled while a mutation is pending.
@@ -337,6 +337,17 @@ Money takes a `number`, not `number | null`. Rendering an *absent* expected amou
 **Requirement**: UX-02, CAT-02
 **Tests**: screen layer — `Field` shows its error text, `Picker` reports the chosen option, and `SubmitButton` cannot be pressed twice while pending (spec UX AC4)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/shared/ui/form.tsx` + `form.test.tsx`, 10 tests. Gate: `tsc` exit 0, 107 passed 0 failed (was 97).
+
+**Spec UX AC4 is asserted on how many times the handler ran, never on the button reporting itself disabled.** A control that renders disabled and still forwards the press looks correct in a snapshot and sends the expense twice. Two tests: pressing twice while `pending` calls the handler **zero** times, and a stateful harness whose first press sets `pending` calls it exactly **once** after two presses.
+
+**Discrimination sensor run.** Both protections — the `disabled` prop and the handler's own guard — were removed together. Exactly those two tests failed, reporting 2 calls where 0 and 1 were required, and the mutation was reverted; the suite is back to 107 passed.
+
+`SubmitButton` carries both protections deliberately: the prop is what the user sees, the guard is what makes a second press unable to reach the API however it arrives.
+
+`Field` renders an error it is handed and never produces one (MAD-001, MAD-004). The absent case is pinned with a `testID` query returning null, so "no error" is a real assertion rather than the absence of a string nobody named.
+
+`Picker` is generic over `string | number`, and one test presses a numeric option and asserts `onChange` received `0` rather than `'0'` — the expense type is an integer enum and a stringified value would be rejected by the API. Its options are keyed by value **and index**, because two categories may legitimately carry the same name (spec edge case) and must stay separate options.
 
 #### T14: Add the month navigator
 
