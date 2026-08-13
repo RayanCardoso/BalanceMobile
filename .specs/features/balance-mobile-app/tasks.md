@@ -148,7 +148,7 @@ This commit also carries the Phase 0 spec records for T46 and T49, whose code la
 
 Two notes: `react-test-renderer` is pinned to `19.2.3` to match the scaffold's exact React, since the latest (`19.2.8`) demands `react@^19.2.8` and npm refused the tree — resolved by matching versions, not by `--legacy-peer-deps`. And `"types": ["jest", "node"]` was added to `tsconfig.json` (T3's file) because TypeScript 6 does not pick up `@types/jest` implicitly here; without it the `types` gate breaks the moment a test file exists.
 
-#### T3: Set strict TypeScript and path aliases
+#### T3: Set strict TypeScript and path aliases ✅
 
 **Where**: `mobile/tsconfig.json`
 **What**: `strict: true`, `noUncheckedIndexedAccess`, and `@/*` → `src/*` mirrored in `babel.config.js` (module-resolver) and `jest.config.js` `moduleNameMapper`, so the alias resolves in all three.
@@ -156,6 +156,7 @@ Two notes: `react-test-renderer` is pinned to `19.2.3` to match the scaffold's e
 **Requirement**: UX-01
 **Tests**: none — configuration. Proved when T4 imports through the alias and both gates pass
 **Gate**: `types`
+**Status**: ✅ Complete. `strict: true` (already from the scaffold) plus `noUncheckedIndexedAccess: true` in `tsconfig.json`. `@/*` → `src/*` now resolves in all three: `tsconfig.json` `paths`, a new `babel.config.js` using `babel-plugin-module-resolver`, and `moduleNameMapper` in `jest.config.js`. The scaffold's second alias `@/assets/*` → `assets/*` is mirrored in the same three so the lists cannot drift; it is listed first in babel and jest, since `^@/(.*)$` would otherwise swallow it. `babel.config.js` keeps `babel-preset-expo` as its only preset, which is what wires reanimated and worklets. Gate: `tsc --noEmit` exit 0; tests still 1 passed, 0 failed. The alias itself is proved by T4, whose test imports through `@/shared/lib/money`.
 
 #### T4: Add the money helpers
 
