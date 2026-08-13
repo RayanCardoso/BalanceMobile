@@ -4,7 +4,9 @@
 **Design**: `.specs/features/balance-mobile-app/design.md`
 **Status**: Awaiting approval
 
-49 tasks across 11 phases. Every task ends in one atomic commit.
+50 tasks across 11 phases. Every task ends in one atomic commit.
+
+T50 was added after Batch 3 and T44 was amended; both are annotated where they appear.
 
 Two tasks change the **backend** repository and commit there, not here: T46 and T49, both in Phase 0.
 Everything else is mobile-only.
@@ -73,7 +75,7 @@ Which layer proves what. A task's `Tests` field must agree with this table.
 | 6 | Income | T25–T30 | 5 |
 | 7 | Expenses and installment plans | T31–T35 | 6 |
 | 8 | Recurring bills | T36–T41 | 7 |
-| 9 | Dashboard and navigation shell | T42–T45 | 8 |
+| 9 | Dashboard, navigation shell and sign-out | T42–T45, T50 | 8 |
 | 10 | Documentation and web check | T47, T48 | 8 |
 
 **Phase 0 comes first because T39 depends on T49.** Correcting a recurring payment needs the payment's
@@ -729,6 +731,7 @@ T37 -> T41
 ```
 T42 -> T43
 T43 -> T44
+T44 -> T50
 T44 -> T45
 ```
 
@@ -750,14 +753,35 @@ T44 -> T45
 **Tests**: screen layer — the three totals as literal strings, all four groups present, a negative balance rendered as negative (spec DASH AC5), and an empty month showing zeroed totals rather than a blank screen
 **Gate**: `full`
 
-#### T44: Add the tab navigation shell
+#### T44: Add the tab navigation shell and the sign-out control
 
 **Where**: `mobile/app/(app)/_layout.tsx`
-**What**: Tabs for Dashboard, Receitas, Despesas, Recorrentes and Catálogo.
+**What**: Tabs for Dashboard, Receitas, Despesas, Recorrentes and Catálogo, plus a **sign-out control** reachable from the shell.
 **Depends on**: T43
-**Requirement**: DASH-01
-**Tests**: route-guard layer — every tab reachable and the dashboard being the initial route
+**Requirement**: DASH-01, AUTH-03
+**Tests**: route-guard layer — every tab reachable, the dashboard being the initial route, and pressing sign-out driving the session to `signedOut` and emptying the query cache
 **Gate**: `full`
+
+> **Amended after Batch 3.** `useSignOut` shipped in T19 fully tested and no task mounted it, so spec
+> AUTH AC6 — "WHEN a user signs out…" — was reachable only from a test. That is backend lesson
+> **L-002** in mirror image: there a state shipped with no operation able to produce it; here an
+> operation shipped with no way for a user to invoke it. Either way the criterion is unreachable in the
+> delivered product, so the control lands here rather than in a follow-up.
+
+#### T50: Mask the password field
+
+**Where**: `mobile/src/shared/ui/form.tsx`
+**What**: A `secure` prop on `Field` forwarding `secureTextEntry`, applied to both password inputs.
+**Depends on**: T44
+**Requirement**: AUTH-01
+**Tests**: screen layer — the sign-in and sign-up password fields assert `secureTextEntry` is set, **and the email field asserts it is not**, so the prop cannot be applied indiscriminately and still pass
+**Gate**: `full`
+
+> **Added after Batch 3.** T16 was right to decline widening T13's primitive mid-task: no acceptance
+> criterion names masking, and inventing scope inside a task is how deliveries bloat. But a password
+> rendering in clear text is a defect a user meets in the first five seconds, not an enhancement — so
+> it becomes its own task with its own commit and its own test, rather than being deferred or smuggled
+> into a neighbouring one.
 
 #### T45: Sweep the loading, empty and error states
 
