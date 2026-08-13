@@ -86,7 +86,7 @@ branch. Neither touches income code — backend decision AD-006 still holds.
 
 No intra-phase dependencies: T46 and T49 are independent.
 
-#### T46: Allow the Expo web origin through CORS
+#### T46: Allow the Expo web origin through CORS ✅
 
 **Where**: `backend/src/Balance.Api/Program.cs`
 **What**: Add the Expo web dev origin to the existing named `FrontendDevServer` policy, keeping the Vite origin. Still no `AllowAnyOrigin`. Device builds need no CORS — React Native is not a browser and does not enforce it.
@@ -94,8 +94,9 @@ No intra-phase dependencies: T46 and T49 are independent.
 **Requirement**: DASH-01
 **Tests**: the backend's own suite must stay green — 349 passed, 0 failed — proving the pipeline change broke nothing
 **Gate**: `test` (run in `backend/`: `dotnet test Balance.sln --nologo`)
+**Status**: ✅ Complete. `WithOrigins("http://localhost:5173", "http://localhost:8081")` on the `FrontendDevServer` policy; no `AllowAnyOrigin`. Gate: 349 passed, 0 failed (59 Validators + 174 UseCases + 116 WebApi), build 0 errors 0 warnings. Code committed in `backend/` on `feature/expense-tracking`; this spec record travels in the next `mobile/` commit (T1).
 
-#### T49: Expose the payment id on the monthly recurring line
+#### T49: Expose the payment id on the monthly recurring line ✅
 
 **Where**: `backend/src/Balance.Communication/Responses/ResponseMonthlyExpenseJson.cs`
 **What**: Add a nullable `PaymentId` to `ResponseRecurringExpenseLineJson`, populated in `GetMonthlyExpenseUseCase` from the month's payment and null when none exists. Without it, `PUT /api/recurring-expense/payment/{id}` is unreachable from a monthly line, so a bill paid in a previous app session can never be corrected.
@@ -103,6 +104,7 @@ No intra-phase dependencies: T46 and T49 are independent.
 **Requirement**: REC-03
 **Tests**: backend use case + endpoint layers — a month with a payment returning that payment's exact id, and a month without one returning null. Assert the id **value**, not merely that the field exists (backend lesson L-004: this is precisely how a wrong `dueDay` shipped)
 **Gate**: `test` (run in `backend/`: `dotnet test Balance.sln --nologo`)
+**Status**: ✅ Complete. `Guid? PaymentId` on `ResponseRecurringExpenseLineJson`, set from `payment?.Id` in `GetMonthlyExpenseUseCase.BuildRecurringLine`. Three tests assert the id **value**: `A_Paid_Line_Carries_The_Id_Of_That_Months_Payment` and `An_Unpaid_Line_Carries_A_Null_Payment_Id` (use case), `A_Recurring_Line_Reports_The_Id_Of_The_Payment_Recorded_For_That_Month` (endpoint, both branches over the round trip). L-004 discrimination check run: forcing `PaymentId = null` failed one test at each layer, then reverted. Gate: 352 passed, 0 failed (was 349), build 0 errors 0 warnings. AD-006 held — `git diff --name-only main..HEAD | grep -i income` is empty. Code committed in `backend/`; this spec record travels in the next `mobile/` commit (T1).
 
 ---
 
@@ -117,7 +119,7 @@ T2 -> T5
 T3 -> T5
 ```
 
-#### T1: Scaffold the Expo TypeScript project
+#### T1: Scaffold the Expo TypeScript project ✅
 
 **Where**: `mobile/`
 **What**: `create-expo-app` with the TypeScript template, run on the NVM Node 20 binary. Add a React Native `.gitignore` (`node_modules`, `.expo`, `dist`, `*.log`, `.env*.local`). Record the exact Expo SDK and React Native versions produced, in this task's status line.
@@ -125,6 +127,14 @@ T3 -> T5
 **Requirement**: AUTH-01
 **Tests**: none yet — the test runner is T2. The scaffold is proved by `types` compiling the template
 **Gate**: `types`
+**Status**: ✅ Complete. `create-expo-app@latest --template default` (the TypeScript + Expo Router template the design's `app/` tree assumes). **Expo SDK 57.0.12, React Native 0.86.2, React 19.2.3, TypeScript 6.0.3, expo-router 57.0.12** — one minor line above the spec's SDK 56 / RN 0.85 guess, which was marked unconfirmed. Scaffolded into a temp directory and moved in, since `mobile/` already held `.git/` and `.specs/`; both untouched. `.gitignore` verified with `git check-ignore` for `node_modules`, `.expo/`, `dist/`, `*.log` (added) and `.env*.local`. Gate: `tsc --noEmit` exit 0.
+
+Deviations, all recorded rather than silent:
+- SDK 57's template puts routes in `src/app/`; the design's tree puts them at `app/`. Routes were placed at root `app/` to match the design — leaving both would make Expo Router see two app directories.
+- The template's demo content (`src/components`, `src/constants`, `src/hooks`, `global.css`, the demo tabs routes, `scripts/reset-project.js` and its npm script) was dropped, which is what the template's own `reset-project` exists to do. `app/_layout.tsx` and `app/index.tsx` are the blank placeholders that reset produces. **T18 replaces `app/_layout.tsx` and must delete `app/index.tsx`**, which would otherwise collide with T43's `app/(app)/index.tsx`.
+- The template's `.claude/settings.json`, `CLAUDE.md` and `AGENTS.md` were not installed: agent configuration is outside this task's scope. `LICENSE` and the template `README.md` were also left out; T47 writes the README.
+
+This commit also carries the Phase 0 spec records for T46 and T49, whose code landed in the `backend/` repo.
 
 #### T2: Configure Jest and React Native Testing Library
 

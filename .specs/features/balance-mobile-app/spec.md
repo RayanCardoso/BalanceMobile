@@ -243,12 +243,12 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| AUTH-01 | P1: Sign in and stay signed in | Pending | Pending |
+| AUTH-01 | P1: Sign in and stay signed in | 1 | Implementing |
 | AUTH-02 | P1: Sign in and stay signed in | Pending | Pending |
 | AUTH-03 | P1: Sign in and stay signed in | Pending | Pending |
 | CAT-01 | P1: Keep the catalogue | Pending | Pending |
 | CAT-02 | P1: Keep the catalogue | Pending | Pending |
-| DASH-01 | P1: See the month at a glance | Pending | Pending |
+| DASH-01 | P1: See the month at a glance | 0 | Implementing |
 | DASH-02 | P1: See the month at a glance | Pending | Pending |
 | INC-01 | P1: Record and review income | Pending | Pending |
 | INC-02 | P1: Record and review income | Pending | Pending |
@@ -258,7 +258,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | EXP-03 | P1: Record and review expenses | Pending | Pending |
 | REC-01 | P1: Manage recurring bills | Pending | Pending |
 | REC-02 | P1: Manage recurring bills | Pending | Pending |
-| REC-03 | P1: Manage recurring bills | Pending | Pending |
+| REC-03 | P1: Manage recurring bills | 0 | Implementing |
 | REC-04 | P1: Manage recurring bills | Pending | Pending |
 | INST-01 | P2: Record an installment purchase | Pending | Pending |
 | UX-01 | P2: Understand what the app is doing | Pending | Pending |
