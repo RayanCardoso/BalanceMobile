@@ -275,7 +275,7 @@ Also covered: the bearer header present with a token and **absent** without one,
 
 Non-400 failures (404, 500) also become `ApiError`, carrying `errorMessages` when the envelope has them and an **empty** array when it does not — the transport layer writes no user copy of its own. The generic fallback wording belongs to the screens and is T45's sweep. Recorded rather than left implicit.
 
-#### T10: Add query keys and the QueryClient provider
+#### T10: Add query keys and the QueryClient provider ✅
 
 **Where**: `mobile/src/shared/api/queryKeys.ts`
 **What**: One factory per resource — `qk.dashboard(y, m)`, `qk.incomeMonth(y, m)`, `qk.expenseMonth(y, m)`, `qk.people()`, `qk.categories()`, `qk.accounts()` — plus a `QueryClientProvider` wrapper and a test helper that builds a client with retries off.
@@ -283,10 +283,17 @@ Non-400 failures (404, 500) also become `ApiError`, carrying `errorMessages` whe
 **Requirement**: INC-03, EXP-03
 **Tests**: pure-function layer — each factory returns a stable key for the same input and a different key for a different month, which is what makes invalidation land
 **Gate**: `full`
+**Status**: ✅ Complete. Three files, `@tanstack/react-query ^5.90.x`. Gate: `tsc` exit 0, 83 passed 0 failed (was 71).
 
----
+- `src/shared/api/queryKeys.ts` — the six factories.
+- `src/shared/api/queryClient.tsx` — `createQueryClient` and the `QueryProvider` wrapper T18 mounts at the root.
+- `src/shared/api/testQueryClient.tsx` — `createTestQueryClient` with **retries off** and `createQueryWrapper` for `renderHook`. With the default retry policy a hook test asserting an error state waits through three backed-off retries, so a wrongly mapped error reads as a hanging test rather than a failing one.
 
-### Phase 3: Shared UI primitives
+`queryKeys.test.ts`, 12 tests. Each key is pinned to a **literal** array first, then the two properties invalidation actually depends on are asserted around it: the same input giving an equal key, and different inputs giving different ones. Comparing two calls is the only way to state stability, and the literals are what keep that from becoming self-referential.
+
+`expenseMonth(2026, 8)` and `expenseMonth(2026, 9)` are asserted unequal, as are the same month across two years. A factory ignoring an argument would put every month in one cache entry, and recording an expense in August would appear to change September. The three month resources are also asserted apart from each other for one and the same month, so invalidating the dashboard cannot silently drop the income month.
+
+`QueryProvider` and the test client carry no tests of their own: both are proved structurally from Phase 5 onwards, where every hook test renders through them and would fail immediately if either were wrong. A test here would assert that a wrapper wraps.
 
 No intra-phase dependencies: T11–T14 depend only on Phases 1 and 2 and may be done in any order.
 
