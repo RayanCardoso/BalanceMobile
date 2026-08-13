@@ -158,7 +158,7 @@ Two notes: `react-test-renderer` is pinned to `19.2.3` to match the scaffold's e
 **Gate**: `types`
 **Status**: ✅ Complete. `strict: true` (already from the scaffold) plus `noUncheckedIndexedAccess: true` in `tsconfig.json`. `@/*` → `src/*` now resolves in all three: `tsconfig.json` `paths`, a new `babel.config.js` using `babel-plugin-module-resolver`, and `moduleNameMapper` in `jest.config.js`. The scaffold's second alias `@/assets/*` → `assets/*` is mirrored in the same three so the lists cannot drift; it is listed first in babel and jest, since `^@/(.*)$` would otherwise swallow it. `babel.config.js` keeps `babel-preset-expo` as its only preset, which is what wires reanimated and worklets. Gate: `tsc --noEmit` exit 0; tests still 1 passed, 0 failed. The alias itself is proved by T4, whose test imports through `@/shared/lib/money`.
 
-#### T4: Add the money helpers
+#### T4: Add the money helpers ✅
 
 **Where**: `mobile/src/shared/lib/money.ts`
 **What**: `formatMoney(number): string` in pt-BR, and `parseMoneyInput(string): number | null` accepting `1234,56` and `1234.56` and rejecting junk.
@@ -166,6 +166,11 @@ Two notes: `react-test-renderer` is pinned to `19.2.3` to match the scaffold's e
 **Requirement**: CAT-01, UX-01
 **Tests**: pure-function layer — **literal** expected strings (`formatMoney(1234.56)` → `'R$ 1.234,56'`), zero, negative, a value with one decimal place, and each rejected input returning null. Assertions must not call `Intl.NumberFormat` themselves (lesson L-010)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/shared/lib/money.ts` + `money.test.ts`, 10 tests, every expected value a literal and no `Intl` call anywhere in the test file. Covered: `formatMoney(1234.56)` → `'R$ 1.234,56'`, `0` → `'R$ 0,00'`, `-45.9` → `'-R$ 45,90'` (negative, not absolute), `1234.5` → `'R$ 1.234,50'`; `parseMoneyInput` accepting both separators and returning null for an empty string, whitespace, letters, a currency prefix, two separators and a bare separator. The test imports through `@/shared/lib/money`, which is what proves T3's alias resolves under Jest. Gate: `tsc` exit 0, 13 passed 0 failed.
+
+Formatting is hand-rolled rather than `Intl.NumberFormat`: Hermes does not guarantee the ICU data `pt-BR` currency needs, and ICU separates `R$` from the digits with a non-breaking space, which would differ from the pinned literal by an invisible character.
+
+⚠️ **Spec-precision gap**: the task names exactly two accepted inputs, `1234,56` and `1234.56`. A pt-BR grouped string such as `1.234,56` therefore parses to null. If a user is expected to be able to type the thousands separator, the spec has to say so and this needs a follow-up task.
 
 #### T5: Add the date helpers
 
