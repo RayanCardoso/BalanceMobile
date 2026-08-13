@@ -297,7 +297,7 @@ Non-400 failures (404, 500) also become `ApiError`, carrying `errorMessages` whe
 
 No intra-phase dependencies: T11–T14 depend only on Phases 1 and 2 and may be done in any order.
 
-#### T11: Add the screen state primitives
+#### T11: Add the screen state primitives ✅
 
 **Where**: `mobile/src/shared/ui/states.tsx`
 **What**: `Screen`, `Loading`, `EmptyState(message)` and `ErrorState(message, onRetry)`. Every list screen is built from these four, so UX-01 is structural rather than remembered per screen.
@@ -305,6 +305,11 @@ No intra-phase dependencies: T11–T14 depend only on Phases 1 and 2 and may be 
 **Requirement**: UX-01
 **Tests**: screen layer — each renders its message, and `ErrorState` calls `onRetry` when pressed
 **Gate**: `full`
+**Status**: ✅ Complete. `src/shared/ui/states.tsx` + `states.test.tsx`, 7 tests. Gate: `tsc` exit 0, 90 passed 0 failed (was 83).
+
+Each message is asserted as the literal text the user reads. The retry is asserted by the call it makes — `onRetry` having been called exactly once — not by the control being on screen: a button rendered without its handler wired looks identical and would satisfy a presence check while leaving spec UX AC2 broken.
+
+`ErrorState` stores no wording. Its message is a prop, so the API's own pt-BR copy reaches the screen unaltered (MAD-004); the only string this module owns is the retry label.
 
 #### T12: Add the money and status display components
 
