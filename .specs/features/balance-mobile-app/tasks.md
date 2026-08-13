@@ -220,7 +220,7 @@ T6 and T7 have no intra-phase dependency and may be done in either order.
 
 Each constructor calls `Object.setPrototypeOf`. A class extending a built-in loses its prototype when downlevelled, and every `instanceof` in the app would then collapse to the same branch — the exact confusion these three types exist to prevent.
 
-#### T7: Add token storage with a web fallback
+#### T7: Add token storage with a web fallback ✅
 
 **Where**: `mobile/src/shared/lib/tokenStorage.ts`
 **What**: `getToken` / `setToken` / `clearToken` over `expo-secure-store` on native and `localStorage` on web, where SecureStore has no implementation and would throw. The platform split lives only here.
@@ -228,6 +228,13 @@ Each constructor calls `Object.setPrototypeOf`. A class extending a built-in los
 **Requirement**: AUTH-01
 **Tests**: pure-function layer — both branches with `Platform.OS` mocked, including `clearToken` actually removing the value
 **Gate**: `full`
+**Status**: ✅ Complete. `src/shared/lib/tokenStorage.ts` + `tokenStorage.test.ts`, 9 tests, both platform branches. `expo-secure-store ~57.0.1` installed through `expo install`, which also registered its config plugin in `app.json`. Gate: `tsc` exit 0, 47 passed 0 failed (was 38).
+
+`Platform.OS` is swapped with `Object.defineProperty`, and the web fake keeps a backing map rather than returning canned values. That combination is what makes the branch test discriminating: if the platform swap silently failed, the web tests would fall through to the SecureStore mocks and read `undefined` instead of the token they stored.
+
+`clearToken` is pinned twice per platform — a read afterwards returning **null**, and the removal call itself asserted with `setItemAsync` proved not to have been called. An implementation writing `''` would pass a weaker test while leaving a stored token that reads as an empty string.
+
+The web build falls back to `localStorage`, which is not a secure store. It is the browser's only option and the web build is a development surface, not a shipped one.
 
 #### T8: Add the session store
 
