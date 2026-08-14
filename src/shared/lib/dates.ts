@@ -59,6 +59,16 @@ export function monthLabel(year: number, month: number): string {
   return `${name} de ${year}`;
 }
 
+/**
+ * The month a month-scoped screen opens on.
+ *
+ * Read through the local getters, never by formatting a `Date` to a string and slicing it: the ISO
+ * form is UTC, so at 21:00 on 31 August in São Paulo it would already say September.
+ */
+export function currentMonth(now: Date = new Date()): { year: number; month: number } {
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+
 /** Moves a month by `delta`, carrying across the year boundary in both directions. */
 export function shiftMonth(
   year: number,

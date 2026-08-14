@@ -1,4 +1,4 @@
-import { fromApiDate, monthLabel, shiftMonth, toApiDate } from '@/shared/lib/dates';
+import { currentMonth, fromApiDate, monthLabel, shiftMonth, toApiDate } from '@/shared/lib/dates';
 
 /** Every expected value below is a literal, never a value recomputed through a `Date`. */
 
@@ -21,6 +21,21 @@ describe('toApiDate and fromApiDate', () => {
     ['an empty string', ''],
   ])('returns null for %s', (_label, input) => {
     expect(fromApiDate(input)).toBeNull();
+  });
+});
+
+describe('currentMonth', () => {
+  it('reads the year and the month a local instant falls in', () => {
+    expect(currentMonth(new Date(2026, 7, 15, 12, 0))).toEqual({ year: 2026, month: 8 });
+  });
+
+  // The suite runs at UTC-11, where a local evening on the last day of August is already the first
+  // of September in UTC. A month read off `toISOString()` would open the screen on the wrong month.
+  it('stays in August late on 31 August, where the UTC date is already September', () => {
+    const lateAugustEvening = new Date(2026, 7, 31, 21, 0);
+
+    expect(lateAugustEvening.toISOString().slice(0, 7)).toBe('2026-09');
+    expect(currentMonth(lateAugustEvening)).toEqual({ year: 2026, month: 8 });
   });
 });
 

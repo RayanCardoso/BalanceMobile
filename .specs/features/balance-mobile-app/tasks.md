@@ -626,7 +626,7 @@ Spec INC AC9 gets its own test: two payments against the same source and referen
 
 **Additive change to a Phase 2 file, recorded rather than silent:** `qk.incomeMonths()` — the bare `['incomeMonth']` prefix — was added to `queryKeys.ts` with three tests, one of them pinning that it is the head of `qk.incomeMonth(y, m)`. Registering a source is not scoped to one month (it belongs to its start month and every month after), so it invalidates the prefix rather than guessing one month and leaving the rest stale. Nothing in `queryKeys.test.ts` was weakened or removed.
 
-#### T27: Add the income month screen
+#### T27: Add the income month screen ✅
 
 **Where**: `mobile/app/(app)/income/index.tsx`
 **What**: One line per source with expected, received and status, with month navigation and the four states.
@@ -634,6 +634,19 @@ Spec INC AC9 gets its own test: two payments against the same source and referen
 **Requirement**: INC-01
 **Tests**: screen layer — expected, received **and** the status label asserted per line, not just the totals (lesson L-004); a variable source rendering an absent expected rather than zero
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/income/ui/IncomeMonthScreen.tsx` + its test, 10 cases; `app/(app)/income/index.tsx` is a one-line mount point. Gate: `tsc` exit 0, 226 passed 0 failed (was 214).
+
+**A real ambiguity surfaced on the first run and was fixed, not worked around.** `Recebido` is both the heading of the received figure and the label of status 1, so a row-wide `getByText('Recebido')` matched two nodes and could not tell an amount heading from a status. Each of the three fields spec INC AC1 names now has its own `testID` subtree — `income-expected-*`, `income-received-*`, `income-status-*` — and every assertion is scoped with `within(...)`. No assertion was loosened to `getAllByText`; the result is stronger than the row-level form, because a screen rendering the wrong status can no longer be rescued by a heading that happens to carry the same word.
+
+**Three assertions per line, on three separate lines (lesson L-004).** Pendente with 5.000,00 expected and 0,00 received; Recebido with 1.800,00 twice; Divergente with 900,00 expected against 745,50 received. A fourth test pins the statuses apart from each other — `income-status-s1` asserted **not** to read `Recebido` — so one label bleeding across every line would fail.
+
+**Discrimination sensor run.** The absent-expected branch was replaced with `<Money value={line.expectedAmount ?? 0} />` in the working tree. Exactly one test failed — `renders the expected amount as absent, not as R$ 0,00` — while the other nine stayed green. Reverted; the suite is back to 226 passed. Null and zero are different facts: one says nothing is expected of a variable source, the other says R$ 0,00 was expected and did not arrive.
+
+**Additive files, recorded:**
+- `src/features/income/ui/errors.ts` — `apiMessages` / `listErrorMessage` for the income feature, mirroring the catalogue's rather than importing it, so neither feature can retitle the other's copy.
+- `currentMonth()` in `src/shared/lib/dates.ts` (2 tests) — the month a month-scoped screen opens on. It reads the local getters rather than slicing `toISOString()`; the second test pins that difference at the suite's UTC-11 offset, where a local evening of 31 August is already September in UTC. The screen test mocks it so every month label asserted is a literal.
+
+Totals are deliberately not rendered. Spec INC AC1 names three things per **line**, and the month's totals are the dashboard's subject (DASH-01).
 
 #### T28: Add the register income source screen
 
