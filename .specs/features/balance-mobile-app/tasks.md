@@ -1009,7 +1009,7 @@ T44 -> T45
 
 The key assertion is the one that matters here: reading under a hand-written string instead of `qk.dashboard(...)` would compile, pass a path test, and leave the dashboard stale after every write in the app - `useRegisterExpense`, `useRegisterIncomePayment` and both recurring payment hooks already invalidate that exact factory. The second test holds two months in one cache and asserts each under its own key, so a factory ignoring its arguments fails rather than silently sharing one entry.
 
-#### T43: Add the dashboard screen
+#### T43: Add the dashboard screen ✅
 
 **Where**: `mobile/app/(app)/index.tsx`
 **What**: Income received, committed expense and balance, plus four groups — recurring income, variable income, recurring expenses, variable expenses — with month navigation.
@@ -1017,6 +1017,13 @@ The key assertion is the one that matters here: reading under a hand-written str
 **Requirement**: DASH-01, DASH-02
 **Tests**: screen layer — the three totals as literal strings, all four groups present, a negative balance rendered as negative (spec DASH AC5), and an empty month showing zeroed totals rather than a blank screen
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/dashboard/ui/DashboardScreen.tsx` + `errors.ts` and 9 tests, one per DASH acceptance criterion; `app/(app)/index.tsx` is a one-line mount point. Gate: `tsc` exit 0, 351 passed 0 failed (was 342).
+
+**No arithmetic on the screen** (MAD-001). `totalReceived`, `totalCommitted` and `balance` are the API's own figures, and the four groups carry **no subtotals** - the API publishes none per group, and inventing one here would be the client deciding what a group is worth. The groups are a pure partition of two lists the response already returns: income lines split on the `type` each line arrived with, and the expense month's two arrays. Every line is asserted **inside its own group and denied in the other three**, so a screen rendering one flat list fails instead of satisfying a page-wide text query.
+
+AC5 gets both halves: the balance asserted as the literal `-R$ 470,50` **and** the absolute `R$ 470,50` asserted absent. Asserting only the signed string would still pass an implementation that rendered both.
+
+AC3's assertions run **synchronously after the press, with no `await` between** - the stubbed response settles on a microtask, which cannot run mid-block, so that is exactly the frame between the month changing and the new one answering. August's balance is asserted gone under the September heading. The first draft instead stubbed a request that never settled; it passed, but left Jest reporting a worker that would not exit, so the technique was replaced rather than the warning ignored.
 
 #### T44: Add the tab navigation shell and the sign-out control
 
