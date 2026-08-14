@@ -725,7 +725,7 @@ T32 -> T34
 T32 -> T35
 ```
 
-#### T31: Add the expense model
+#### T31: Add the expense model ✅
 
 **Where**: `mobile/src/features/expenses/model/expense.ts`
 **What**: Types for the monthly expense response, plus `ExpenseStatus` (Pendente, Pago, Divergente), `ExpenseType` (Crédito, Débito, Pix) and `ExpensePriority` maps.
@@ -733,6 +733,15 @@ T32 -> T35
 **Requirement**: EXP-01
 **Tests**: pure-function layer — every integer of all three maps to its literal label, one fixture per branch, and `Paid` reading Pago rather than Recebido
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/expenses/model/expense.ts` + `expense.test.ts`, 12 tests. Gate: `tsc` exit 0, 257 passed 0 failed (was 245).
+
+Each branch of both maps this feature owns gets its own fixture and its own **literal** expected string (L-005, L-010); no assertion is built from a map itself, which would agree with whatever wording the map happened to hold. Status 1 is pinned in both directions — `Pago`, and asserted **not** to be `Recebido` — because that integer is exactly where the expense and income vocabularies part. The two maps stay in their own features, so a rename on one side cannot retitle the other.
+
+**`ExpensePriority` is not a third map.** The API's priority enum is the same one a category carries, so the type aliases the catalogue's `CategoryPriority` and the labels read through `features/catalogue/model/priority.ts`. Two copies of one enum's wording is how the same integer ends up reading `Supérfluo` on one screen and something else on another. The three branches are still pinned here, because this is the task that names them for the expense side.
+
+`ExpenseStatus` and `ExpenseType` are the union `0 | 1 | 2` rather than `number`, which makes each label record exhaustive by the type checker instead of by a default branch.
+
+`expectedAmount` and `actualAmount` are `number | null` on a recurring line and mean different things: a month with no version in effect has no expected amount (spec edge case), and a bill that has not arrived has no actual one. T33 is where that reaches the screen.
 
 #### T32: Add the expense API hooks
 
