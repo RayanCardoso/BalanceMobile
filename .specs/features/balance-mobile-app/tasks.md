@@ -952,7 +952,7 @@ The `paymentId` on the selected month line - never re-fetched, never re-derived 
 
 Discrimination sensor run and reverted: `if (selectedLine.paymentId === null)` replaced with `if (true)`, forcing every submission down the POST path; exactly the PUT-path test failed, the POST-path and archived-message tests stayed green - proof the branch, not just the request shape, is what the test pins.
 
-#### T40: Add the change recurring value screen
+#### T40: Add the change recurring value screen ✅
 
 **Where**: `mobile/app/(app)/recurring/change-value.tsx`
 **What**: A form sending the new amount, validity start and change reason.
@@ -960,6 +960,9 @@ Discrimination sensor run and reverted: `if (selectedLine.paymentId === null)` r
 **Requirement**: REC-04
 **Tests**: screen layer — the payload, and the API's message when the reason is empty or the validity start is not later
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/recurring/ui/ChangeRecurringValueScreen.tsx` + its test (3 cases); `app/(app)/recurring/change-value.tsx` is a one-line mount point. Gate: `tsc` exit 0, 336 passed 0 failed (was 333).
+
+No client-side check that the validity start is later than the current version's, and no check that the change reason is non-empty (MAD-001/MAD-004) - both fixtures send the value that *would* be rejected client-side under a stricter implementation, and the test asserts the payload carried it through unmodified before asserting the API's own message rendered. A pre-validating form would have silently blocked the request and never exercised what the API actually says.
 
 #### T41: Add archive and unarchive
 
