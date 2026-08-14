@@ -562,7 +562,7 @@ CAT AC2, AC5 and the L-003/L-004 discipline follow T21's already-verified patter
 
 **Discrimination sensor run and reverted.** `closingDay: parseOptionalInt(closingDay) ?? 0` was injected in the working tree; exactly `sends null, not 0 or an empty string` failed, the other nine cases in the file stayed green. Reverted before committing.
 
-#### T24: Add the catalogue navigation
+#### T24: Add the catalogue navigation ✅
 
 **Where**: `mobile/app/(app)/catalogue/_layout.tsx`
 **What**: Groups the three catalogue screens under one route with tabs or a menu.
@@ -570,6 +570,11 @@ CAT AC2, AC5 and the L-003/L-004 discipline follow T21's already-verified patter
 **Requirement**: CAT-01
 **Tests**: screen layer — each of the three destinations reachable
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/catalogue/ui/CatalogueMenu.tsx` (2 tests) + `app/(app)/catalogue/_layout.tsx` (a `Stack`, same shape as `(auth)/_layout.tsx`) + `app/(app)/catalogue/index.tsx` mount point. Gate: `tsc` exit 0, 195 passed 0 failed (was 193).
+
+**Menu over tabs, and why.** `Tabs` from `expo-router` needs `@react-navigation/bottom-tabs`, not yet a dependency, and the app's real tab bar is T44's job (spec DASH-01). Installing that package here to build a three-item sub-navigator T44 would supersede is the dependency doing T44's work early — so `CatalogueMenu` links out with `Link` instead, at zero new dependencies. `Link` is mocked the same way `RootLayout.test.tsx` mocked `Stack` for T18: a `Text` carrying the target `href` as its `testID`, enough to prove which route each item targets without a real navigation container.
+
+**Phase 5 complete: T20–T24, five tasks, 24 tasks of 50 done overall.**
 
 ---
 
