@@ -2,6 +2,7 @@ import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useRecurringExpenses } from '@/features/recurring/api/useRecurring';
+import { ArchiveToggle } from '@/features/recurring/ui/ArchiveToggle';
 import { listErrorMessage } from '@/features/recurring/ui/errors';
 import { formatMoney } from '@/shared/lib/money';
 import { EmptyState, ErrorState, Loading, Screen } from '@/shared/ui/states';
@@ -54,7 +55,7 @@ export function RecurringBillsScreen(): React.JSX.Element {
                   {bill.isEstimate ? ' (estimativa)' : ''}
                 </Text>
               )}
-              {bill.archived ? <Text style={styles.archivedTag}>Arquivada</Text> : null}
+              <ArchiveToggle archived={bill.archived} recurringExpenseId={bill.id} />
             </View>
           );
         })}
@@ -106,11 +107,5 @@ const styles = StyleSheet.create({
   },
   rowDetail: {
     fontSize: 13,
-  },
-  archivedTag: {
-    color: '#8a6d00',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 2,
   },
 });

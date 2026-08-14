@@ -964,7 +964,7 @@ Discrimination sensor run and reverted: `if (selectedLine.paymentId === null)` r
 
 No client-side check that the validity start is later than the current version's, and no check that the change reason is non-empty (MAD-001/MAD-004) - both fixtures send the value that *would* be rejected client-side under a stricter implementation, and the test asserts the payload carried it through unmodified before asserting the API's own message rendered. A pre-validating form would have silently blocked the request and never exercised what the API actually says.
 
-#### T41: Add archive and unarchive
+#### T41: Add archive and unarchive ✅
 
 **Where**: `mobile/src/features/recurring/ui/ArchiveToggle.tsx`
 **What**: A control archiving and unarchiving a bill from the list, confirming before archiving.
@@ -972,6 +972,17 @@ No client-side check that the validity start is later than the current version's
 **Requirement**: REC-04
 **Tests**: screen layer — archiving removing the bill from the month view and unarchiving restoring it with its recorded payment intact (spec REC AC7, AC8)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/recurring/ui/ArchiveToggle.tsx` (4 tests) wired into `RecurringBillsScreen.tsx` in place of the static "Arquivada" text it showed since T37. Gate: `tsc` exit 0, 340 passed 0 failed (was 336).
+
+Confirmation is an **inline** two-step ("Arquivar" → "Arquivar esta conta? / Confirmar / Cancelar"), not `Alert.alert`: a native modal has no DOM RNTL can assert against without mocking the whole module, and the inline step is both genuinely confirmable and directly testable. Unarchiving is one press with no confirmation - it is the recovery path, not a second destructive action.
+
+**The round-trip test is the direct proof of REC AC7/AC8's actual point** - that archiving is not deletion. `RecurringExpense` (the bills list's own type) carries no payment data at all, so "the payment survives" can only be shown at the layer that has one: the monthly expense view. The test archives a paid bill, asserts its line vanishes from `useExpenseMonth`, unarchives it, and asserts the exact same paid amount reappears - proven against three sequential, hand-sequenced `GET` responses standing in for the backend's real behaviour (present → excluded once archived → present again with history intact), the same technique T36 used for month-scoped invalidation.
+
+**A real flake, caught and fixed rather than dismissed.** The round-trip test failed roughly 1 run in 3 under the full suite's parallel load (10/10 clean in isolation, every time). Traced to a `waitFor` at the default 1000ms timeout guarding a `mutate → invalidate → refetch → re-render` chain - legitimately slower than a single request, and CPU contention from 38 concurrent files could push it past the default window. Widened to 5000ms on the two assertions in that chain; three repeated full-suite runs afterward were clean. This is a different situation from the pre-existing income-screen flake flagged during Batch 6 (already queued as its own investigation) - that one was someone else's file; this one was new in this task, so it was root-caused and fixed here rather than deferred.
+
+Discrimination sensor run and reverted: the confirm-gate (`onPress={() => setConfirming(true)}`) was replaced with an immediate `toggle.mutate(...)`, skipping confirmation entirely. Exactly the three tests that depend on the confirm step failed (the two confirm/cancel tests plus the round-trip test, which confirms before archiving); the one-press unarchive test - which has no confirmation to skip - stayed green.
+
+**Phase 8 complete: T36, T37, T51 (backend), T38, T39, T40, T41 - eight tasks, 41 of 51 done overall.** Re-reading all seven status lines together per the phase-end sanity check: every REC AC is reachable from a screen, including AC8 (unarchive), which needed T51's list endpoint to be reachable at all and now is, end to end, by this task's own test.
 
 ---
 
