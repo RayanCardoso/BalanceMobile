@@ -17,6 +17,14 @@ export const qk = {
    * rather than guessing at one month and leaving the rest stale.
    */
   incomeMonths: () => ['incomeMonth'] as const,
+  /**
+   * Every expense month at once, and every dashboard at once. Archiving a recurring bill removes it
+   * from past and future months alike, so it invalidates the whole prefix rather than the month that
+   * happens to be on screen; a user scrolling back would otherwise read a month that still counts a
+   * bill the API no longer returns.
+   */
+  expenseMonths: () => ['expenseMonth'] as const,
+  dashboards: () => ['dashboard'] as const,
   people: () => ['people'] as const,
   categories: () => ['categories'] as const,
   accounts: () => ['accounts'] as const,

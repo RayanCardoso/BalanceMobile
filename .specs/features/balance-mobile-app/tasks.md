@@ -856,7 +856,7 @@ T36 -> T41
 T37 -> T41
 ```
 
-#### T36: Add the recurring bill API hooks
+#### T36: Add the recurring bill API hooks ✅
 
 **Where**: `mobile/src/features/recurring/api/useRecurring.ts`
 **What**: `useRegisterRecurringExpense`, `useRegisterRecurringPayment`, `useUpdateRecurringPayment`, `useChangeRecurringValue`, `useArchiveRecurringExpense`. Archiving invalidates every month, since it changes past and future alike.
@@ -864,6 +864,26 @@ T37 -> T41
 **Requirement**: REC-01, REC-03, REC-04
 **Tests**: hook layer — each payload, the update sending only amount, date, notes and account (spec REC AC5), and archiving invalidating more than the current month
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/recurring/api/useRecurring.ts` + `useRecurring.test.tsx`, 14 tests over `renderHook` and a routed `fetch` mock, so every payload asserted is the one the real `httpClient` serialised. Gate: `tsc` exit 0, 313 passed 0 failed (was 294).
+
+**Five writes, four different cache scopes, and each is asserted apart from the others.** This is the densest invalidation surface in the app, and a test that only asked "was something invalidated" would pass under an implementation that got all four wrong:
+
+| Write | Scope | What the test pins |
+| ----- | ----- | ------------------ |
+| register | every month from the first version's `validityStart` on | August and September re-read, **July does not** |
+| record / correct a payment | the payment's own `referenceMonth` | a bill for August settled on 3 September refreshes **August**, and September stays at one call |
+| change the base value | every month from the new `validityStart` on | September re-reads, **July and August do not** (spec REC AC6, "past months unaffected") |
+| archive / unarchive | every cached month | July, August, September **and July's dashboard** all re-read |
+
+July is the discriminating month: three of the four writes must leave it alone and the fourth must not. Every month figure comes from the API's response (MAD-003) — the register scope reads the version the API created, not the input, which carries no validity start at all.
+
+**Discrimination sensor run, three mutations at once.** `useRegisterRecurringExpense` and `useChangeRecurringValue` were both switched to invalidate everything, and `useArchiveRecurringExpense` to invalidate from August onward. Exactly four tests failed — one per broken scope, each naming its own criterion — while all six payload and route tests stayed green, which is what shows they were not carrying the scopes. Reverted; the suite is back to 313 passed.
+
+Spec REC AC5 is pinned twice: the literal body of the four fields a correction may change, and `referenceMonth`, `recurringExpenseId` and `paymentId` asserted **absent** from it. The body is built inside the hook rather than spread from the input, so no caller can widen it. Spec REC AC4's other half is pinned here too — a correction issues **zero** POSTs to `/recurring-expense/payment`.
+
+**Additive files, recorded:**
+- `src/features/recurring/model/recurring.ts` — the three wire types, where `design.md`'s folder layout puts them. The monthly line stays in `features/expenses/model`, because it arrives inside the monthly expense response.
+- `qk.expenseMonths()` and `qk.dashboards()` in `queryKeys.ts` (5 tests, one pinning each as the head of its month key). Archiving invalidates the prefixes; the from-a-month-onward scope reads those same heads through the factories rather than through a literal string, so a renamed resource cannot leave the predicate matching nothing. Nothing in `queryKeys.test.ts` was weakened or removed.
 
 #### T37: Add the recurring bills list screen
 

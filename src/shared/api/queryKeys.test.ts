@@ -51,6 +51,31 @@ describe('the income month prefix', () => {
   });
 });
 
+describe('the expense month and dashboard prefixes', () => {
+  it.each([
+    ['expenseMonths', qk.expenseMonths(), ['expenseMonth']],
+    ['dashboards', qk.dashboards(), ['dashboard']],
+  ])('builds %s from the name alone', (_name, key, expected) => {
+    expect(key).toEqual(expected);
+  });
+
+  // Archiving a bill invalidates these prefixes. They reach every month only while each is the head
+  // of the matching month key; if they drifted apart, archiving would refresh nothing and nothing
+  // would fail.
+  it.each([
+    ['expense month', qk.expenseMonth(2026, 8), qk.expenseMonths()],
+    ['dashboard', qk.dashboard(2026, 8), qk.dashboards()],
+  ])('is the head of a single %s key', (_name, monthKey, prefix) => {
+    expect(monthKey.slice(0, 1)).toEqual(prefix);
+  });
+
+  it('keeps the two prefixes apart from each other and from the income month', () => {
+    expect(qk.expenseMonths()).not.toEqual(qk.dashboards());
+    expect(qk.expenseMonths()).not.toEqual(qk.incomeMonths());
+    expect(qk.dashboards()).not.toEqual(qk.incomeMonths());
+  });
+});
+
 describe('the catalogue list factories', () => {
   it.each([
     ['people', qk.people(), ['people']],
