@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+# isolated worktrees background agents work in - never project content
+.claude/worktrees/
+
 # Expo
 .expo/
 dist/
