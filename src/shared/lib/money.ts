@@ -31,3 +31,23 @@ export function parseMoneyInput(input: string): number | null {
 
   return Number(trimmed.replace(',', '.'));
 }
+
+/**
+ * For an optional whole-number field - an account's closing day or due day - where an empty input is
+ * a valid "not set" rather than a rejected one. `parseOptionalInt('')` is `null`, distinct from the
+ * `NaN` a bare `Number('')` coercion or a rejected non-integer would produce; the API's `int?` needs
+ * exactly that distinction (spec CAT AC4).
+ */
+export function parseOptionalInt(input: string): number | null {
+  const trimmed = input.trim();
+
+  if (trimmed === '') {
+    return null;
+  }
+
+  if (/^\d+$/.test(trimmed) === false) {
+    return null;
+  }
+
+  return Number(trimmed);
+}

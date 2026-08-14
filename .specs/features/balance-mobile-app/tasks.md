@@ -546,7 +546,7 @@ The description is asserted per row, not only the names (L-004). A person whose 
 
 CAT AC2, AC5 and the L-003/L-004 discipline follow T21's already-verified pattern (create refreshes the list without a reload; a rejection shows the API's message and keeps the field filled).
 
-#### T23: Add the accounts screen
+#### T23: Add the accounts screen ✅
 
 **Where**: `mobile/app/(app)/catalogue/accounts.tsx`
 **What**: Lists Accounts and creates one, with closing day, due day and limit all optional.
@@ -554,6 +554,13 @@ CAT AC2, AC5 and the L-003/L-004 discipline follow T21's already-verified patter
 **Requirement**: CAT-01, CAT-02
 **Tests**: screen layer — an account created with all three optional fields empty succeeding and rendering without "NaN" or "undefined" (spec CAT AC4)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/shared/lib/parseOptionalInt` (new, additive — 6 tests) alongside `AccountsScreen.tsx` + its test, 11 cases; `app/(app)/catalogue/accounts.tsx` is a one-line mount point. Gate: `tsc` exit 0, 193 passed 0 failed (was 177).
+
+**CAT AC4, both directions asserted.** The read side: an account with all three fields null renders `queryByText(/NaN|undefined|null/)` as empty. The write side: submitting with the three text fields left empty is asserted on the **parsed JSON payload**, `closingDay`/`dueDay`/`limit` each `toBeNull()` — not `0`, not `""`. `parseOptionalInt('')` returns `null` rather than the `NaN` a bare `Number('')` coercion would, which is the distinction the API's `int?` needs.
+
+**CAT AC6, both branches.** One Person: the picker never renders (`queryByText('Rayan')` is null) and the submitted `personId` is theirs regardless. Two People: the picker renders both names, nothing is preselected, and pressing one sends that one's id.
+
+**Discrimination sensor run and reverted.** `closingDay: parseOptionalInt(closingDay) ?? 0` was injected in the working tree; exactly `sends null, not 0 or an empty string` failed, the other nine cases in the file stayed green. Reverted before committing.
 
 #### T24: Add the catalogue navigation
 

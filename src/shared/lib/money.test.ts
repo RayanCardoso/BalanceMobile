@@ -1,4 +1,4 @@
-import { formatMoney, parseMoneyInput } from '@/shared/lib/money';
+import { formatMoney, parseMoneyInput, parseOptionalInt } from '@/shared/lib/money';
 
 /**
  * Imported through the `@/` alias on purpose: this is what proves T3's mapping resolves under Jest.
@@ -43,5 +43,28 @@ describe('parseMoneyInput', () => {
     ['a bare separator', ','],
   ])('rejects %s', (_label, input) => {
     expect(parseMoneyInput(input)).toBeNull();
+  });
+});
+
+describe('parseOptionalInt', () => {
+  // Spec CAT AC4: an empty closing day, due day or limit must succeed. `null` is the value the API's
+  // `int?` expects for "not set" - distinct from the `NaN` a naive `Number('')` would produce.
+  it.each([
+    ['an empty string', ''],
+    ['only whitespace', '   '],
+  ])('treats %s as not set', (_label, input) => {
+    expect(parseOptionalInt(input)).toBeNull();
+  });
+
+  it('parses a whole number', () => {
+    expect(parseOptionalInt('20')).toBe(20);
+  });
+
+  it.each([
+    ['a decimal', '20.5'],
+    ['letters', 'abc'],
+    ['a negative number', '-1'],
+  ])('rejects %s', (_label, input) => {
+    expect(parseOptionalInt(input)).toBeNull();
   });
 });
