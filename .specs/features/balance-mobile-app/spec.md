@@ -260,7 +260,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | REC-02 | P1: Manage recurring bills | Pending | Pending |
 | REC-03 | P1: Manage recurring bills | 0 | Implementing |
 | REC-04 | P1: Manage recurring bills | Pending | Pending |
-| INST-01 | P2: Record an installment purchase | Pending | Pending |
+| INST-01 | P2: Record an installment purchase | 7 | Implementing |
 | UX-01 | P2: Understand what the app is doing | 1 | Implementing |
 | UX-02 | P2: Understand what the app is doing | 2 | Implementing |
 

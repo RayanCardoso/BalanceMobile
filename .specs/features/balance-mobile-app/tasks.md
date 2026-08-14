@@ -821,7 +821,7 @@ Spec EXP AC5 is asserted as the month changing on screen, not as the mutation su
 
 The type is asserted as the integer `2` for Pix, not the label and not `'2'` — the API's enum rejects a stringified value.
 
-#### T35: Add the installment plan screen
+#### T35: Add the installment plan screen ✅
 
 **Where**: `mobile/app/(app)/expenses/installment-plan.tsx`
 **What**: A form for total, count and start date, showing the generated installments and their amounts on success.
@@ -829,6 +829,19 @@ The type is asserted as the integer `2` for Pix, not the label and not `'2'` —
 **Requirement**: INST-01
 **Tests**: screen layer — a 100,00 in 3 response rendering 33,33 / 33,33 / 33,34 as literal strings, and the API's message when the count is rejected
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/expenses/ui/RegisterInstallmentPlanScreen.tsx` + its test, 6 cases; `app/(app)/expenses/installment-plan.tsx` is a one-line mount point. Gate: `tsc` exit 0, 294 passed 0 failed (was 288). Phase 7 closed.
+
+**The story's Independent Test is asserted per row, and that is what makes it discriminating.** 100,00 in 3 renders `R$ 33,33`, `R$ 33,33`, `R$ 33,34`, each queried **inside its own installment's subtree**, and the third is additionally asserted **not** to read `R$ 33,33`. A screen dividing the total itself would render 33,33 three times, lose a cent, and pass any assertion that only counted rows or looked for 33,33 somewhere on the page. Where the residual lands is the server's rule (MAD-001).
+
+**Discrimination sensor run.** The row's amount was replaced with `Math.floor(totalAmount / installmentCount * 100) / 100` — the obvious client-side split. Exactly `shows how many installments were created and the amount of each` failed, on the third row. Reverted; the suite is back to 294 passed.
+
+Spec INST AC2 is two things and gets two assertions (L-003): the count created reads `3 parcelas criadas`, and each amount is read separately. AC3's position reads `Parcela 1 de 3` … `3 de 3` per row. Each row also names the month **that installment** carries, so the three consecutive months the plan generated are visible rather than implied — the same values T32 invalidates on.
+
+Spec INST AC4 renders the API's sentence word for word and asserts **no summary appears**: a rejected plan generates nothing, and a screen that showed a stale one would tell the user a purchase was split when it was not.
+
+Every expected string is a literal (L-010); no `formatMoney` call appears in the test file. The summary is asserted absent before the first submit, so its presence afterwards means something.
+
+**Phase 7 complete: T31–T35, five tasks, 35 tasks of 50 done overall.**
 
 ---
 
