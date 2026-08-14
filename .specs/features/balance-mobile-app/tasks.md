@@ -934,7 +934,7 @@ Each row asserts its due day, current amount (including the `isEstimate` suffix)
 
 **Infrastructure note, unrelated to this task's scope, fixed separately (`a12d840`).** Verifying this task's gate surfaced a leftover git worktree from an earlier dispatch that failed to a transient server error - its directory survived because a VS Code file-watcher handle held it open, and Jest's haste map was reading every duplicate test file inside it, inflating the suite to 654 reported tests. `jest.config.js` now ignores `.claude/worktrees/`, and it is gitignored. The worktree directory itself is still on disk, harmless once ignored; removing it needs VS Code to release its handle first.
 
-#### T39: Add the record and correct payment screen
+#### T39: Add the record and correct payment screen ✅
 
 **Where**: `mobile/app/(app)/recurring/payment.tsx`
 **What**: One screen that POSTs a new payment when the month's line has a null `paymentId` and PUTs to that id when it does not, so the user never meets `PAYMENT_ALREADY_RECORDED` as a dead end. The id comes from the monthly line (T49), so correction works after an app restart.
@@ -942,6 +942,15 @@ Each row asserts its due day, current amount (including the `isEstimate` suffix)
 **Requirement**: REC-03
 **Tests**: screen layer — a line with a null `paymentId` sending POST, and a line carrying one sending PUT to **that exact id** (spec REC AC4); the month refreshing afterwards
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/recurring/ui/RecordRecurringPaymentScreen.tsx` + its test (4 cases, including the archived-bill rejection message); `app/(app)/recurring/payment.tsx` is a one-line mount point. Gate: `tsc` exit 0, 333 passed 0 failed (was 329, run with `--maxWorkers=2` per the ongoing CPU-contention note from T38).
+
+The `paymentId` on the selected month line - never re-fetched, never re-derived - is the single fact the screen branches on: null routes to `useRegisterRecurringPayment` (POST), present routes to `useUpdateRecurringPayment` (PUT `.../payment/{that id}`). The PUT payload is asserted to omit `referenceMonth` and `recurringExpenseId` entirely (spec REC AC5 - a correction is not the client's chance to move either).
+
+**Two bugs caught before commit, both by running the tests rather than trusting the code:**
+1. The submit-button label defaulted to "Corrigir pagamento" before any bill was even selected, because `undefined === null` is `false`. Fixed by requiring `selectedLine !== undefined` explicitly rather than relying on optional chaining's implicit coercion.
+2. A test asserted on the picker's options right after waiting for the *static* button label, which renders before the month query resolves - a race the test could win or lose depending on timing. Fixed by waiting for the bill's own name to appear instead.
+
+Discrimination sensor run and reverted: `if (selectedLine.paymentId === null)` replaced with `if (true)`, forcing every submission down the POST path; exactly the PUT-path test failed, the POST-path and archived-message tests stayed green - proof the branch, not just the request shape, is what the test pins.
 
 #### T40: Add the change recurring value screen
 
