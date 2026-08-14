@@ -1,6 +1,8 @@
 import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { colors, radius, space, type } from '@/shared/ui/theme';
+
 /**
  * Spec CAT-01. Groups the three catalogue screens under one reachable surface.
  *
@@ -28,19 +30,24 @@ export function CatalogueMenu(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: colors.surface.base,
     flex: 1,
-    gap: 12,
-    padding: 16,
+    gap: space.md,
+    padding: space.lg,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 8,
+    ...type.title,
+    color: colors.text.primary,
+    marginBottom: space.sm,
   },
   item: {
-    borderRadius: 8,
+    ...type.body,
+    backgroundColor: colors.surface.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.md,
     borderWidth: 1,
+    color: colors.text.primary,
     fontSize: 16,
-    padding: 14,
+    padding: space.lg,
   },
 });

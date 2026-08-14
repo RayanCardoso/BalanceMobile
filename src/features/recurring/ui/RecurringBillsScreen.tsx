@@ -6,6 +6,7 @@ import { ArchiveToggle } from '@/features/recurring/ui/ArchiveToggle';
 import { listErrorMessage } from '@/features/recurring/ui/errors';
 import { formatMoney } from '@/shared/lib/money';
 import { EmptyState, ErrorState, Loading, Screen } from '@/shared/ui/states';
+import { colors, radius, space, type } from '@/shared/ui/theme';
 
 /**
  * Spec REC-01 and REC-02, and T51's list-all endpoint - the only surface an archived bill's id stays
@@ -82,30 +83,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: space.lg,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    ...type.title,
+    color: colors.text.primary,
   },
   newLink: {
+    ...type.label,
+    color: colors.accent.base,
     fontSize: 14,
-    fontWeight: '600',
   },
   list: {
-    gap: 8,
+    gap: space.sm,
   },
   row: {
-    borderRadius: 8,
+    backgroundColor: colors.surface.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.md,
     borderWidth: 1,
     gap: 2,
-    padding: 12,
+    padding: space.md,
   },
   rowName: {
+    ...type.body,
+    color: colors.text.primary,
     fontSize: 16,
     fontWeight: '600',
   },
   rowDetail: {
+    ...type.caption,
+    color: colors.text.muted,
     fontSize: 13,
   },
 });

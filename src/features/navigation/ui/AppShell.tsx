@@ -2,6 +2,7 @@ import { Link, Stack } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useSignOut } from '@/features/auth/api/useSignOut';
+import { colors, space, stackScreenOptions, type } from '@/shared/ui/theme';
 
 /**
  * The signed-in shell: the five destinations of the app and the way out of it.
@@ -27,7 +28,7 @@ export function AppShell(): React.JSX.Element {
   return (
     <View style={styles.shell}>
       <View style={styles.content}>
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack screenOptions={stackScreenOptions} />
       </View>
 
       <View style={styles.bar}>
@@ -63,30 +64,35 @@ export function AppShell(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   shell: {
+    backgroundColor: colors.surface.base,
     flex: 1,
   },
   content: {
     flex: 1,
   },
   bar: {
+    backgroundColor: colors.surface.raised,
+    borderTopColor: colors.border.subtle,
     borderTopWidth: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: space.sm,
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm + 2,
   },
   destination: {
+    ...type.label,
+    color: colors.text.secondary,
     fontSize: 14,
-    fontWeight: '600',
-    paddingVertical: 4,
+    paddingVertical: space.xs,
   },
   signOut: {
-    paddingVertical: 4,
+    paddingVertical: space.xs,
   },
   signOutLabel: {
+    ...type.label,
+    color: colors.accent.base,
     fontSize: 14,
-    fontWeight: '600',
   },
 });

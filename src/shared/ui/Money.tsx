@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { formatMoney } from '@/shared/lib/money';
+import { colors, radius, space, type } from '@/shared/ui/theme';
 
 /**
  * A value and a status, rendered the same way everywhere.
@@ -29,37 +30,48 @@ export function StatusBadge({
 }): React.JSX.Element {
   return (
     <View style={[styles.badge, toneStyles[tone]]}>
-      <Text style={styles.badgeLabel}>{label}</Text>
+      {/* The tone tints the fill and the text together: on a dark surface the fill alone is too
+          quiet to carry the status, and unstyled text on it would be black on near-black. */}
+      <Text style={[styles.badgeLabel, toneLabelStyles[tone]]}>{label}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   value: {
-    fontSize: 16,
-    fontVariant: ['tabular-nums'],
+    ...type.money,
+    color: colors.text.primary,
   },
   negative: {
-    color: '#b3261e',
+    color: colors.status.negative,
   },
   badge: {
     alignSelf: 'flex-start',
-    borderRadius: 999,
-    paddingHorizontal: 10,
+    borderRadius: radius.pill,
+    paddingHorizontal: space.sm + 2,
     paddingVertical: 3,
   },
   badgeLabel: {
-    fontSize: 12,
+    ...type.caption,
     fontWeight: '600',
   },
   neutral: {
-    backgroundColor: '#e4e4e7',
+    backgroundColor: colors.status.neutralSoft,
   },
   positive: {
-    backgroundColor: '#c8e6c9',
+    backgroundColor: colors.status.positiveSoft,
   },
   warning: {
-    backgroundColor: '#ffe0b2',
+    backgroundColor: colors.status.warningSoft,
+  },
+  neutralLabel: {
+    color: colors.status.neutral,
+  },
+  positiveLabel: {
+    color: colors.status.positive,
+  },
+  warningLabel: {
+    color: colors.status.warning,
   },
 });
 
@@ -67,4 +79,10 @@ const toneStyles = {
   neutral: styles.neutral,
   positive: styles.positive,
   warning: styles.warning,
+};
+
+const toneLabelStyles = {
+  neutral: styles.neutralLabel,
+  positive: styles.positiveLabel,
+  warning: styles.warningLabel,
 };

@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { monthLabel, shiftMonth } from '@/shared/lib/dates';
+import { colors, radius, space, type } from '@/shared/ui/theme';
 
 /**
  * The month control every month-scoped screen sits under. It holds no state: the year and month it
@@ -39,20 +40,25 @@ const styles = StyleSheet.create({
   bar: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 12,
+    gap: space.md,
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: space.md,
   },
   control: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: colors.surface.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    paddingHorizontal: space.md,
+    paddingVertical: space.xs + 2,
   },
   controlLabel: {
-    fontSize: 13,
-    fontWeight: '600',
+    ...type.label,
+    color: colors.accent.base,
   },
   month: {
-    fontSize: 17,
+    ...type.heading,
+    color: colors.text.primary,
     fontWeight: '700',
   },
 });

@@ -1,5 +1,7 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { colors, disabledOpacity, radius, space, type } from '@/shared/ui/theme';
+
 /**
  * The three controls every form in the app is built from.
  *
@@ -35,8 +37,11 @@ export function Field({
         accessibilityLabel={label}
         onChangeText={onChangeText}
         placeholder={placeholder}
+        // Without this the placeholder renders in the platform's dark default and disappears
+        // against the field. Every colour on a dark surface has to be stated.
+        placeholderTextColor={colors.text.muted}
         secureTextEntry={secure}
-        style={styles.input}
+        style={[styles.input, error === undefined ? null : styles.inputInvalid]}
         value={value}
       />
       {error === undefined ? null : (
@@ -77,7 +82,14 @@ export function Picker<T extends string | number>({
             }}
             style={[styles.option, option.value === selected ? styles.optionSelected : null]}
           >
-            <Text>{option.label}</Text>
+            <Text
+              style={[
+                styles.optionLabel,
+                option.value === selected ? styles.optionLabelSelected : null,
+              ]}
+            >
+              {option.label}
+            </Text>
           </Pressable>
         ))}
       </View>
@@ -119,47 +131,66 @@ export function SubmitButton({
 
 const styles = StyleSheet.create({
   field: {
-    gap: 6,
-    marginBottom: 16,
+    gap: space.xs + 2,
+    marginBottom: space.lg,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
+    ...type.label,
+    color: colors.text.secondary,
   },
   input: {
-    borderRadius: 8,
+    ...type.body,
+    backgroundColor: colors.surface.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    color: colors.text.primary,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm + 2,
+  },
+  inputInvalid: {
+    borderColor: colors.status.negative,
   },
   error: {
-    color: '#b3261e',
-    fontSize: 13,
+    ...type.caption,
+    color: colors.status.negative,
   },
   options: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: space.sm,
   },
   option: {
-    borderRadius: 999,
+    backgroundColor: colors.surface.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.pill,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: space.md,
+    paddingVertical: space.xs + 2,
   },
   optionSelected: {
-    backgroundColor: '#d7e3ff',
+    backgroundColor: colors.accent.soft,
+    borderColor: colors.accent.base,
+  },
+  optionLabel: {
+    ...type.label,
+    color: colors.text.secondary,
+  },
+  optionLabelSelected: {
+    color: colors.accent.base,
   },
   submit: {
     alignItems: 'center',
-    borderRadius: 8,
-    paddingVertical: 12,
+    backgroundColor: colors.accent.base,
+    borderRadius: radius.sm,
+    paddingVertical: space.md + 2,
   },
   submitPending: {
-    opacity: 0.5,
+    opacity: disabledOpacity,
   },
   submitLabel: {
+    ...type.label,
+    color: colors.text.onAccent,
     fontSize: 16,
-    fontWeight: '600',
   },
 });

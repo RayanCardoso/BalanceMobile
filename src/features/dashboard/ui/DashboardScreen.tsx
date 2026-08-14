@@ -10,6 +10,7 @@ import { currentMonth } from '@/shared/lib/dates';
 import { Money } from '@/shared/ui/Money';
 import { MonthNavigator } from '@/shared/ui/MonthNavigator';
 import { EmptyState, ErrorState, Loading, Screen } from '@/shared/ui/states';
+import { colors, radius, space, type } from '@/shared/ui/theme';
 
 /**
  * The app's landing screen: what came in, what the month costs and what is left (spec DASH AC1).
@@ -221,18 +222,20 @@ export function DashboardScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    ...type.title,
+    color: colors.text.primary,
   },
   sections: {
-    gap: 8,
-    marginTop: 8,
+    gap: space.sm,
+    marginTop: space.sm,
   },
   totals: {
-    borderRadius: 8,
+    backgroundColor: colors.surface.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.md,
     borderWidth: 1,
-    gap: 6,
-    padding: 12,
+    gap: space.sm,
+    padding: space.lg,
   },
   total: {
     alignItems: 'center',
@@ -240,36 +243,45 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   totalLabel: {
+    ...type.label,
+    color: colors.text.secondary,
     fontSize: 14,
-    fontWeight: '600',
   },
   group: {
-    gap: 6,
-    marginTop: 8,
+    gap: space.sm,
+    marginTop: space.md,
   },
   groupTitle: {
+    ...type.heading,
+    color: colors.text.primary,
     fontSize: 16,
-    fontWeight: '700',
   },
   list: {
-    gap: 6,
+    gap: space.sm,
   },
   row: {
     alignItems: 'center',
-    borderRadius: 8,
+    backgroundColor: colors.surface.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.md,
     borderWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 12,
+    padding: space.md,
   },
   rowName: {
-    fontSize: 15,
+    ...type.body,
+    color: colors.text.primary,
     fontWeight: '600',
   },
   detail: {
+    ...type.caption,
+    color: colors.text.muted,
     fontSize: 13,
   },
   absent: {
+    ...type.body,
+    color: colors.text.muted,
     fontSize: 16,
   },
 });

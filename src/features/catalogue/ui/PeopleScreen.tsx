@@ -5,6 +5,7 @@ import { useCreatePerson, usePeople } from '@/features/catalogue/api/useCatalogu
 import { apiMessages, listErrorMessage } from '@/features/catalogue/ui/errors';
 import { Field, SubmitButton } from '@/shared/ui/form';
 import { EmptyState, ErrorState, Loading, Screen } from '@/shared/ui/states';
+import { colors, radius, space, type } from '@/shared/ui/theme';
 
 /**
  * Spec CAT AC1, AC2 and AC5.
@@ -96,30 +97,37 @@ export function PeopleScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 16,
+    ...type.title,
+    color: colors.text.primary,
+    marginBottom: space.lg,
   },
   error: {
-    color: '#b3261e',
+    ...type.body,
+    color: colors.status.negative,
     fontSize: 14,
-    marginBottom: 8,
+    marginBottom: space.sm,
   },
   list: {
-    gap: 8,
-    marginTop: 16,
+    gap: space.sm,
+    marginTop: space.lg,
   },
   row: {
-    borderRadius: 8,
+    backgroundColor: colors.surface.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.md,
     borderWidth: 1,
     gap: 2,
-    padding: 12,
+    padding: space.md,
   },
   rowName: {
+    ...type.body,
+    color: colors.text.primary,
     fontSize: 16,
     fontWeight: '600',
   },
   rowDetail: {
+    ...type.caption,
+    color: colors.text.muted,
     fontSize: 13,
   },
 });

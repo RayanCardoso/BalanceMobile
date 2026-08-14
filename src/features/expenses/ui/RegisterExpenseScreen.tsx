@@ -11,6 +11,7 @@ import { parseMoneyInput } from '@/shared/lib/money';
 import { Field, Picker, SubmitButton } from '@/shared/ui/form';
 import { MonthNavigator } from '@/shared/ui/MonthNavigator';
 import { Screen } from '@/shared/ui/states';
+import { colors, space, type } from '@/shared/ui/theme';
 
 /**
  * Spec EXP AC2 through AC8.
@@ -197,24 +198,28 @@ export function RegisterExpenseScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 16,
+    ...type.title,
+    color: colors.text.primary,
+    marginBottom: space.lg,
   },
   toggle: {
-    paddingVertical: 8,
+    paddingVertical: space.sm,
   },
   toggleLabel: {
+    ...type.label,
+    color: colors.accent.base,
     fontSize: 14,
-    fontWeight: '600',
   },
   notice: {
+    ...type.body,
+    color: colors.text.secondary,
     fontSize: 14,
-    marginBottom: 8,
+    marginBottom: space.sm,
   },
   error: {
-    color: '#b3261e',
+    ...type.body,
+    color: colors.status.negative,
     fontSize: 14,
-    marginBottom: 8,
+    marginBottom: space.sm,
   },
 });

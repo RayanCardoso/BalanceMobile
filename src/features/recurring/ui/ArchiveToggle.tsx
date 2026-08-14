@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useArchiveRecurringExpense } from '@/features/recurring/api/useRecurring';
+import { colors, space, type } from '@/shared/ui/theme';
 
 /**
  * Spec REC AC7 and AC8. Archiving removes a bill from every month at once (design.md), which is
@@ -83,19 +84,19 @@ const styles = StyleSheet.create({
   row: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 12,
+    gap: space.md,
   },
   archivedTag: {
-    color: '#8a6d00',
-    fontSize: 12,
+    ...type.caption,
+    color: colors.status.warning,
     fontWeight: '600',
   },
   confirmLabel: {
-    fontSize: 12,
+    ...type.caption,
+    color: colors.text.secondary,
   },
   link: {
-    color: '#0a5fcc',
-    fontSize: 13,
-    fontWeight: '600',
+    ...type.label,
+    color: colors.accent.base,
   },
 });

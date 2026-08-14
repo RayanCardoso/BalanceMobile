@@ -1,10 +1,12 @@
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { installSessionExpiry } from '@/features/auth/api/useSignOut';
 import { createQueryClient, QueryProvider } from '@/shared/api/queryClient';
 import { useSessionStore, type SessionStatus } from '@/shared/lib/sessionStore';
 import { Loading } from '@/shared/ui/states';
+import { stackScreenOptions } from '@/shared/ui/theme';
 
 /**
  * The only thing standing between a signed-out user and the whole app.
@@ -29,7 +31,7 @@ export function SessionGate({ status }: { status: SessionStatus }): React.JSX.El
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={stackScreenOptions}>
       <Stack.Protected guard={status === 'signedIn'}>
         <Stack.Screen name="(app)" />
       </Stack.Protected>
@@ -52,6 +54,9 @@ export function RootLayout(): React.JSX.Element {
 
   return (
     <QueryProvider client={queryClient}>
+      {/* The app is dark everywhere, so the clock and battery above it have to be light - the
+          system default is dark-on-dark and effectively invisible. */}
+      <StatusBar style="light" />
       <SessionGate status={status} />
     </QueryProvider>
   );

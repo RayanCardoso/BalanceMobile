@@ -15,6 +15,7 @@ import { currentMonth } from '@/shared/lib/dates';
 import { Money, StatusBadge, type StatusTone } from '@/shared/ui/Money';
 import { MonthNavigator } from '@/shared/ui/MonthNavigator';
 import { EmptyState, ErrorState, Loading, Screen } from '@/shared/ui/states';
+import { colors, radius, space, type } from '@/shared/ui/theme';
 
 /**
  * Spec EXP AC1 - the month's variable expenses and its recurring bills as two separate groups.
@@ -186,17 +187,18 @@ export function ExpenseMonthScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    ...type.title,
+    color: colors.text.primary,
   },
   sections: {
-    gap: 8,
-    marginTop: 8,
+    gap: space.sm,
+    marginTop: space.sm,
   },
   sectionTitle: {
+    ...type.heading,
+    color: colors.text.primary,
     fontSize: 16,
-    fontWeight: '700',
-    marginTop: 8,
+    marginTop: space.sm,
   },
   total: {
     alignItems: 'center',
@@ -204,35 +206,47 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   list: {
-    gap: 8,
+    gap: space.sm,
   },
   row: {
-    borderRadius: 8,
+    backgroundColor: colors.surface.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.md,
     borderWidth: 1,
-    gap: 4,
-    padding: 12,
+    gap: space.xs,
+    padding: space.md,
   },
   rowName: {
+    ...type.body,
+    color: colors.text.primary,
     fontSize: 16,
     fontWeight: '600',
   },
   figure: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 8,
+    gap: space.sm,
     justifyContent: 'space-between',
   },
   figureLabel: {
+    ...type.caption,
+    color: colors.text.secondary,
     fontSize: 13,
   },
   detail: {
+    ...type.caption,
+    color: colors.text.muted,
     fontSize: 13,
   },
   provisional: {
+    ...type.caption,
+    color: colors.text.muted,
     fontSize: 13,
     fontStyle: 'italic',
   },
   absent: {
+    ...type.body,
+    color: colors.text.muted,
     fontSize: 16,
   },
 });

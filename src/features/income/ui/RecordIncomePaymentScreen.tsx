@@ -9,6 +9,7 @@ import { parseMoneyInput } from '@/shared/lib/money';
 import { Field, Picker, SubmitButton } from '@/shared/ui/form';
 import { MonthNavigator } from '@/shared/ui/MonthNavigator';
 import { Screen } from '@/shared/ui/states';
+import { colors, space, type } from '@/shared/ui/theme';
 
 /**
  * Spec INC AC5 - "send the reference month separately from the payment date".
@@ -126,17 +127,18 @@ export function RecordIncomePaymentScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    ...type.title,
+    color: colors.text.primary,
   },
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 8,
+    ...type.label,
+    color: colors.text.secondary,
+    marginTop: space.sm,
   },
   error: {
-    color: '#b3261e',
+    ...type.body,
+    color: colors.status.negative,
     fontSize: 14,
-    marginBottom: 8,
+    marginBottom: space.sm,
   },
 });

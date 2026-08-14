@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { NetworkError } from '@/shared/api/ApiError';
+import { colors, radius, space, type } from '@/shared/ui/theme';
 
 /**
  * The four things a screen can be showing. Every list screen is built from these, which is what
@@ -39,8 +40,8 @@ export function Screen({ children }: { children: ReactNode }): React.JSX.Element
 
 export function Loading({ label = 'Carregando…' }: { label?: string }): React.JSX.Element {
   return (
-    <View style={styles.centered}>
-      <ActivityIndicator testID="loading-indicator" />
+    <View style={[styles.screen, styles.centered]}>
+      <ActivityIndicator color={colors.accent.base} testID="loading-indicator" />
       <Text style={styles.message}>{label}</Text>
     </View>
   );
@@ -73,27 +74,30 @@ export function ErrorState({
 
 const styles = StyleSheet.create({
   screen: {
+    backgroundColor: colors.surface.base,
     flex: 1,
-    padding: 16,
+    padding: space.lg,
   },
   centered: {
     alignItems: 'center',
-    gap: 12,
+    gap: space.md,
     justifyContent: 'center',
-    padding: 24,
+    padding: space.xl,
   },
   message: {
-    fontSize: 15,
+    ...type.body,
+    color: colors.text.secondary,
     textAlign: 'center',
   },
   retry: {
-    borderRadius: 8,
+    borderColor: colors.border.strong,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.sm,
   },
   retryLabel: {
-    fontSize: 15,
-    fontWeight: '600',
+    ...type.label,
+    color: colors.accent.base,
   },
 });

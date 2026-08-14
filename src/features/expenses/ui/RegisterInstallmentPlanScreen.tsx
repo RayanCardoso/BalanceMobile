@@ -10,6 +10,7 @@ import { parseMoneyInput, parseOptionalInt } from '@/shared/lib/money';
 import { Field, Picker, SubmitButton } from '@/shared/ui/form';
 import { Money } from '@/shared/ui/Money';
 import { Screen } from '@/shared/ui/states';
+import { colors, radius, space, type } from '@/shared/ui/theme';
 
 /**
  * Spec INST AC1 through AC4 - one decision producing one charge per month.
@@ -158,20 +159,23 @@ export function RegisterInstallmentPlanScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 16,
+    ...type.title,
+    color: colors.text.primary,
+    marginBottom: space.lg,
   },
   summary: {
-    borderRadius: 8,
+    backgroundColor: colors.surface.raised,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.md,
     borderWidth: 1,
-    gap: 8,
-    marginTop: 16,
-    padding: 12,
+    gap: space.sm,
+    marginTop: space.lg,
+    padding: space.md,
   },
   summaryTitle: {
+    ...type.heading,
+    color: colors.text.primary,
     fontSize: 16,
-    fontWeight: '700',
   },
   summaryRow: {
     alignItems: 'center',
@@ -180,14 +184,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   summaryPosition: {
+    ...type.caption,
+    color: colors.text.primary,
     fontSize: 13,
   },
   summaryMonth: {
+    ...type.caption,
+    color: colors.text.muted,
     fontSize: 13,
   },
   error: {
-    color: '#b3261e',
+    ...type.body,
+    color: colors.status.negative,
     fontSize: 14,
-    marginBottom: 8,
+    marginBottom: space.sm,
   },
 });

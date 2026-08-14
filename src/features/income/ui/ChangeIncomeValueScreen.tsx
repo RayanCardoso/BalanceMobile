@@ -8,6 +8,7 @@ import { currentMonth, todayApiDate } from '@/shared/lib/dates';
 import { parseMoneyInput, parseOptionalInt } from '@/shared/lib/money';
 import { Field, Picker, SubmitButton } from '@/shared/ui/form';
 import { Screen } from '@/shared/ui/states';
+import { colors, space, type } from '@/shared/ui/theme';
 
 /**
  * Spec INC AC7 - "send the new amount, the new expected day, the validity start and the change
@@ -116,13 +117,14 @@ export function ChangeIncomeValueScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 16,
+    ...type.title,
+    color: colors.text.primary,
+    marginBottom: space.lg,
   },
   error: {
-    color: '#b3261e',
+    ...type.body,
+    color: colors.status.negative,
     fontSize: 14,
-    marginBottom: 8,
+    marginBottom: space.sm,
   },
 });

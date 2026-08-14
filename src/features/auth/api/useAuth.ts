@@ -24,7 +24,7 @@ const storeSession = (user: AuthenticatedUser): Promise<void> =>
 
 export function useSignIn(): UseMutationResult<AuthenticatedUser, Error, SignInInput> {
   return useMutation({
-    mutationFn: (input: SignInInput) => post<AuthenticatedUser>('/login', input),
+    mutationFn: (input: SignInInput) => post<AuthenticatedUser>('/Login', input),
     onSuccess: storeSession,
   });
 }
