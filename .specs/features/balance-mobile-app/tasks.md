@@ -1118,7 +1118,7 @@ T47 -> T48
 
 Covers: the backend version dependency (T49's `paymentId`) and why an older API silently breaks payment correction rather than erroring; the CORS origin T46 added and why a device needs none of it; the `PATH`-prepend requirement for Node 20 that cost real time earlier in this feature (`SyntaxError: Unexpected token .` looking like a broken dependency); the `--maxWorkers=2` retry advice from T41's real, root-caused flake, framed as "reproduces alone = real, only under full parallelism = check load first" rather than "just retry"; and the LAN-IP requirement for a physical device, which only the user can supply.
 
-#### T48: Verify the app in the browser against the seeded database
+#### T48: Verify the app in the browser against the seeded database ✅
 
 **Where**: `mobile/`
 **What**: Start the API and `expo start --web`, sign in with the seeded account, and read the dashboard, the income month and the expense month for August and September 2026. Confirm the figures match what the API returns and that no console error appears. Record what was seen in the status line.
@@ -1126,6 +1126,25 @@ Covers: the backend version dependency (T49's `paymentId`) and why an older API 
 **Requirement**: DASH-01, INC-01, EXP-01
 **Tests**: the `web` gate is this task; automated coverage of the data itself already exists from Phases 6–9
 **Gate**: `web`
+**Status**: ✅ Complete — and the last task found a real bug that 365 mobile tests and 358 backend tests had missed.
+
+**Environment.** Docker had stopped between sessions; restarted it, brought up `Balance_postgres` on 5434, reset the volume for a clean single seed run (a second run on top of stale data had silently doubled every figure - `docker compose down -v` first, as the seed script itself warns). API restarted clean, migrations reapplied, `node frontend/scripts/seed.mjs` run once. `expo start --web` launched via a temporary wrapper script (removed after use; not part of the deliverable) prepending the NVM Node 20 directory to `PATH`, matching the README.
+
+**What was read, in a real browser, against the real seeded database:**
+- Sign-in with the seeded credentials → lands on the dashboard (AUTH AC1/AC3).
+- **August 2026**: Recebido R$ 13.000,00, Comprometido R$ 5.013,95, Saldo R$ 7.986,05 - byte-for-byte the seed script's own printed totals. Four groups present and populated. Salário Marina correctly `Divergente` (4.550 vs 4.300 expected); Freelas de design correctly shows **no** expected figure (an em dash, not R$ 0,00).
+- **September 2026** (via the month navigator): Saldo renders **`-R$ 3.735,20`** - the literal negative sign, confirmed outside the test suite (spec DASH AC5). Both credit purchases that cross a closing day appear here and nowhere else - "Fone de ouvido" (Nubank, closes the 20th, bought the 21st) and "Livraria" (Itaú Click, closes the 8th, bought the 19th) - the single most spec-critical behaviour in the whole app, proven against a real Postgres-backed API for the first time.
+- **Expense month**: installment marker "Geladeira Brastemp (1/10)"; category and priority per line; Água carries "Valor provisório (estimativa)" while unpaid, Luz shows `Divergente` once paid above its estimate.
+- **Recurring bills, catalogue, sign-out**: all four screens load; the password field renders as `type="password"` in the DOM, confirming T50 outside Jest; sign-out clears the session and a **subsequent full page reload** still lands on sign-in, proving the token was actually removed from persisted storage, not only from in-memory state.
+- Console: zero errors across every screen visited.
+
+**The bug.** The recurring bills list (T37) displayed Aluguel at R$ 2.100,00 - its *original* amount - while the dashboard and expense month, reading the same data through a different path, correctly showed R$ 2.250,00 after the mid-year raise the seed applies. Traced to `RecurringExpenseRepository`'s four `.Include(expense => expense.Versions)` call sites in the **backend**: EF Core gives no ordering guarantee for an included child collection, and `RecurringBillsScreen.tsx` picked `versions[versions.length - 1]` expecting the newest to be last, per a code comment that stated "ordered oldest first" as if the API guaranteed it. Nothing in either codebase had actually established that guarantee.
+
+**Why 365 mobile tests and 358 backend tests all stayed green.** Every backend integration test runs on the EF Core **in-memory provider**, which happened to preserve insertion order - the exact scenario every hand-built version-array fixture, mobile and backend alike, was written against. Real PostgreSQL returned **newest-first** instead. This is the same category of gap the project already named for the unique index on `RecurringExpensePayment` ("the in-memory provider does not enforce X") - here it is ordering rather than a constraint, invisible for the identical structural reason, and it took a live browser against a live database to surface it. No amount of running the existing suites harder would have caught it.
+
+**The fix**, in the backend (commit `3f44760`, its own repository, its own commit - not folded into this one): `.Include(expense => expense.Versions.OrderBy(version => version.ValidityStart))` on all four query methods in `RecurringExpenseRepository`, making "oldest first" an actual guarantee instead of an accident of one test provider. Verified against the live API before and after: `versions[]` went from `[2250@2026-07-01, 2100@2026-01-01]` to `[2100@2026-01-01, 2250@2026-07-01]`; the mobile screen re-read and displayed R$ 2.250,00 correctly with no mobile code change needed - the fix belonged entirely at the source of truth. Backend suite re-ran at 358/358 afterward; no existing assertion flipped, which is itself the evidence that every existing fixture already assumed the order this now guarantees. Recorded in `backend/.specs/features/expense-tracking/design.md`'s risk table, in the same voice as the sibling in-memory-provider gap it belongs beside.
+
+**What T48 did not, and could not, verify:** rendering on an actual iOS or Android device or emulator - stated as a limit since the spec's Out of Scope section and unchanged by this task. `expo start --web` was the only rendering surface available in this session.
 
 ---
 
