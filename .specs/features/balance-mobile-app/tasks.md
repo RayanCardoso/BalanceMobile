@@ -648,7 +648,7 @@ Spec INC AC9 gets its own test: two payments against the same source and referen
 
 Totals are deliberately not rendered. Spec INC AC1 names three things per **line**, and the month's totals are the dashboard's subject (DASH-01).
 
-#### T28: Add the register income source screen
+#### T28: Add the register income source screen ✅
 
 **Where**: `mobile/app/(app)/income/new.tsx`
 **What**: A form switching between Recurring and Variable, hiding amount and expected day for Variable.
@@ -656,6 +656,19 @@ Totals are deliberately not rendered. Spec INC AC1 names three things per **line
 **Requirement**: INC-02
 **Tests**: screen layer — the payload for each type, and the API's messages rendered on rejection
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/income/ui/RegisterIncomeSourceScreen.tsx` + its test, 6 cases; `app/(app)/income/new.tsx` is a one-line mount point. Gate: `tsc` exit 0, 232 passed 0 failed (was 226).
+
+**Spec INC AC3 and AC4 are two payload shapes and get two literal bodies.** Recurring sends `'{"name":"Salário","type":0,"personId":"p1","amount":5000,"expectedDay":5}'`; Variable sends `'{"name":"Freelance","type":1,"personId":"p1"}'`, and the parsed payload is asserted to lack **both** keys rather than to carry falsy values — the API rejects a Variable source that sends either, so absent and zero are not interchangeable. A third test pins that the two fields are not rendered at all once the type is Variable, so there is nothing to submit by accident.
+
+Spec INC AC8 returns **two** `errorMessages` and both are asserted word for word (L-003, MAD-004).
+
+Spec CAT AC6 applies here too, because a source belongs to a Person: one person is preselected with no picker shown, two people preselect nobody and the chosen id is what is sent.
+
+**An amount that does not parse is sent as `0`, deliberately.** The API answers it with its own "maior que zero" message, so the app carries no client-side rule and no client-side sentence (MAD-001, MAD-004). The alternative — a local validation message — is a second copy that drifts the first time the API changes its own.
+
+**A timing bug in the test was fixed at its cause, not by loosening the assertion.** The form renders before the person list arrives, and the submit guard silently skips while `personId` is null; a press issued right after render therefore sent nothing, and only the rejection test (which types nothing first) exposed it. `openForm` now waits on the cached person list rather than on the first field appearing.
+
+`usePeople` is imported from the catalogue feature. People belong to the catalogue and income only reads them; what stays unshared is the error copy, which income owns its own (`features/income/ui/errors.ts`).
 
 #### T29: Add the record income payment screen
 
