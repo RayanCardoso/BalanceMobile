@@ -694,7 +694,7 @@ Spec INC AC8 returns **two** `errorMessages` and both are asserted word for word
 
 The route params carry the month being viewed (`?year=&month=`), read through `useLocalSearchParams`, falling back to the current month when the screen is opened without them. `expo-router` is mocked in the test the same way T16 mocked `Link`.
 
-#### T30: Add the change income value screen
+#### T30: Add the change income value screen ✅
 
 **Where**: `mobile/app/(app)/income/change-value.tsx`
 **What**: A form sending the new amount, expected day, validity start and change reason.
@@ -702,6 +702,17 @@ The route params carry the month being viewed (`?year=&month=`), read through `u
 **Requirement**: INC-03
 **Tests**: screen layer — the full payload including the change reason, and the API's message when the reason is empty
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/income/ui/ChangeIncomeValueScreen.tsx` + its test, 4 cases; `app/(app)/income/change-value.tsx` is a one-line mount point. Gate: `tsc` exit 0, 245 passed 0 failed (was 241). Phase 6 closed.
+
+Spec INC AC7 names four values and the literal body pins all four in one assertion (L-003, L-010): `'{"incomeSourceId":"s1","amount":5500,"expectedDay":6,"validityStart":"2026-08-01","changeReason":"Dissídio anual"}'`. The validity start defaults to today and a second test pins that the default is what goes out when it is left alone, so the field is not decorative.
+
+**The empty reason is sent, not blocked, and that is asserted separately from the message.** One test reads `changeReason` back off the payload as `''`; another reads the API's own sentence on screen. A client-side "reason required" rule would be a second copy of a rule the API already owns, and the two would disagree the first time the API reworded it (MAD-001, MAD-004).
+
+**Discrimination sensor run.** A client-side default — `changeReason === '' ? 'Alteração de valor' : changeReason` — was injected in the working tree. Exactly `sends the empty reason rather than refusing to submit` failed; the other three stayed green, including the one that only reads the rendered message. Reverted; the suite is back to 245 passed.
+
+**The picker is not filtered to recurring sources.** A Variable source has no version, and the API says so in its own words. Filtering the options here would put that rule in two places (MAD-001); the trade is one avoidable round trip against a rule that can drift, and the decision log settles it the other way.
+
+**Phase 6 complete: T25–T30, six tasks, 30 tasks of 50 done overall.**
 
 ---
 
