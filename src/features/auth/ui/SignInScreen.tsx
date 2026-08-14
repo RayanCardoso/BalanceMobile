@@ -30,7 +30,9 @@ export function SignInScreen(): React.JSX.Element {
         placeholder="voce@exemplo.com"
         value={email}
       />
-      <Field label="Senha" onChangeText={setPassword} value={password} />
+      {/* Spec AUTH-01. The only masked field on this screen: the e-mail stays readable, and a
+          rejected sign-in leaves it in place (AC7). */}
+      <Field label="Senha" onChangeText={setPassword} secure value={password} />
 
       {messages.map((message, index) => (
         // The API's own pt-BR wording, rendered as it arrived (MAD-004).

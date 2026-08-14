@@ -1050,7 +1050,7 @@ The shell lives in a new `features/navigation/` folder rather than in `shared/ui
 > operation shipped with no way for a user to invoke it. Either way the criterion is unreachable in the
 > delivered product, so the control lands here rather than in a follow-up.
 
-#### T50: Mask the password field
+#### T50: Mask the password field ✅
 
 **Where**: `mobile/src/shared/ui/form.tsx`
 **What**: A `secure` prop on `Field` forwarding `secureTextEntry`, applied to both password inputs.
@@ -1058,6 +1058,11 @@ The shell lives in a new `features/navigation/` folder rather than in `shared/ui
 **Requirement**: AUTH-01
 **Tests**: screen layer — the sign-in and sign-up password fields assert `secureTextEntry` is set, **and the email field asserts it is not**, so the prop cannot be applied indiscriminately and still pass
 **Gate**: `full`
+**Status**: ✅ Complete. `secure?: boolean` on `Field` forwarding to `TextInput`'s `secureTextEntry`, applied to the two password inputs and nothing else; 2 tests. Gate: `tsc` exit 0, 365 passed 0 failed (was 363).
+
+`secure` defaults to **`false`, not `undefined`**, so every unmasked field carries an explicit negative rather than an absent prop. That is what lets the negative assertion be `toBe(false)` instead of `toBeFalsy()`, which would also pass for a field that simply never received the prop - and the negative assertion is the whole safeguard here: masking everything satisfies the positive one on its own.
+
+Scope held to the two password inputs. The other 22 `Field` uses across the app were not touched, and the sign-up test asserts `Nome` and `E-mail` are both unmasked, not only the e-mail.
 
 > **Added after Batch 3.** T16 was right to decline widening T13's primitive mid-task: no acceptance
 > criterion names masking, and inventing scope inside a task is how deliveries bloat. But a password

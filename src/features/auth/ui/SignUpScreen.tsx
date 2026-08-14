@@ -32,7 +32,8 @@ export function SignUpScreen(): React.JSX.Element {
         placeholder="voce@exemplo.com"
         value={email}
       />
-      <Field label="Senha" onChangeText={setPassword} value={password} />
+      {/* Spec AUTH-01. The only masked field on this screen: name and e-mail stay readable. */}
+      <Field label="Senha" onChangeText={setPassword} secure value={password} />
 
       {messages.map((message, index) => (
         <Text key={`${message}-${index}`} style={styles.error} testID="form-error">

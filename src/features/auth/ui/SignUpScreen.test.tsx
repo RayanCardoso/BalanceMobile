@@ -127,4 +127,16 @@ describe('the form', () => {
 
     expect(screen.getByText('Já tenho uma conta')).toBeTruthy();
   });
+
+  it('masks the password and leaves the name and the e-mail readable', () => {
+    respondWith(201, {});
+    renderSignUp();
+
+    expect(screen.getByLabelText('Senha').props.secureTextEntry).toBe(true);
+
+    // The negative half is the point: a `Field` masking every input would satisfy the assertion
+    // above and hide the two fields the user has every reason to read back.
+    expect(screen.getByLabelText('E-mail').props.secureTextEntry).toBe(false);
+    expect(screen.getByLabelText('Nome').props.secureTextEntry).toBe(false);
+  });
 });

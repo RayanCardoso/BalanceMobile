@@ -149,4 +149,15 @@ describe('the form', () => {
 
     expect(screen.queryByTestId('form-error')).toBeNull();
   });
+
+  it('masks the password and leaves the e-mail readable', () => {
+    respondWith(200, {});
+    renderSignIn();
+
+    expect(screen.getByLabelText('Senha').props.secureTextEntry).toBe(true);
+
+    // The negative half is the point: a `Field` masking every input would satisfy the assertion
+    // above and hide the e-mail the user is checking for a typo.
+    expect(screen.getByLabelText('E-mail').props.secureTextEntry).toBe(false);
+  });
 });
