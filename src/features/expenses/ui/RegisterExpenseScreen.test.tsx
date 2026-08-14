@@ -430,4 +430,35 @@ describe('when the API rejects the expense', () => {
     expect(screen.getByLabelText('Nome').props.value).toBe('Passagem');
     expect(screen.getByLabelText('Valor').props.value).toBe('480,00');
   });
+
+  /**
+   * Spec UX AC5 and the offline edge case - "report the failure rather than appearing to succeed".
+   *
+   * A submitted form is where an unreachable API hurt most: `NetworkError` carries no
+   * `errorMessages`, so before T45's sweep the press produced **no message at all** and the form sat
+   * there looking as if nothing had been pressed.
+   */
+  it('says the server could not be reached when the API is unreachable', async () => {
+    renderForm();
+
+    await fillCatalogueChoices();
+
+    fireEvent.changeText(screen.getByLabelText('Nome'), 'Passagem');
+    fireEvent.changeText(screen.getByLabelText('Valor'), '480,00');
+
+    fetchMock.mockRejectedValueOnce(new TypeError('Network request failed'));
+    fireEvent.press(screen.getByText('Registrar despesa'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
+        )
+      ).toBeTruthy();
+    });
+
+    // What the user typed survives, exactly as it does when the API rejects the request.
+    expect(screen.getByLabelText('Nome').props.value).toBe('Passagem');
+    expect(screen.getByLabelText('Valor').props.value).toBe('480,00');
+  });
 });

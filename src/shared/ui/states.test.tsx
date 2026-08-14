@@ -1,7 +1,14 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
-import { EmptyState, ErrorState, Loading, Screen } from '@/shared/ui/states';
+import { ApiError, NetworkError, UnauthorizedError } from '@/shared/api/ApiError';
+import {
+  connectivityMessage,
+  EmptyState,
+  ErrorState,
+  Loading,
+  Screen,
+} from '@/shared/ui/states';
 
 /**
  * Spec UX AC1, AC2 and AC3. The messages are asserted as the literal text the user reads, and the
@@ -62,5 +69,25 @@ describe('ErrorState', () => {
     fireEvent.press(screen.getByText('Tentar novamente'));
 
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * Spec UX AC5 - "IF the API is unreachable THEN the system SHALL say so rather than reporting a
+ * validation problem". The distinction is the whole criterion, so the failures that are *not*
+ * connectivity are asserted to produce nothing here: a helper answering for every error type would
+ * relabel a rejected form as an offline device.
+ */
+describe('connectivityMessage', () => {
+  it('says the server could not be reached when fetch itself failed', () => {
+    expect(connectivityMessage(new NetworkError())).toBe(
+      'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
+    );
+  });
+
+  it("answers for no other failure, so a rejection keeps the API's own words", () => {
+    expect(connectivityMessage(new ApiError(['O nome é obrigatório.']))).toBeNull();
+    expect(connectivityMessage(new UnauthorizedError(['Sessão expirada.']))).toBeNull();
+    expect(connectivityMessage(new Error('Algo deu errado'))).toBeNull();
   });
 });

@@ -1065,7 +1065,7 @@ The shell lives in a new `features/navigation/` folder rather than in `shared/ui
 > it becomes its own task with its own commit and its own test, rather than being deferred or smuggled
 > into a neighbouring one.
 
-#### T45: Sweep the loading, empty and error states
+#### T45: Sweep the loading, empty and error states ✅
 
 **Where**: `mobile/src/shared/ui/states.tsx`
 **What**: Audit every list and form screen against UX-01 and UX-02: first-load indicator, retryable error, explanatory empty state, submit disabled while pending, and an unreachable API reading as connectivity rather than validation.
@@ -1073,6 +1073,23 @@ The shell lives in a new `features/navigation/` folder rather than in `shared/ui
 **Requirement**: UX-01, UX-02
 **Tests**: screen layer — a `NetworkError` rendering a connectivity message distinct from a validation message (spec UX AC5), and one screen per state family
 **Gate**: `full`
+**Status**: ✅ Complete. `connectivityMessage` + `CONNECTIVITY_MESSAGE` added to `src/shared/ui/states.tsx` and wired into all five `ui/errors.ts` modules; 7 tests added. Gate: `tsc` exit 0, 363 passed 0 failed (was 356).
+
+**The audit, screen by screen, before changing anything.** Four of the five UX criteria were already satisfied and are recorded here with their evidence rather than rewritten:
+
+| Criterion | Verdict | Evidence |
+| --------- | ------- | -------- |
+| UX AC1 — first-load indicator | already met | All seven list screens gate on `data === undefined → <Loading />`: `PeopleScreen.tsx:49`, `CategoriesScreen.tsx:51`, `AccountsScreen.tsx:83`, `IncomeMonthScreen.tsx:46`, `ExpenseMonthScreen.tsx:127`, `RecurringBillsScreen.tsx:34`, `DashboardScreen.tsx:150` |
+| UX AC2 — retryable error | already met | Same seven screens render `ErrorState` with an `onRetry` calling `refetch`, each with a test that presses it and asserts the list arrives - a rendered-but-unwired button looks identical on screen |
+| UX AC3 — explanatory empty state | already met | Seven distinct `EmptyState` messages naming what would appear there, one per screen, each asserted as its literal sentence |
+| UX AC4 — submit disabled while pending | already met | `SubmitButton` (`form.tsx`) sets `disabled={pending}` **and** refuses inside the handler, so a second press cannot reach the API however it arrives; used by all eight form screens, with `ArchiveToggle` using `disabled={toggle.isPending}` |
+| UX AC5 — unreachable API reads as connectivity | **broken, fixed here** | see below |
+
+**The one real gap.** `NetworkError` carries no `messages`, so `apiMessages` returned `[]` for it in all five `errors.ts` copies. Two consequences: a **list** showed the same generic sentence a 500 produces, so connectivity was indistinguishable from a server error; and a **form** showed **nothing at all** - the press appeared to do nothing, which is the spec's offline edge case ("report the failure rather than appearing to succeed") failing outright. The auth screens were already correct: `authErrorMessages` falls back to `error.message`, which is `NetworkError`'s own text, so they are untouched.
+
+The message lives once in `states.tsx`, not five times. Those `errors.ts` copies are deliberately separate so no feature can retitle another's **API** messages; connectivity is not a feature's message at all, it is the same fact about the device everywhere. **This is the only user-facing sentence in the app the API did not write, and it does not break MAD-004** - MAD-004 governs what the API *sent*, and here the request never arrived, so there is nothing to be faithful to.
+
+Each of the five `errors.ts` modules gets its own screen-level proof - four lists (`PeopleScreen`, `IncomeMonthScreen`, `RecurringBillsScreen`, `DashboardScreen`) and one form (`RegisterExpenseScreen`) - because the branch is genuinely five copies of code, and one test would leave four of them unproven. Every one asserts **both directions**: the connectivity sentence present *and* the module's generic sentence absent. The literal string is retyped in each assertion rather than imported from `states.tsx` (lesson L-010): importing the constant would make the test pass no matter what the constant said.
 
 ---
 

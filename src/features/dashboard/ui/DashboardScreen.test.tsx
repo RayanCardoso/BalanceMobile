@@ -369,5 +369,30 @@ describe('when the month cannot be read (spec DASH AC7)', () => {
     await waitFor(() => {
       expect(screen.getByText('Mês inválido.')).toBeTruthy();
     });
+
+    // Spec UX AC5, the other half: a request the API answered is not a connectivity problem.
+    expect(
+      screen.queryByText(
+        'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
+      )
+    ).toBeNull();
+  });
+
+  it('says the server could not be reached when the API is unreachable', async () => {
+    // Spec UX AC5. `fetch` itself rejecting is `NetworkError`: the request never arrived, so the
+    // screen has to say so rather than showing the same sentence a 500 produces.
+    fetchMock.mockRejectedValueOnce(new TypeError('Network request failed'));
+    renderScreen();
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
+        )
+      ).toBeTruthy();
+    });
+
+    expect(screen.queryByText('Não foi possível carregar o mês.')).toBeNull();
+    expect(screen.getByText('Tentar novamente')).toBeTruthy();
   });
 });

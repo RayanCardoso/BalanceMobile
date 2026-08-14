@@ -1,4 +1,5 @@
 import { ApiError, UnauthorizedError } from '@/shared/api/ApiError';
+import { connectivityMessage } from '@/shared/ui/states';
 
 /**
  * What the income screens render when a request is rejected.
@@ -14,6 +15,15 @@ export function apiMessages(error: unknown): string[] {
 
   if (error instanceof UnauthorizedError && error.messages.length > 0) {
     return error.messages;
+  }
+
+  // Spec UX AC5. The request never reached the API, so nothing was validated and there is no server
+  // wording to pass through. Falling through to the empty array is what left a submitted form
+  // showing no message at all while the device was offline.
+  const unreachable = connectivityMessage(error);
+
+  if (unreachable !== null) {
+    return [unreachable];
   }
 
   return [];

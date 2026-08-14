@@ -129,6 +129,24 @@ describe('the four states of the recurring bills list', () => {
     });
   });
 
+  it('says the server could not be reached when the API is unreachable', async () => {
+    // Spec UX AC5. A rejected `fetch` is `NetworkError`: the request never arrived, so the screen
+    // must not show the same sentence a 500 produces, which is what it did before T45's sweep.
+    fetchMock.mockRejectedValueOnce(new TypeError('Network request failed'));
+    renderBills();
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
+        )
+      ).toBeTruthy();
+    });
+
+    expect(screen.queryByText('Não foi possível carregar as contas recorrentes.')).toBeNull();
+    expect(screen.getByText('Tentar novamente')).toBeTruthy();
+  });
+
   it('offers a retry when the read fails, and shows the list once it works', async () => {
     stub('GET', '/recurring-expense', 500, {});
     renderBills();
