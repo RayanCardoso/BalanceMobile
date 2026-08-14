@@ -767,7 +767,7 @@ Spec EXP AC3 and AC4 are two payload shapes and get two tests: the default body 
 
 `invalidateMonthsOf` de-duplicates by month, so a plan with two installments in one month invalidates it once.
 
-#### T33: Add the expense month screen
+#### T33: Add the expense month screen ✅
 
 **Where**: `mobile/app/(app)/expenses/index.tsx`
 **What**: Variable expenses and recurring bills as two sections, with month navigation and the four states.
@@ -775,6 +775,25 @@ Spec EXP AC3 and AC4 are two payload shapes and get two tests: the default body 
 **Requirement**: EXP-01
 **Tests**: screen layer — both sections; a recurring line marked provisional when `isEstimate` and unpaid, and showing the real value once paid; the due day asserted per line (lesson L-004 — this exact field shipped wrong in the backend)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/expenses/ui/ExpenseMonthScreen.tsx` + its test, 13 cases; `app/(app)/expenses/index.tsx` is a one-line mount point. Gate: `tsc` exit 0, 279 passed 0 failed (was 266).
+
+**Spec EXP AC1 is asserted as two groups, not as two headings.** Each line is queried **inside** its own list with `within(...)`, and each list is additionally asserted **not** to contain the other's line. A screen rendering everything in one list would satisfy a page-wide text query and fail this one.
+
+**Spec REC AC2 has two conditions, so it gets three fixtures.** Estimated and unpaid marks the figure provisional; estimated and **paid** does not, and shows `actualAmount` instead of the estimate — the estimate it replaced is asserted absent from the same subtree, not merely the new value present; a fixed amount is never marked even before it is paid. A screen marking every estimate passes the first assertion on its own.
+
+**Discrimination sensor run.** `provisional` was rewritten to `line.isEstimate`, dropping the unpaid half. Exactly one test failed — `drops the mark and shows the real value once the bill is paid` — while the other twelve stayed green, including the one that marks an unpaid estimate, which is what shows it was not carrying the criterion. Reverted; the suite is back to 279 passed.
+
+**The due day is asserted per line and in both directions (L-004).** Line r1 reads `Vence dia 10`, line r2 reads `Vence dia 31`, and r1 is asserted **not** to read 31 — one line's field bleeding across every row would otherwise pass. The 31 also pins the spec edge case: a due day longer than the month is shown as the API returned it, not clamped.
+
+The absent-expected branch is pinned the way T27 pinned income's: a bill with no version in effect renders an em dash, and `R$ 0,00` is asserted absent from the same subtree.
+
+**MAD-001 gets its own test.** The fixture's lines add up to 470,50 while the API says `totalCommitted` is 500,00, and 500,00 is what the screen renders. A screen doing its own arithmetic would show the sum of what is on it — which is exactly the second implementation of a server rule the decision log forbids.
+
+**Additive, recorded:** `src/features/expenses/ui/errors.ts` (`apiMessages` / `listErrorMessage`), mirroring income's rather than importing it, so neither feature can retitle the other's copy.
+
+**Spec INST AC3 is rendered here rather than deferred.** An installment appears *in a month*, and the criterion says it shows its position there; the line reads `Parcela 2 de 3` and a one-off purchase is asserted to carry no position node at all. T35 covers the plan's own confirmation. Leaving it to T35 alone would have made the criterion unreachable from the screen the spec names.
+
+⚠️ **Pre-existing flake surfaced, not touched.** `src/features/income/ui/RegisterIncomeSourceScreen.test.tsx` → `shows every message the API sent, word for word` (T28) failed once during this task's gate run and passed on two full re-runs and in isolation at 126 ms. It is a `waitFor` default-timeout race under worker load, not a regression from this task, and nothing here imports it. Fixing another task's test was out of scope; it is recorded so it is not mistaken for noise later.
 
 #### T34: Add the register expense screen
 
