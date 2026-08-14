@@ -588,7 +588,7 @@ T26 -> T29
 T26 -> T30
 ```
 
-#### T25: Add the income model
+#### T25: Add the income model ✅
 
 **Where**: `mobile/src/features/income/model/income.ts`
 **What**: Types mirroring the API contracts, plus the `IncomeStatus` map — Pendente, Recebido, Divergente — kept separate from the expense map even though the integers coincide.
@@ -596,6 +596,13 @@ T26 -> T30
 **Requirement**: INC-01
 **Tests**: pure-function layer — every status integer mapping to its literal label, including a fixture per branch (lesson L-005)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/income/model/income.ts` + `income.test.ts`, 5 tests. Gate: `tsc` exit 0, 200 passed 0 failed (was 195).
+
+Each of the three branches gets its own fixture and its own **literal** expected string (L-005, L-010); no assertion is built from the map itself, which would agree with whatever wording the map happened to hold. Status 1 is pinned in both directions — `Recebido`, and asserted **not** to be `Pago` — because that integer is exactly where the income and expense vocabularies part. The two maps stay in their own features (T31 writes the expense one), so a rename on one side cannot retitle the other.
+
+`IncomeStatus` and `IncomeType` are the unions `0 | 1 | 2` and `0 | 1` rather than `number`, which makes the label record exhaustive by the type checker instead of by a default branch.
+
+`expectedAmount` and `expectedDay` are `number | null` on `MonthlyIncomeLine`: a Variable source has no version and the API sends null for both. Null and zero are different facts, and T27 is where that distinction reaches the screen.
 
 #### T26: Add the income API hooks
 
