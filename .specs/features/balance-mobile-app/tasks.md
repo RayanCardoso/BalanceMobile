@@ -1106,7 +1106,7 @@ Each of the five `errors.ts` modules gets its own screen-level proof - four list
 T47 -> T48
 ```
 
-#### T47: Document configuration and running
+#### T47: Document configuration and running ✅
 
 **Where**: `mobile/README.md`
 **What**: `EXPO_PUBLIC_API_URL` and why a physical device needs the machine's LAN IP rather than `localhost`; the NVM Node 20 invocation; how to run tests, web and Expo Go; and the backend version this app requires — it depends on `paymentId` from T49, so an older API breaks payment correction.
@@ -1114,6 +1114,9 @@ T47 -> T48
 **Requirement**: UX-02
 **Tests**: none — documentation. Its accuracy is checked by following it in T48
 **Gate**: `types`
+**Status**: ✅ Complete. `mobile/README.md` created — the project had none. Gate: `tsc` exit 0 (unaffected, as expected for a documentation-only change).
+
+Covers: the backend version dependency (T49's `paymentId`) and why an older API silently breaks payment correction rather than erroring; the CORS origin T46 added and why a device needs none of it; the `PATH`-prepend requirement for Node 20 that cost real time earlier in this feature (`SyntaxError: Unexpected token .` looking like a broken dependency); the `--maxWorkers=2` retry advice from T41's real, root-caused flake, framed as "reproduces alone = real, only under full parallelism = check load first" rather than "just retry"; and the LAN-IP requirement for a physical device, which only the user can supply.
 
 #### T48: Verify the app in the browser against the seeded database
 
