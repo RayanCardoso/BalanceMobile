@@ -995,7 +995,7 @@ T44 -> T50
 T44 -> T45
 ```
 
-#### T42: Add the dashboard API hook
+#### T42: Add the dashboard API hook ✅
 
 **Where**: `mobile/src/features/dashboard/api/useDashboard.ts`
 **What**: `useDashboard(year, month)` reading `GET /api/dashboard/{y}/{m}`.
@@ -1003,6 +1003,11 @@ T44 -> T45
 **Requirement**: DASH-01
 **Tests**: hook layer — the requested path for a given month and the key it registers under
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/dashboard/api/useDashboard.ts` reading `GET /api/dashboard/{y}/{m}`, keyed on `qk.dashboard(year, month)`; `src/features/dashboard/model/dashboard.ts` holds `MonthlyDashboard`. Gate: `tsc` exit 0, 342 passed 0 failed (was 340).
+
+`MonthlyDashboard` **composes** `MonthlyIncome` and `MonthlyExpense` rather than restating their fields, mirroring the API, whose dashboard response embeds the two monthly responses untouched. A flattened copy would have to be edited twice whenever either half gains a field.
+
+The key assertion is the one that matters here: reading under a hand-written string instead of `qk.dashboard(...)` would compile, pass a path test, and leave the dashboard stale after every write in the app - `useRegisterExpense`, `useRegisterIncomePayment` and both recurring payment hooks already invalidate that exact factory. The second test holds two months in one cache and asserts each under its own key, so a factory ignoring its arguments fails rather than silently sharing one entry.
 
 #### T43: Add the dashboard screen
 
