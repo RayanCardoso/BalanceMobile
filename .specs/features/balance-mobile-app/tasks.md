@@ -670,7 +670,7 @@ Spec CAT AC6 applies here too, because a source belongs to a Person: one person 
 
 `usePeople` is imported from the catalogue feature. People belong to the catalogue and income only reads them; what stays unshared is the error copy, which income owns its own (`features/income/ui/errors.ts`).
 
-#### T29: Add the record income payment screen
+#### T29: Add the record income payment screen ✅
 
 **Where**: `mobile/app/(app)/income/payment.tsx`
 **What**: A form with the reference month separate from the payment date, defaulting the reference month to the one being viewed.
@@ -678,6 +678,21 @@ Spec CAT AC6 applies here too, because a source belongs to a Person: one person 
 **Requirement**: INC-03
 **Tests**: screen layer — a payment dated in one month for a different reference month sending both distinctly (spec INC AC5), and the month refreshing afterwards
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/income/ui/RecordIncomePaymentScreen.tsx` + its test, 7 cases; `app/(app)/income/payment.tsx` is a one-line mount point. Gate: `tsc` exit 0, 241 passed 0 failed (was 232).
+
+**The two dates are two controls, and four tests hold them apart.** The reference month is a `MonthNavigator` starting on the month the route was opened for; the payment date is its own field, defaulting to today. The story's Independent Test is asserted directly: a payment dated `2026-09-03` sends `referenceMonth: '2026-08-01'`, and the two are additionally asserted **not** to be equal. Two more tests move each date without the other — the reference month back to July while the payment date stays on 3 September, and a typed payment date of 5 August against reference month August.
+
+**Discrimination sensor run.** `referenceMonth` was rewritten to reuse `paymentDate` in the working tree. Exactly the four AC5 tests failed; the AC6, AC8 and AC9 tests passed unchanged, which is what shows they were not carrying the criterion. Reverted; the suite is back to 241 passed.
+
+**Spec INC AC6 is asserted as the month changing on screen, not as the mutation succeeding.** The month screen is rendered beside the form in one test. Its line reads Pendente / R$ 0,00, the payment is recorded, and it reads Recebido / R$ 5.000,00 — with nothing in the test reloading anything. That the invalidation is keyed on the **response's** reference month is what the AC6 test keeps passing under the collapse mutation above, so the two criteria are proved separately rather than one standing in for the other.
+
+**Spec INC AC9 gets its own screen test:** a second payment for the same source and month is sent, with its own amount, rather than refused. No client-side guard was added — income sums several payments in a month, unlike a recurring bill.
+
+Spec INC AC8 returns **two** `errorMessages` and both are asserted word for word (MAD-004).
+
+**Additive helper, recorded:** `todayApiDate()` in `src/shared/lib/dates.ts` (2 tests), the payment date's default. Like `currentMonth`, it reads the local getters; the second test pins that at the suite's UTC-11 offset, where `toISOString()` on a local evening of 21 August already reads the 22nd and would record the payment a day late.
+
+The route params carry the month being viewed (`?year=&month=`), read through `useLocalSearchParams`, falling back to the current month when the screen is opened without them. `expo-router` is mocked in the test the same way T16 mocked `Link`.
 
 #### T30: Add the change income value screen
 

@@ -1,4 +1,11 @@
-import { currentMonth, fromApiDate, monthLabel, shiftMonth, toApiDate } from '@/shared/lib/dates';
+import {
+  currentMonth,
+  fromApiDate,
+  monthLabel,
+  shiftMonth,
+  toApiDate,
+  todayApiDate,
+} from '@/shared/lib/dates';
 
 /** Every expected value below is a literal, never a value recomputed through a `Date`. */
 
@@ -21,6 +28,21 @@ describe('toApiDate and fromApiDate', () => {
     ['an empty string', ''],
   ])('returns null for %s', (_label, input) => {
     expect(fromApiDate(input)).toBeNull();
+  });
+});
+
+describe('todayApiDate', () => {
+  it('writes a local instant as the day it is locally', () => {
+    expect(todayApiDate(new Date(2026, 7, 21, 12, 0))).toBe('2026-08-21');
+  });
+
+  // At the suite's UTC-11 offset the ISO form of a local evening is already the next day. A default
+  // date read off `toISOString()` would record a payment one day late.
+  it('stays on the 21st late on 21 August, where the UTC date is already the 22nd', () => {
+    const lateEvening = new Date(2026, 7, 21, 21, 0);
+
+    expect(lateEvening.toISOString().slice(0, 10)).toBe('2026-08-22');
+    expect(todayApiDate(lateEvening)).toBe('2026-08-21');
   });
 });
 

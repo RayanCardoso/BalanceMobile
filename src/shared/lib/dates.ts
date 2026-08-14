@@ -60,6 +60,16 @@ export function monthLabel(year: number, month: number): string {
 }
 
 /**
+ * Today, as the `YYYY-MM-DD` string the API's `DateOnly` expects.
+ *
+ * Built from the local getters rather than from `toISOString()`, which is UTC: at 21:00 on 21 August
+ * in São Paulo the ISO form already reads the 22nd, and the purchase would be recorded a day late.
+ */
+export function todayApiDate(now: Date = new Date()): string {
+  return toApiDate({ year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() });
+}
+
+/**
  * The month a month-scoped screen opens on.
  *
  * Read through the local getters, never by formatting a `Date` to a string and slicing it: the ISO
