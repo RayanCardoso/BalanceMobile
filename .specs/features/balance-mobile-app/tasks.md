@@ -1025,7 +1025,7 @@ AC5 gets both halves: the balance asserted as the literal `-R$ 470,50` **and** t
 
 AC3's assertions run **synchronously after the press, with no `await` between** - the stubbed response settles on a microtask, which cannot run mid-block, so that is exactly the frame between the month changing and the new one answering. August's balance is asserted gone under the September heading. The first draft instead stubbed a request that never settled; it passed, but left Jest reporting a worker that would not exit, so the technique was replaced rather than the warning ignored.
 
-#### T44: Add the tab navigation shell and the sign-out control
+#### T44: Add the tab navigation shell and the sign-out control ✅
 
 **Where**: `mobile/app/(app)/_layout.tsx`
 **What**: Tabs for Dashboard, Receitas, Despesas, Recorrentes and Catálogo, plus a **sign-out control** reachable from the shell.
@@ -1033,6 +1033,16 @@ AC3's assertions run **synchronously after the press, with no `await` between** 
 **Requirement**: DASH-01, AUTH-03
 **Tests**: route-guard layer — every tab reachable, the dashboard being the initial route, and pressing sign-out driving the session to `signedOut` and emptying the query cache
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/navigation/ui/AppShell.tsx` + 5 tests; `app/(app)/_layout.tsx` is a one-line mount point. Gate: `tsc` exit 0, 356 passed 0 failed (was 351).
+
+**Links, not `Tabs` — checked before deciding, not assumed.** `@react-navigation/bottom-tabs` is absent from `package.json`, from `package-lock.json` and from `node_modules` entirely, so `Tabs` from `expo-router` is unusable without adding a navigation package. T24 declined to add it for the catalogue sub-menu; adding it here would let it enter the project as a side effect of a task whose actual subject is mounting a sign-out control. Five `Link`s reach the five destinations the criterion names, in the same stand-in-mocked style `CatalogueMenu` established. Swapping the bar for a real tab bar later is a change to one file.
+
+**Sign-out is the REC-priority half of this task.** `useSignOut` shipped in T19 fully tested with no caller, so spec AUTH AC6 was reachable only from a unit test. The shell is the one surface present on every signed-in screen, so it is where the control belongs. Both assertions read **real state after the press** — `useSessionStore.getState().status === 'signedOut'`, `clearToken` called once, and the cache read back empty through `getQueryData` — never a spy on `clear`, which would prove the line ran rather than that the previous account's data is gone.
+
+"The dashboard is the initial route" is asserted as `DashboardRoute === DashboardScreen` against the real `app/(app)/index.tsx` module: `/` resolves to the group's index route, and a link to `/` would pass the reachability assertions even if that index mounted something else. That import is the only place a test reaches into `app/`, and it reaches a mount point, not a screen.
+
+The shell lives in a new `features/navigation/` folder rather than in `shared/ui/`: it imports `useSignOut` from `features/auth`, and `shared/` importing a feature would invert the layering every other module in `src/shared` respects.
+
 
 > **Amended after Batch 3.** `useSignOut` shipped in T19 fully tested and no task mounted it, so spec
 > AUTH AC6 — "WHEN a user signs out…" — was reachable only from a test. That is backend lesson
