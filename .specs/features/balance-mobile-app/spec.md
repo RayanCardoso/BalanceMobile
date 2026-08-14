@@ -251,7 +251,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | DASH-01 | P1: See the month at a glance | 0 | Implementing |
 | DASH-02 | P1: See the month at a glance | 3 | Implementing |
 | INC-01 | P1: Record and review income | 3 | Implementing |
-| INC-02 | P1: Record and review income | Pending | Pending |
+| INC-02 | P1: Record and review income | 6 | Implementing |
 | INC-03 | P1: Record and review income | 2 | Implementing |
 | EXP-01 | P1: Record and review expenses | Pending | Pending |
 | EXP-02 | P1: Record and review expenses | Pending | Pending |

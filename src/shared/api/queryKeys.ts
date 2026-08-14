@@ -11,6 +11,12 @@ export const qk = {
   dashboard: (year: number, month: number) => ['dashboard', year, month] as const,
   incomeMonth: (year: number, month: number) => ['incomeMonth', year, month] as const,
   expenseMonth: (year: number, month: number) => ['expenseMonth', year, month] as const,
+  /**
+   * Every income month at once. A write that is not scoped to a single month - registering a source,
+   * which belongs to the month it starts in and to every month after it - invalidates this prefix
+   * rather than guessing at one month and leaving the rest stale.
+   */
+  incomeMonths: () => ['incomeMonth'] as const,
   people: () => ['people'] as const,
   categories: () => ['categories'] as const,
   accounts: () => ['accounts'] as const,

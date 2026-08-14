@@ -604,7 +604,7 @@ Each of the three branches gets its own fixture and its own **literal** expected
 
 `expectedAmount` and `expectedDay` are `number | null` on `MonthlyIncomeLine`: a Variable source has no version and the API sends null for both. Null and zero are different facts, and T27 is where that distinction reaches the screen.
 
-#### T26: Add the income API hooks
+#### T26: Add the income API hooks ✅
 
 **Where**: `mobile/src/features/income/api/useIncome.ts`
 **What**: `useIncomeMonth`, `useRegisterIncomeSource`, `useRegisterIncomePayment`, `useChangeIncomeValue`. Payment and value-change invalidate `incomeMonth` and `dashboard` for the reference month.
@@ -612,6 +612,19 @@ Each of the three branches gets its own fixture and its own **literal** expected
 **Requirement**: INC-02, INC-03
 **Tests**: hook layer — each payload, a recurring source sending amount and expected day while a variable source sends neither (spec INC AC3, AC4), and the invalidated keys after a payment
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/income/api/useIncome.ts` + `useIncome.test.tsx`, 11 tests over `renderHook` and a routed `fetch` mock, so every payload asserted is the one the real `httpClient` serialised. Gate: `tsc` exit 0, 214 passed 0 failed (was 200).
+
+**The month a payment invalidates is the one the API returned (MAD-003), not the one on screen.** The story's Independent Test is a single test here: a payment dated `2026-09-03` for reference month `2026-08-01` makes August read the API **again** and leaves September at **one** call. Asserting only August would pass under a hook that invalidated everything; asserting only September would pass under one that invalidated nothing.
+
+**Discrimination sensor run.** `invalidateMonthOf(client, payment.referenceMonth)` was changed to `payment.paymentDate` in the working tree. Exactly two tests failed — the August/September one and the dashboard one — while the three payload tests stayed green, which is what shows they were not carrying the criterion. Reverted; the suite is back to 214 passed.
+
+**Spec INC AC3 and AC4 are two payload shapes and get two tests.** `RegisterIncomeSourceInput` is a discriminated union, so a Variable source carrying an amount does not compile. The variable test pins the literal body `'{"name":"Freelance","type":1,"personId":"p1"}'` **and** asserts `'amount' in payload` is false: the API rejects a Variable source that sends either field, so absent and zero are not interchangeable.
+
+The dashboard invalidation is asserted through a `useQuery` registered under `qk.dashboard(2026, 8)` with a counting `queryFn`, which is the key T42 will register under. A payment that refreshed only `incomeMonth` would leave the dashboard showing the figure the income screen had just corrected.
+
+Spec INC AC9 gets its own test: two payments against the same source and reference month both reach the API. Nothing client-side guards against it, unlike a recurring bill, which the backend rejects.
+
+**Additive change to a Phase 2 file, recorded rather than silent:** `qk.incomeMonths()` — the bare `['incomeMonth']` prefix — was added to `queryKeys.ts` with three tests, one of them pinning that it is the head of `qk.incomeMonth(y, m)`. Registering a source is not scoped to one month (it belongs to its start month and every month after), so it invalidates the prefix rather than guessing one month and leaving the rest stale. Nothing in `queryKeys.test.ts` was weakened or removed.
 
 #### T27: Add the income month screen
 

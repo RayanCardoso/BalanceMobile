@@ -34,6 +34,23 @@ describe('the month-scoped factories', () => {
   });
 });
 
+describe('the income month prefix', () => {
+  it('is the name alone', () => {
+    expect(qk.incomeMonths()).toEqual(['incomeMonth']);
+  });
+
+  // Invalidating the prefix reaches every month only while it is the head of each month key. If the
+  // two ever drifted apart, registering a source would refresh nothing and nothing would fail.
+  it('is the head of a single income month key', () => {
+    expect(qk.incomeMonth(2026, 8).slice(0, 1)).toEqual(qk.incomeMonths());
+  });
+
+  it('is not the head of the dashboard or the expense month', () => {
+    expect(qk.dashboard(2026, 8).slice(0, 1)).not.toEqual(qk.incomeMonths());
+    expect(qk.expenseMonth(2026, 8).slice(0, 1)).not.toEqual(qk.incomeMonths());
+  });
+});
+
 describe('the catalogue list factories', () => {
   it.each([
     ['people', qk.people(), ['people']],
