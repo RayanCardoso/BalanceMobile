@@ -1027,8 +1027,14 @@ T47 -> T48
 | REC-02 | T37, T33 |
 | REC-03 | T36, T39, T49 |
 | REC-04 | T36, T40, T41 |
-| INST-01 | T35 |
+| INST-01 | T33, T35 |
 | UX-01 | T2, T3, T4, T11, T45 |
 | UX-02 | T6, T9, T13, T45, T47 |
 
 All 20 requirements are mapped.
+
+**Correction, after Batch 6.** INST-01 was mapped to T35 alone. The criterion — "an installment shows
+its position when it appears in a month" — names the month view, and T33's expense month screen
+renders that position wherever an installment line falls, not only in T35's own confirmation. Leaving
+the map as T35-only would have implied the criterion was unreachable from the screen the spec actually
+points at, which it is not: it ships in T33 as well.
