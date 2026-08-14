@@ -920,7 +920,7 @@ Each row asserts its due day, current amount (including the `isEstimate` suffix)
 
 **Phase 8 in progress:** T36, T37, T51 (backend prerequisite) done. T38–T41 remain.
 
-#### T38: Add the register recurring bill screen
+#### T38: Add the register recurring bill screen ✅
 
 **Where**: `mobile/app/(app)/recurring/new.tsx`
 **What**: Name, person, category, account, due day, base amount and the estimate toggle.
@@ -928,6 +928,11 @@ Each row asserts its due day, current amount (including the `isEstimate` suffix)
 **Requirement**: REC-01
 **Tests**: screen layer — the payload including `isEstimate` in both positions, and the API's message when the due day is out of range
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/recurring/ui/RegisterRecurringExpenseScreen.tsx` + its test (4 cases); `app/(app)/recurring/new.tsx` is a one-line mount point. Gate: `tsc` exit 0, 329 passed 0 failed (was 325).
+
+`Picker<T extends string | number>` does not accept `boolean`, so the estimate toggle is an internal `'estimate' | 'fixed'` union converted to `isEstimate` only at submit time - the payload test asserts the boolean lands correctly in both directions regardless. No client-side range check on the due day (MAD-001): an out-of-range value is sent as typed and the API's own `DAY_OUT_OF_RANGE` message is what renders.
+
+**Infrastructure note, unrelated to this task's scope, fixed separately (`a12d840`).** Verifying this task's gate surfaced a leftover git worktree from an earlier dispatch that failed to a transient server error - its directory survived because a VS Code file-watcher handle held it open, and Jest's haste map was reading every duplicate test file inside it, inflating the suite to 654 reported tests. `jest.config.js` now ignores `.claude/worktrees/`, and it is gitignored. The worktree directory itself is still on disk, harmless once ignored; removing it needs VS Code to release its handle first.
 
 #### T39: Add the record and correct payment screen
 
