@@ -4,12 +4,14 @@
 **Design**: `.specs/features/balance-mobile-app/design.md`
 **Status**: Awaiting approval
 
-50 tasks across 11 phases. Every task ends in one atomic commit.
+51 tasks across 11 phases. Every task ends in one atomic commit.
 
-T50 was added after Batch 3 and T44 was amended; both are annotated where they appear.
+T50 was added after Batch 3 and T44 was amended; both are annotated where they appear. T51 was added
+during Batch 7, discovered while implementing T37; it is annotated in place ahead of T37, which now
+depends on it.
 
-Two tasks change the **backend** repository and commit there, not here: T46 and T49, both in Phase 0.
-Everything else is mobile-only.
+Three tasks change the **backend** repository and commit there, not here: T46 and T49 in Phase 0, and
+T51 ahead of T37 in Phase 8. Everything else is mobile-only.
 
 ---
 
@@ -74,7 +76,7 @@ Which layer proves what. A task's `Tests` field must agree with this table.
 | 5 | Catalogue: people, categories, accounts | T20–T24 | 4 |
 | 6 | Income | T25–T30 | 5 |
 | 7 | Expenses and installment plans | T31–T35 | 6 |
-| 8 | Recurring bills | T36–T41 | 7 |
+| 8 | Recurring bills | T36–T41, T51 | 7 |
 | 9 | Dashboard, navigation shell and sign-out | T42–T45, T50 | 8 |
 | 10 | Documentation and web check | T47, T48 | 8 |
 
@@ -849,6 +851,7 @@ Every expected string is a literal (L-010); no `formatMoney` call appears in the
 
 ```
 T36 -> T37
+T51 -> T37
 T36 -> T38
 T36 -> T39
 T36 -> T40
@@ -885,11 +888,27 @@ Spec REC AC5 is pinned twice: the literal body of the four fields a correction m
 - `src/features/recurring/model/recurring.ts` — the three wire types, where `design.md`'s folder layout puts them. The monthly line stays in `features/expenses/model`, because it arrives inside the monthly expense response.
 - `qk.expenseMonths()` and `qk.dashboards()` in `queryKeys.ts` (5 tests, one pinning each as the head of its month key). Archiving invalidates the prefixes; the from-a-month-onward scope reads those same heads through the factories rather than through a literal string, so a renamed resource cannot leave the predicate matching nothing. Nothing in `queryKeys.test.ts` was weakened or removed.
 
+#### T51: Expose a list-all endpoint for recurring expenses (backend prerequisite) ✅
+
+**Where**: `backend/src/Balance.{Domain,Infrastructure,Application,Communication,Api}` — `GET /api/recurring-expense`.
+**What**: `IRecurringExpenseReadOnlyRepository.GetAll(User)`, unfiltered by `Archived`; `GetAllRecurringExpensesUseCase`; `ResponseRecurringExpensesJson`; a `[HttpGet]` action on `RecurringExpenseController`.
+**Depends on**: none
+**Requirement**: REC-01, REC-04
+**Tests**: backend use case + endpoint layers — an archived and a non-archived bill both returned with the right `archived` value; ownership scoping; 401 without a token
+**Gate**: `test` (run in `backend/`: `dotnet test Balance.sln --nologo`)
+**Status**: ✅ Complete. Discovered while implementing T37, not anticipated at Design time.
+
+**The gap, precisely.** `GetForMonth` deliberately excludes archived bills from a month - that is correct, it is the whole point of archiving (spec REC AC7). But it means archived bills never appeared in *any* response the app could read, since the monthly expense view was the only source of recurring-bill data the app had. Once a bill is archived, its id became permanently undiscoverable, and spec REC AC8 ("WHEN a user unarchives...") would have been dead code identical in shape to the `paymentId` gap T49 closed in Phase 0 - an operation the API supports with no way for the client to reach it.
+
+**Fix, mirroring the Category/Account list pattern exactly:** a new repository method, use case, response DTO and `GET` route, none of them filtering on `Archived`. `GetForMonth` is untouched - the fix adds a second read path rather than changing the one the monthly view depends on.
+
+Gate: 358 passed, 0 failed (was 352; 3 use-case + 3 endpoint tests added), build 0 errors 0 warnings. AD-006 verified: `git diff --name-only` carries nothing named `Income*` or under `Incomes/`.
+
 #### T37: Add the recurring bills list screen
 
 **Where**: `mobile/app/(app)/recurring/index.tsx`
 **What**: Lists bills with their due day, estimate flag and archived state.
-**Depends on**: T36
+**Depends on**: T36, T51
 **Requirement**: REC-01, REC-02
 **Tests**: screen layer — the due day and estimate flag asserted per row, and the four states
 **Gate**: `full`
@@ -1043,10 +1062,10 @@ T47 -> T48
 | EXP-01 | T31, T33, T48 |
 | EXP-02 | T5, T32, T34 |
 | EXP-03 | T10, T32, T34 |
-| REC-01 | T36, T37, T38 |
+| REC-01 | T36, T37, T38, T51 |
 | REC-02 | T37, T33 |
 | REC-03 | T36, T39, T49 |
-| REC-04 | T36, T40, T41 |
+| REC-04 | T36, T40, T41, T51 |
 | INST-01 | T33, T35 |
 | UX-01 | T2, T3, T4, T11, T45 |
 | UX-02 | T6, T9, T13, T45, T47 |
