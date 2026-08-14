@@ -743,7 +743,7 @@ Each branch of both maps this feature owns gets its own fixture and its own **li
 
 `expectedAmount` and `actualAmount` are `number | null` on a recurring line and mean different things: a month with no version in effect has no expected amount (spec edge case), and a bill that has not arrived has no actual one. T33 is where that reaches the screen.
 
-#### T32: Add the expense API hooks
+#### T32: Add the expense API hooks ✅
 
 **Where**: `mobile/src/features/expenses/api/useExpenses.ts`
 **What**: `useExpenseMonth`, `useRegisterExpense`, `useRegisterInstallmentPlan`. Registering invalidates the month **the API returned**, not the one on screen.
@@ -751,6 +751,21 @@ Each branch of both maps this feature owns gets its own fixture and its own **li
 **Requirement**: EXP-02, EXP-03
 **Tests**: hook layer — a registration whose response carries a competence month different from the viewed one invalidating the returned month's keys, not the viewed month's. A test that invalidates the viewed month would pass under the bug this exists to prevent
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/expenses/api/useExpenses.ts` + `useExpenses.test.tsx`, 9 tests over `renderHook` and a routed `fetch` mock, so every payload asserted is the one the real `httpClient` serialised. Gate: `tsc` exit 0, 266 passed 0 failed (was 257).
+
+**Every fixture in the file has a competence month that differs from the input's.** The purchase is dated 21 August and the API answers `2026-09-01`, because the account closes on the 20th. August is the month on screen *and* the month the purchase date falls in, so a hook using either one is wrong in the same way — and both wrong answers are the same month, which is why the fixture is built this way rather than around a same-month case that no bug could distinguish.
+
+**MAD-003 is asserted from both directions, twice.** September's month query is asserted to have read the API **again** and August's asserted **not** to have; the same for the two dashboards. A hook invalidating everything would pass the September half; one invalidating nothing would pass the August half. Only the pair states the criterion.
+
+**Spec INST AC2 gets the same treatment across three months.** A 3-installment plan starting 15 September returns installments in September, October and November, each with its own competence month. All three months and all three dashboards are asserted to have re-read; August, which no installment touches, is asserted to have stayed at one call.
+
+**Discrimination sensor run, twice.**
+- `useRegisterExpense` was rewritten to invalidate `input.date`'s month — the purchase date, and equally the month on screen. Exactly the two MAD-003 tests failed, while the two payload tests and the month-read tests stayed green, which is what shows they were not carrying the criterion. Reverted.
+- `useRegisterInstallmentPlan` was rewritten to invalidate only `installments[0]`'s month. Exactly the two plan-invalidation tests failed, reporting one call where two were required for November. Reverted; the suite is back to 266 passed.
+
+Spec EXP AC3 and AC4 are two payload shapes and get two tests: the default body carries `"competenceMonth":null` as a literal string (L-010) and the parsed payload asserts it is **null**, not absent and not a month the client computed; the override test asserts the chosen month goes out while `date` is untouched. Nothing in this module derives a competence month (MAD-001).
+
+`invalidateMonthsOf` de-duplicates by month, so a plan with two installments in one month invalidates it once.
 
 #### T33: Add the expense month screen
 
