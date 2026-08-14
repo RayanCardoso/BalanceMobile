@@ -530,7 +530,7 @@ The description is asserted per row, not only the names (L-004). A person whose 
 
 **Additive file, recorded:** `src/features/catalogue/ui/errors.ts` — `apiMessages` and `listErrorMessage`, shared by the three catalogue screens so the reader is written once. It mirrors `authErrorMessages`, which lives with the auth feature; neither reaches across features. `listErrorMessage` owns exactly one sentence, for a failure the API did not describe. Telling connectivity apart from validation (spec UX AC5) stays with T45's sweep rather than being half-built here.
 
-#### T22: Add the categories screen
+#### T22: Add the categories screen ✅
 
 **Where**: `mobile/app/(app)/catalogue/categories.tsx`
 **What**: Lists Categories showing the priority as Essencial, Importante or Supérfluo, and a form creating one.
@@ -538,6 +538,13 @@ The description is asserted per row, not only the names (L-004). A person whose 
 **Requirement**: CAT-01, CAT-02
 **Tests**: screen layer — all three priority labels rendered from their integers, and two categories with the same name both listed (spec edge case)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/catalogue/model/priority.ts` (`PRIORITY_LABEL`, exhaustive over the `CategoryPriority` union) + `src/features/catalogue/ui/CategoriesScreen.tsx` + its test, 11 cases; `app/(app)/catalogue/categories.tsx` is a one-line mount point, same split as T21. Gate: `tsc` exit 0, 177 passed 0 failed (was 166).
+
+**A real ambiguity surfaced and was fixed, not worked around.** The create form's `Picker` always renders all three priority labels as option buttons, so an unscoped `getByText('Essencial')` matches both the picker option and a list row whenever a row happens to be Essencial — `two categories with the same name` failed on exactly that collision on first run. Fixed by giving the list a `testID` and scoping every row-content assertion to it with `within(...)`, in both the duplicate-name test and the three priority-label tests, rather than loosening any assertion to `getAllByText`.
+
+**Discrimination sensor run and reverted.** `PRIORITY_LABEL[1]` was set to `'Essencial'` in the working tree; exactly `renders priority 1 as Importante` failed, the other ten cases stayed green. Reverted before committing.
+
+CAT AC2, AC5 and the L-003/L-004 discipline follow T21's already-verified pattern (create refreshes the list without a reload; a rejection shows the API's message and keeps the field filled).
 
 #### T23: Add the accounts screen
 
