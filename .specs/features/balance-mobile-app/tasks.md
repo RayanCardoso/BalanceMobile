@@ -1043,6 +1043,8 @@ AC3's assertions run **synchronously after the press, with no `await` between** 
 
 The shell lives in a new `features/navigation/` folder rather than in `shared/ui/`: it imports `useSignOut` from `features/auth`, and `shared/` importing a feature would invert the layering every other module in `src/shared` respects.
 
+**Discrimination sensor, run and reverted by the orchestrator.** The batch worker's own attempt was blocked by the session's permission classifier when it tried an `Edit`; a `sed` mutation went through where the direct edit did not. `void signOut();` was replaced with a no-op comment; exactly the two sign-out tests failed, the three destination/reachability tests stayed green. Reverted before this note was written; the gate re-ran clean at 365/365 afterward.
+
 
 > **Amended after Batch 3.** `useSignOut` shipped in T19 fully tested and no task mounted it, so spec
 > AUTH AC6 — "WHEN a user signs out…" — was reachable only from a test. That is backend lesson
