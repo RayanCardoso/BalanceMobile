@@ -95,3 +95,19 @@ describe('the catalogue list factories', () => {
     expect(qk.categories()).not.toEqual(qk.accounts());
   });
 });
+
+describe('the recurring expenses list factory', () => {
+  it('builds from the name alone', () => {
+    expect(qk.recurringExpenses()).toEqual(['recurringExpenses']);
+  });
+
+  it('gives the same key on every call, so a register or an archive invalidates what the list reads', () => {
+    expect(qk.recurringExpenses()).toEqual(qk.recurringExpenses());
+  });
+
+  it('is not the same key as any catalogue list or month prefix', () => {
+    expect(qk.recurringExpenses()).not.toEqual(qk.people());
+    expect(qk.recurringExpenses()).not.toEqual(qk.expenseMonths());
+    expect(qk.recurringExpenses()).not.toEqual(qk.dashboards());
+  });
+});

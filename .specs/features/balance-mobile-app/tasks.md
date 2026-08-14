@@ -904,7 +904,7 @@ Spec REC AC5 is pinned twice: the literal body of the four fields a correction m
 
 Gate: 358 passed, 0 failed (was 352; 3 use-case + 3 endpoint tests added), build 0 errors 0 warnings. AD-006 verified: `git diff --name-only` carries nothing named `Income*` or under `Incomes/`.
 
-#### T37: Add the recurring bills list screen
+#### T37: Add the recurring bills list screen ✅
 
 **Where**: `mobile/app/(app)/recurring/index.tsx`
 **What**: Lists bills with their due day, estimate flag and archived state.
@@ -912,6 +912,13 @@ Gate: 358 passed, 0 failed (was 352; 3 use-case + 3 endpoint tests added), build
 **Requirement**: REC-01, REC-02
 **Tests**: screen layer — the due day and estimate flag asserted per row, and the four states
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/recurring/ui/RecurringBillsScreen.tsx` + its test (7 cases) + `src/features/recurring/ui/errors.ts` (already present from the interrupted first attempt at this task); `app/(app)/recurring/index.tsx` is a one-line mount point. Gate: `tsc` exit 0, 325 passed 0 failed (was 294).
+
+**T36's mutations did not yet know about T51 when they were written**, since the list-all endpoint did not exist at the time. Extended before building the screen: `qk.recurringExpenses()` added to the key factory (3 new tests), `useRecurringExpenses()` query hook added, and `useRegisterRecurringExpense`/`useArchiveRecurringExpense` now also invalidate the list key alongside the month/dashboard prefixes they already invalidated - a new bill or a flipped archive flag would otherwise not reach the list until a manual reload. Two new hook tests cover this directly.
+
+Each row asserts its due day, current amount (including the `isEstimate` suffix) and archived tag as **separate** facts, not a combined summary (lesson L-004 applied deliberately, given its origin was exactly a pass-through field on this same domain). Discrimination sensor run and reverted: the archived-tag condition was replaced with a literal `false`; exactly the archived-distinction test failed, the other five stayed green.
+
+**Phase 8 in progress:** T36, T37, T51 (backend prerequisite) done. T38–T41 remain.
 
 #### T38: Add the register recurring bill screen
 

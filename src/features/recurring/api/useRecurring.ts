@@ -1,15 +1,17 @@
 import {
   useMutation,
+  useQuery,
   useQueryClient,
   type QueryClient,
   type UseMutationResult,
+  type UseQueryResult,
 } from '@tanstack/react-query';
 
 import type {
   RecurringExpense,
   RecurringExpensePayment,
 } from '@/features/recurring/model/recurring';
-import { post, put } from '@/shared/api/httpClient';
+import { get, post, put } from '@/shared/api/httpClient';
 import { qk } from '@/shared/api/queryKeys';
 import { fromApiDate } from '@/shared/lib/dates';
 
@@ -137,6 +139,15 @@ const invalidateEveryMonth = (client: QueryClient): Promise<void> =>
     client.invalidateQueries({ queryKey: qk.dashboards() }),
   ]).then(() => undefined);
 
+/** Spec REC-01/CAT-02's analogue for recurring bills: `GET /api/recurring-expense`, archived or not. */
+export function useRecurringExpenses(): UseQueryResult<RecurringExpense[], Error> {
+  return useQuery({
+    queryKey: qk.recurringExpenses(),
+    queryFn: async (): Promise<RecurringExpense[]> =>
+      (await get<{ recurringExpenses: RecurringExpense[] }>('/recurring-expense')).recurringExpenses,
+  });
+}
+
 export function useRegisterRecurringExpense(): UseMutationResult<
   RecurringExpense,
   Error,
@@ -148,13 +159,15 @@ export function useRegisterRecurringExpense(): UseMutationResult<
     mutationFn: (input: RegisterRecurringExpenseInput) =>
       post<RecurringExpense>('/recurring-expense', input),
     // The bill starts existing at its first version's validity start, which the API decides when the
-    // request does not carry one. Months before it never showed the bill and do not now.
-    onSuccess: (expense) => {
+    // request does not carry one. Months before it never showed the bill and do not now. The list
+    // itself (T51) also needs a refresh - a new bill would otherwise not appear until the next reload.
+    onSuccess: async (expense) => {
       const first = expense.versions[0];
 
-      return first === undefined
-        ? Promise.resolve()
-        : invalidateMonthsFrom(client, first.validityStart);
+      await Promise.all([
+        client.invalidateQueries({ queryKey: qk.recurringExpenses() }),
+        first === undefined ? Promise.resolve() : invalidateMonthsFrom(client, first.validityStart),
+      ]);
     },
   });
 }
@@ -228,7 +241,12 @@ export function useArchiveRecurringExpense(): UseMutationResult<
     mutationFn: (input: ArchiveRecurringExpenseInput) =>
       put<null>(`/recurring-expense/${input.recurringExpenseId}/archive?archived=${input.archived}`),
     // Spec REC AC7 and AC8. A bill leaves - or rejoins - every month at once, so every cached month
-    // is stale, including months the user has already scrolled past.
-    onSuccess: () => invalidateEveryMonth(client),
+    // is stale, including months the user has already scrolled past. The list itself (T51) carries
+    // the flag this toggle just flipped, so it is invalidated too.
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: qk.recurringExpenses() }),
+        invalidateEveryMonth(client),
+      ]),
   });
 }

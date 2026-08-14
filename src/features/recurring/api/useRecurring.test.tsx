@@ -5,6 +5,7 @@ import { useExpenseMonth } from '@/features/expenses/api/useExpenses';
 import {
   useArchiveRecurringExpense,
   useChangeRecurringValue,
+  useRecurringExpenses,
   useRegisterRecurringExpense,
   useRegisterRecurringPayment,
   useUpdateRecurringPayment,
@@ -203,6 +204,20 @@ const stubThreeMonths = (): void => {
   stub('GET', '/expense/2026/9', 200, monthBody('2026-09-01', [energyLine]));
 };
 
+describe('listing recurring bills (spec REC-01, T51)', () => {
+  it('reads the recurringExpenses array of GET /api/recurring-expense', async () => {
+    stub('GET', '/recurring-expense', 200, { recurringExpenses: [registeredBill] });
+
+    const { result } = renderRecurringHook(() => useRecurringExpenses());
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(result.current.data).toEqual([registeredBill]);
+  });
+});
+
 describe('registering a recurring bill (spec REC AC1)', () => {
   it('sends the name, the person, the category, the account, the due day, the amount and the estimate flag', async () => {
     stub('POST', '/recurring-expense', 201, registeredBill);
@@ -276,6 +291,27 @@ describe('registering a recurring bill (spec REC AC1)', () => {
 
     expect(dashboards.august).toHaveBeenCalledTimes(2);
     expect(dashboards.july).toHaveBeenCalledTimes(1);
+  });
+
+  /** A newly registered bill has to appear in T37's list without a manual reload. */
+  it('refreshes the recurring bills list', async () => {
+    stub('GET', '/recurring-expense', 200, { recurringExpenses: [] });
+    stub('POST', '/recurring-expense', 201, registeredBill);
+
+    const { result } = renderRecurringHook(() => ({
+      list: useRecurringExpenses(),
+      register: useRegisterRecurringExpense(),
+    }));
+
+    await waitFor(() => {
+      expect(result.current.list.isSuccess).toBe(true);
+    });
+
+    result.current.register.mutate(registerInput);
+
+    await waitFor(() => {
+      expect(callsTo('GET', '/recurring-expense')).toHaveLength(2);
+    });
   });
 });
 
@@ -515,5 +551,26 @@ describe('archiving and unarchiving (spec REC AC7, AC8)', () => {
     expect(callsTo('GET', '/expense/2026/8')).toHaveLength(2);
     expect(callsTo('GET', '/expense/2026/9')).toHaveLength(2);
     expect(julyDashboard).toHaveBeenCalledTimes(2);
+  });
+
+  /** The list itself carries the flag this toggle just flipped, so T37 needs a fresh read too. */
+  it('refreshes the recurring bills list', async () => {
+    stub('GET', '/recurring-expense', 200, { recurringExpenses: [registeredBill] });
+    stub('PUT', '/recurring-expense/r1/archive?archived=true', 204, null);
+
+    const { result } = renderRecurringHook(() => ({
+      list: useRecurringExpenses(),
+      archive: useArchiveRecurringExpense(),
+    }));
+
+    await waitFor(() => {
+      expect(result.current.list.isSuccess).toBe(true);
+    });
+
+    result.current.archive.mutate({ recurringExpenseId: 'r1', archived: true });
+
+    await waitFor(() => {
+      expect(callsTo('GET', '/recurring-expense')).toHaveLength(2);
+    });
   });
 });

@@ -28,4 +28,10 @@ export const qk = {
   people: () => ['people'] as const,
   categories: () => ['categories'] as const,
   accounts: () => ['accounts'] as const,
+  /**
+   * Every recurring bill of the user, archived or not - the list `GET /api/recurring-expense`
+   * returns. Registering or archiving a bill invalidates this alongside the month prefixes above, so
+   * the list screen reflects a new bill or a flag change without a manual reload.
+   */
+  recurringExpenses: () => ['recurringExpenses'] as const,
 };

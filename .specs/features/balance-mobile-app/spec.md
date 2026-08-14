@@ -257,7 +257,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | EXP-02 | P1: Record and review expenses | 7 | Implementing |
 | EXP-03 | P1: Record and review expenses | 7 | Implementing |
 | REC-01 | P1: Manage recurring bills | 8 | Implementing |
-| REC-02 | P1: Manage recurring bills | Pending | Pending |
+| REC-02 | P1: Manage recurring bills | 8 | Implementing |
 | REC-03 | P1: Manage recurring bills | 0 | Implementing |
 | REC-04 | P1: Manage recurring bills | 8 | Implementing |
 | INST-01 | P2: Record an installment purchase | 7 | Implementing |
