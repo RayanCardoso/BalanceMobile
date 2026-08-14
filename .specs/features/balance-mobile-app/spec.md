@@ -255,7 +255,7 @@ Every ambiguity is resolved or recorded here - nothing is left silently unclear.
 | INC-03 | P1: Record and review income | 2 | Implementing |
 | EXP-01 | P1: Record and review expenses | 7 | Implementing |
 | EXP-02 | P1: Record and review expenses | 7 | Implementing |
-| EXP-03 | P1: Record and review expenses | 2 | Implementing |
+| EXP-03 | P1: Record and review expenses | 7 | Implementing |
 | REC-01 | P1: Manage recurring bills | Pending | Pending |
 | REC-02 | P1: Manage recurring bills | Pending | Pending |
 | REC-03 | P1: Manage recurring bills | 0 | Implementing |

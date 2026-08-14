@@ -795,7 +795,7 @@ The absent-expected branch is pinned the way T27 pinned income's: a bill with no
 
 ⚠️ **Pre-existing flake surfaced, not touched.** `src/features/income/ui/RegisterIncomeSourceScreen.test.tsx` → `shows every message the API sent, word for word` (T28) failed once during this task's gate run and passed on two full re-runs and in isolation at 126 ms. It is a `waitFor` default-timeout race under worker load, not a regression from this task, and nothing here imports it. Fixing another task's test was out of scope; it is recorded so it is not mistaken for noise later.
 
-#### T34: Add the register expense screen
+#### T34: Add the register expense screen ✅
 
 **Where**: `mobile/app/(app)/expenses/new.tsx`
 **What**: Name, person, type, amount, category, account, date, and an optional competence-month override. No competence month is computed on the client.
@@ -803,6 +803,23 @@ The absent-expected branch is pinned the way T27 pinned income's: a bill with no
 **Requirement**: EXP-02, EXP-03
 **Tests**: screen layer — the payload sending `date` with a null competence month by default; the override sent when chosen; and a response whose competence month differs from the viewed month telling the user where it landed (spec EXP AC6)
 **Gate**: `full`
+**Status**: ✅ Complete. `src/features/expenses/ui/RegisterExpenseScreen.tsx` + its test, 9 cases; `app/(app)/expenses/new.tsx` is a one-line mount point. Gate: `tsc` exit 0, 288 passed 0 failed (was 279).
+
+**The fixture is the story's Independent Test.** The month on screen is August, the purchase is dated 21 August, and the account closes on the 20th — so the API answers September. The two candidate wrong answers, the viewed month and the purchase date's month, are the same month here, which is what makes a single assertion able to reject both.
+
+**Spec EXP AC3 is asserted as null, not as absent.** The literal body carries `"competenceMonth":null` (L-010) and the parsed payload asserts it is null. A screen sending the month it happens to be showing would look correct on this form and would silently override the server's rule on every credit purchase after a closing day (MAD-001).
+
+**Spec EXP AC6 gets both halves (L-003).** A September answer renders `Lançado em Setembro de 2026.`; an August answer renders **no notice node at all**, asserted with `queryByTestId` returning null. A notice that always appears tells the user nothing about the one case it exists for.
+
+**Discrimination sensor run, twice.**
+- The notice was made unconditional. Exactly `says nothing extra when the expense landed in the month on screen` failed; the eight others stayed green, including the one that reads the notice, which is what shows it was not carrying the criterion on its own. Reverted.
+- The default `competenceMonth` was replaced with the viewed month, the plausible client-side derivation. Exactly `sends the date and a null competence month` failed. Reverted; the suite is back to 288 passed.
+
+**Spec EXP AC7 — no client-side filter, and a test that would catch one.** With Rayan chosen as the person, the picker still offers Marina's card, and submitting sends `personId: 'p1'` with `accountId: 'a2'`. An expense of one person paid from another's account is deliberate backend behaviour; a filter here would be a rule the server does not have.
+
+Spec EXP AC5 is asserted as the month changing on screen, not as the mutation succeeding: the month screen is rendered beside the form and nothing in the test reloads it. Spec EXP AC8 returns **two** `errorMessages`, both asserted word for word, and the two fields are asserted to still hold what was typed (MAD-004, L-003). Spec CAT AC6 applies here too: one person is preselected, the picker is asserted absent, and their id is still what goes out.
+
+The type is asserted as the integer `2` for Pix, not the label and not `'2'` — the API's enum rejects a stringified value.
 
 #### T35: Add the installment plan screen
 
