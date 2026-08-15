@@ -1,4 +1,4 @@
-import { ChangeRecurringValueScreen } from '@/features/recurring/ui/ChangeRecurringValueScreen';
+import { ChangeRecurringValueScreen } from '@/screens/ChangeRecurringValue/ChangeRecurringValueScreen';
 
 /**
  * Mount point only. See `app/(app)/catalogue/people.tsx` for why the screen and its test live under

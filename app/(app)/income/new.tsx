@@ -1,4 +1,4 @@
-import { RegisterIncomeSourceScreen } from '@/features/income/ui/RegisterIncomeSourceScreen';
+import { RegisterIncomeSourceScreen } from '@/screens/RegisterIncome/RegisterIncomeScreen';
 
 /**
  * Mount point only. See `app/(app)/catalogue/people.tsx` for why the screen and its test live under

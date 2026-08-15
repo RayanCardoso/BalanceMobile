@@ -1,7 +1,7 @@
-import { AppShell } from '@/features/navigation/ui/AppShell';
+import { AppNavigator } from '@/navigation/AppNavigator';
 
 /**
  * Mount point only. See `app/(app)/catalogue/people.tsx` for why the shell and its test live under
- * `src/features/` instead.
+ * `src/navigation/` instead.
  */
-export default AppShell;
+export default AppNavigator;

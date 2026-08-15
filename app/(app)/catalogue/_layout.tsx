@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 
-import { stackHeader } from '@/features/navigation/ui/headers';
-import { stackScreenOptions } from '@/shared/ui/theme';
+import { stackHeader } from '@/navigation/headers';
+import { stackScreenOptions } from '@/components/theme';
 
 /**
  * Makes `catalogue` one navigator carrying its menu and its three screens, the same pattern
