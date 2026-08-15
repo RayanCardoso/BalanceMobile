@@ -118,6 +118,13 @@ describe('qual destino aparece como o atual', () => {
 
     expect(screen.getByTestId('destination-active')).toHaveTextContent('Despesas');
   });
+
+  it('marca o resumo quando o caminho é a raiz', () => {
+    mockPathname = '/';
+    renderDrawer();
+
+    expect(screen.getByTestId('destination-active')).toHaveTextContent('Resumo');
+  });
 });
 
 describe('quem está na sessão', () => {
