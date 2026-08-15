@@ -63,9 +63,13 @@ export function Screen({ children }: { children: ReactNode }): React.JSX.Element
       style={styles.screen}
     >
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.lg }]}
+        // Só `insets.bottom`: o `space.lg` da borda inferior já vem de `screen`, no
+        // `KeyboardAvoidingView` pai (a mesma borda que dá top/left/right). Somar `space.lg`
+        // aqui de novo dobraria essa borda no fim da lista mesmo em aparelhos sem barra de
+        // gestos, onde `insets.bottom` é 0.
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom }]}
         keyboardShouldPersistTaps="handled"
-        style={styles.screen}
+        style={styles.scroll}
         testID="screen-scroll"
       >
         {children}
@@ -115,12 +119,23 @@ const styles = StyleSheet.create({
     padding: space.lg,
   },
   /**
+   * Sem `padding`: o `space.lg` de borda já vem de `screen`, no `KeyboardAvoidingView` pai.
+   * Repetir o padding aqui (ou em `content` abaixo) multiplicaria a borda visível em vez de só
+   * posicionar o `ScrollView` dentro do espaço que `screen` já reservou. `backgroundColor` fica
+   * porque o teste consulta o próprio `ScrollView` (`screen-scroll`), não o `KeyboardAvoidingView`
+   * que o envolve.
+   */
+  scroll: {
+    backgroundColor: colors.surface.base,
+    flex: 1,
+  },
+  /**
    * `flexGrow` e não `flex`: como `contentContainerStyle`, um `flex: 1` prende o conteúdo à altura
-   * da viewport e a rolagem deixa de acontecer justamente quando passa a ser necessária.
+   * da viewport e a rolagem deixa de acontecer justamente quando passa a ser necessária. Sem
+   * padding aqui pelo mesmo motivo de `scroll` acima - `screen` já é a única fonte da borda.
    */
   content: {
     flexGrow: 1,
-    padding: space.lg,
   },
   centered: {
     alignItems: 'center',
