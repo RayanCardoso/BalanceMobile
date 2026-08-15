@@ -58,6 +58,12 @@ export const colors = {
   },
 
   /**
+   * O escurecido que separa a gaveta da tela atrás dela. Não é uma superfície: é o navy do app com
+   * alfa, para que o conteúdo continue legível como contexto sem competir com o menu.
+   */
+  scrim: 'rgba(6, 18, 42, 0.6)',
+
+  /**
    * Money and status. `positive`/`negative` name the *tone*, not the sign: a paid bill is positive
    * and an overdue one is negative, in the same colours a credit and a debit use.
    */
@@ -90,6 +96,12 @@ export const radius = {
   /** Pills: badges, chips, filter options. */
   pill: 999,
 } as const;
+
+/**
+ * Os controles desenhados no `TopBar`. `size` é o alvo de toque — 44 é o mínimo confortável em
+ * ambas as plataformas — e `bar` é a espessura de um traço do ☰.
+ */
+export const control = { size: 44, bar: 2 } as const;
 
 export const type: Record<
   'title' | 'heading' | 'body' | 'label' | 'caption' | 'money',
