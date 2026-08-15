@@ -66,4 +66,16 @@ describe('o controle que a barra mostra', () => {
 
     expect(screen.getByText('Pagamento de conta recorrente')).toBeTruthy();
   });
+
+  it('soma insets.top ao padding da barra, para o título não nascer debaixo do relógio', () => {
+    render(
+      <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 47, left: 0, right: 0, bottom: 34 } }}>
+        <TopBar onMenu={jest.fn()} title="Despesas" />
+      </SafeAreaProvider>,
+    );
+
+    // insets.top (47) + space.sm (8). Two levels up from the title Text: past the Text host
+    // element's own composite wrapper to the bar's outer View, which carries the padding.
+    expect(screen.getByTestId('top-bar-title').parent?.parent).toHaveStyle({ paddingTop: 55 });
+  });
 });

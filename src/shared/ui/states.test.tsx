@@ -60,6 +60,21 @@ describe('o container de tela', () => {
       backgroundColor: colors.surface.base,
     });
   });
+
+  it('soma insets.bottom ao padding de baixo, para o fim da lista não nascer sob a barra de gestos', () => {
+    render(
+      <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 47, left: 0, right: 0, bottom: 34 } }}>
+        <Screen>
+          <Text>conteúdo</Text>
+        </Screen>
+      </SafeAreaProvider>
+    );
+
+    // insets.bottom (34) + space.lg (16). contentContainerStyle é um array
+    // ([styles.content, { paddingBottom }]), não um único objeto, então achatamos antes de checar.
+    const contentContainerStyle = screen.getByTestId('screen-scroll').props.contentContainerStyle;
+    expect(Object.assign({}, ...contentContainerStyle)).toMatchObject({ paddingBottom: 50 });
+  });
 });
 
 describe('Loading', () => {
