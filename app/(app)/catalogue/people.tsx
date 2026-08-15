@@ -1,4 +1,4 @@
-import { PeopleScreen } from '@/features/catalogue/ui/PeopleScreen';
+import { PeopleScreen } from '@/screens/People/PeopleScreen';
 
 /**
  * Mount point only. The screen lives in `src/features/catalogue/ui/`, which is where the design puts

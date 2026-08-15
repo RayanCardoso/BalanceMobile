@@ -1,4 +1,4 @@
-import { RecurringBillsScreen } from '@/features/recurring/ui/RecurringBillsScreen';
+import { RecurringBillsScreen } from '@/screens/RecurringBills/RecurringBillsScreen';
 
 /**
  * Mount point only. See `app/(app)/catalogue/people.tsx` for why the screen and its test live under

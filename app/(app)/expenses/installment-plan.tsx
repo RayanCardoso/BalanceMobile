@@ -1,4 +1,4 @@
-import { RegisterInstallmentPlanScreen } from '@/features/expenses/ui/RegisterInstallmentPlanScreen';
+import { RegisterInstallmentPlanScreen } from '@/screens/RegisterInstallmentPlan/RegisterInstallmentPlanScreen';
 
 /**
  * Mount point only. See `app/(app)/catalogue/people.tsx` for why the screen and its test live under

@@ -1,4 +1,4 @@
-import { SignUpScreen } from '@/features/auth/ui/SignUpScreen';
+import { RegisterScreen } from '@/screens/Register/RegisterScreen';
 
-/** Mount point only; the screen and its test live in `src/features/auth/ui/`. See `sign-in.tsx`. */
-export default SignUpScreen;
+/** Mount point only; the screen and its test live in `src/screens/Register/`. See `sign-in.tsx`. */
+export default RegisterScreen;

@@ -1,4 +1,4 @@
-import { RecordIncomePaymentScreen } from '@/features/income/ui/RecordIncomePaymentScreen';
+import { RecordIncomePaymentScreen } from '@/screens/RecordIncomePayment/RecordIncomePaymentScreen';
 
 /**
  * Mount point only. See `app/(app)/catalogue/people.tsx` for why the screen and its test live under

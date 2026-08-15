@@ -1,4 +1,4 @@
-import { DashboardScreen } from '@/features/dashboard/ui/DashboardScreen';
+import { DashboardScreen } from '@/screens/Dashboard/DashboardScreen';
 
 /**
  * Mount point only. See `app/(app)/catalogue/people.tsx` for why the screen and its test live under

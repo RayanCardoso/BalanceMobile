@@ -1,4 +1,4 @@
-import { RegisterExpenseScreen } from '@/features/expenses/ui/RegisterExpenseScreen';
+import { RegisterExpenseScreen } from '@/screens/RegisterExpense/RegisterExpenseScreen';
 
 /**
  * Mount point only. See `app/(app)/catalogue/people.tsx` for why the screen and its test live under

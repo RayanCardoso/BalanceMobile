@@ -1,4 +1,4 @@
-import { RegisterRecurringExpenseScreen } from '@/features/recurring/ui/RegisterRecurringExpenseScreen';
+import { RegisterRecurringExpenseScreen } from '@/screens/RegisterRecurringExpense/RegisterRecurringExpenseScreen';
 
 /**
  * Mount point only. See `app/(app)/catalogue/people.tsx` for why the screen and its test live under
