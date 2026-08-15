@@ -205,8 +205,6 @@ export function DashboardScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Resumo do mês</Text>
-
       <MonthNavigator
         month={period.month}
         onChange={(year, month) => {
@@ -221,10 +219,6 @@ export function DashboardScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-  },
   sections: {
     gap: space.sm,
     marginTop: space.sm,

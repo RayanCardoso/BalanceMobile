@@ -79,7 +79,7 @@ describe('registering', () => {
       expect(fetchMock).toHaveBeenCalled();
     });
 
-    expect(lastUrl()).toBe('http://localhost:5126/api/user');
+    expect(lastUrl()).toBe('http://10.0.2.2:5126/api/User');
     expect(lastBody()).toBe(
       '{"name":"Rayan","email":"rayan@balance.app","password":"segredo123"}'
     );

@@ -70,8 +70,6 @@ export function CategoriesScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Categorias</Text>
-
       <Field label="Nome" onChangeText={setName} placeholder="Mercado" value={name} />
       <Field
         label="Descrição"
@@ -95,11 +93,6 @@ export function CategoriesScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.lg,
-  },
   error: {
     ...type.body,
     color: colors.status.negative,

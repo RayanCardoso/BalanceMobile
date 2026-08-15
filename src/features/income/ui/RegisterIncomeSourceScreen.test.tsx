@@ -11,7 +11,7 @@ jest.mock('@/shared/lib/tokenStorage', () => ({
   clearToken: jest.fn(),
 }));
 
-const BASE = 'http://localhost:5126/api';
+const BASE = 'http://10.0.2.2:5126/api';
 
 const fetchMock = jest.fn();
 

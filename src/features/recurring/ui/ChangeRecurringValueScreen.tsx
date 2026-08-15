@@ -54,8 +54,6 @@ export function ChangeRecurringValueScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Alterar valor base</Text>
-
       <View testID="recurring-bill-picker">
         <Picker
           label="Conta"
@@ -91,11 +89,6 @@ export function ChangeRecurringValueScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.lg,
-  },
   error: {
     ...type.body,
     color: colors.status.negative,

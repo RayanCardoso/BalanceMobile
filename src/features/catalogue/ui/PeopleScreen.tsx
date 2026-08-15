@@ -72,8 +72,6 @@ export function PeopleScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Pessoas</Text>
-
       <Field label="Nome" onChangeText={setName} placeholder="Marina" value={name} />
       <Field
         label="Descrição"
@@ -96,11 +94,6 @@ export function PeopleScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.lg,
-  },
   error: {
     ...type.body,
     color: colors.status.negative,

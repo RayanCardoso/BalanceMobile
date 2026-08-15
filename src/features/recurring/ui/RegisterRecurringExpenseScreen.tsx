@@ -8,6 +8,7 @@ import { parseMoneyInput, parseOptionalInt } from '@/shared/lib/money';
 import { Field, Picker, SubmitButton } from '@/shared/ui/form';
 import { Screen } from '@/shared/ui/states';
 import { colors, space, type } from '@/shared/ui/theme';
+import { EXPENSE_TYPE_LABEL, EXPENSE_TYPE_OPTIONS, ExpenseType } from '../model/recurring';
 
 /**
  * Spec REC AC1. Registers a recurring bill's name, person, category, account, due day, base amount
@@ -35,6 +36,7 @@ export function RegisterRecurringExpenseScreen(): React.JSX.Element {
   const [personId, setPersonId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState<string | null>(null);
+  const [expenseType, setExpenseType] = useState<ExpenseType | null>(null);
   const [dueDay, setDueDay] = useState('');
   const [amount, setAmount] = useState('');
   const [estimateChoice, setEstimateChoice] = useState<EstimateChoice>('estimate');
@@ -49,7 +51,11 @@ export function RegisterRecurringExpenseScreen(): React.JSX.Element {
   const messages = register.isError ? apiMessages(register.error) : [];
 
   const submit = (): void => {
-    if (personId === null || categoryId === null || accountId === null) {
+    if (personId === null || categoryId === null || expenseType == null) {
+      return;
+    }
+
+    if(expenseType == 0 && accountId == null) {
       return;
     }
 
@@ -62,6 +68,7 @@ export function RegisterRecurringExpenseScreen(): React.JSX.Element {
         dueDay: parseOptionalInt(dueDay) ?? 0,
         amount: parseMoneyInput(amount) ?? 0,
         isEstimate: estimateChoice === 'estimate',
+        type: expenseType
       },
       {
         onSuccess: () => {
@@ -76,8 +83,6 @@ export function RegisterRecurringExpenseScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Nova conta recorrente</Text>
-
       <Field label="Nome" onChangeText={setName} placeholder="Aluguel" value={name} />
 
       {people.data !== undefined && people.data.length > 1 ? (
@@ -98,18 +103,31 @@ export function RegisterRecurringExpenseScreen(): React.JSX.Element {
         />
       ) : null}
 
-      {accounts.data !== undefined ? (
-        <Picker
-          label="Conta"
-          onChange={setAccountId}
-          options={accounts.data.map((account) => ({ label: account.name, value: account.id }))}
-          selected={accountId}
-        />
-      ) : null}
+      <Picker
+        label="Tipo de pagamento"
+        onChange={setExpenseType}
+        options={EXPENSE_TYPE_OPTIONS.map((expenseType) => ({ label: expenseType.label, value: expenseType.value }))}
+        selected={expenseType}
+      />
 
+      {expenseType === 0 && (
+        <>
+          {accounts.data !== undefined ? (
+            <Picker
+              label="Conta"
+              onChange={setAccountId}
+              options={accounts.data.map((account) => ({ label: account.name, value: account.id }))}
+              selected={accountId}
+            />
+          ) : null}
+
+        </>
+      )}
+      
       <Field label="Dia de vencimento" onChangeText={setDueDay} placeholder="10" value={dueDay} />
+      
       <Field label="Valor base" onChangeText={setAmount} placeholder="2250,00" value={amount} />
-
+      
       <Picker
         label="Tipo de valor"
         onChange={setEstimateChoice}
@@ -129,11 +147,6 @@ export function RegisterRecurringExpenseScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.lg,
-  },
   error: {
     ...type.body,
     color: colors.status.negative,

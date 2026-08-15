@@ -1,5 +1,15 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { NetworkError } from '@/shared/api/ApiError';
 import { colors, radius, space, type } from '@/shared/ui/theme';
@@ -34,8 +44,36 @@ export function connectivityMessage(error: unknown): string | null {
   return error instanceof NetworkError ? CONNECTIVITY_MESSAGE : null;
 }
 
+/**
+ * O container de toda tela assinada, e o único lugar que trata as bordas do sistema.
+ *
+ * O Expo SDK 57 liga edge-to-edge no Android por padrão, então sem `insets.bottom` o fim de uma
+ * lista nasce debaixo da barra de gestos. A parte de cima é do `TopBar`; daqui para baixo é aqui.
+ *
+ * Rola por padrão porque a alternativa é cada tela de formulário descobrir sozinha, uma de cada
+ * vez, que não cabe num aparelho menor.
+ */
 export function Screen({ children }: { children: ReactNode }): React.JSX.Element {
-  return <View style={styles.screen}>{children}</View>;
+  const insets = useSafeAreaInsets();
+
+  return (
+    <KeyboardAvoidingView
+      // No Android o `windowSoftInputMode` já redimensiona a janela; no iOS não há equivalente.
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.avoidingView}
+    >
+      <ScrollView
+        // `content` já tem `space.lg` nas quatro bordas; somar `insets.bottom` aqui é a barra de
+        // gestos do Android por cima dessa borda, não no lugar dela.
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.lg }]}
+        keyboardShouldPersistTaps="handled"
+        style={styles.scroll}
+        testID="screen-scroll"
+      >
+        {children}
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 }
 
 export function Loading({ label = 'Carregando…' }: { label?: string }): React.JSX.Element {
@@ -73,9 +111,39 @@ export function ErrorState({
 }
 
 const styles = StyleSheet.create({
+  /** Usado direto por `Loading`, que não passa por `KeyboardAvoidingView` nem `ScrollView`. */
   screen: {
     backgroundColor: colors.surface.base,
     flex: 1,
+    padding: space.lg,
+  },
+  /**
+   * Sem `padding`: no iOS, `KeyboardAvoidingView` com `behavior="padding"` compõe o seu próprio
+   * `paddingBottom` (a altura do teclado, 0 quando fechado) por cima do `style` recebido, e isso
+   * zera qualquer `paddingBottom` vindo daqui sempre que o teclado está fechado - a maior parte do
+   * tempo. `content` abaixo é por isso a única fonte da borda.
+   */
+  avoidingView: {
+    backgroundColor: colors.surface.base,
+    flex: 1,
+  },
+  /**
+   * Mesmo motivo de `avoidingView`: sem `padding` aqui, só `flex` para o `ScrollView` ocupar o
+   * espaço do pai. `backgroundColor` fica porque o teste consulta o próprio `ScrollView`
+   * (`screen-scroll`), não o `KeyboardAvoidingView` que o envolve.
+   */
+  scroll: {
+    backgroundColor: colors.surface.base,
+    flex: 1,
+  },
+  /**
+   * `flexGrow` e não `flex`: um `flex: 1` prenderia o conteúdo à altura da viewport e a rolagem
+   * deixaria de acontecer justamente quando passa a ser necessária. `padding: space.lg` nas quatro
+   * bordas é agora a única fonte de borda da tela - `screen` deixou de fornecer a de baixo, que o
+   * `KeyboardAvoidingView` zerava no iOS (ver `avoidingView` acima).
+   */
+  content: {
+    flexGrow: 1,
     padding: space.lg,
   },
   centered: {

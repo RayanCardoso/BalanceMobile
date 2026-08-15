@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 
+import { stackHeader } from '@/features/navigation/ui/headers';
 import { stackScreenOptions } from '@/shared/ui/theme';
 
 /**
@@ -7,5 +8,12 @@ import { stackScreenOptions } from '@/shared/ui/theme';
  * `(auth)/_layout.tsx` established for the auth group.
  */
 export default function CatalogueLayout(): React.JSX.Element {
-  return <Stack screenOptions={stackScreenOptions} />;
+  return (
+    <Stack screenOptions={{ ...stackScreenOptions, headerShown: true, header: stackHeader }}>
+      <Stack.Screen name="index" options={{ title: 'Catálogo' }} />
+      <Stack.Screen name="people" options={{ title: 'Pessoas' }} />
+      <Stack.Screen name="categories" options={{ title: 'Categorias' }} />
+      <Stack.Screen name="accounts" options={{ title: 'Contas' }} />
+    </Stack>
+  );
 }

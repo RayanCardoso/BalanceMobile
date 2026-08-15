@@ -95,8 +95,6 @@ export function RegisterInstallmentPlanScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Nova compra parcelada</Text>
-
       <Field label="Nome" onChangeText={setName} placeholder="Notebook" value={name} />
 
       {people.data !== undefined && people.data.length > 1 ? (
@@ -158,11 +156,6 @@ export function RegisterInstallmentPlanScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.lg,
-  },
   summary: {
     backgroundColor: colors.surface.raised,
     borderColor: colors.border.subtle,

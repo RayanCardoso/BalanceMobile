@@ -6,6 +6,9 @@
 module.exports = {
   preset: 'jest-expo',
   globalSetup: '<rootDir>/jest.globalSetup.js',
+  // jest.setup.js mocks react-native-safe-area-context (and stubs react-native-gesture-handler's
+  // native module) project-wide, so individual tests don't have to.
+  setupFiles: ['<rootDir>/jest.setup.js'],
   // .claude/worktrees holds isolated copies of the whole source tree that background agents work in.
   // Without this, Jest's haste map picks up every duplicate *.test.tsx inside them too, double- (or
   // triple-) counting every test in the suite and colliding on module names.
@@ -16,6 +19,6 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg))',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|standard-navigation|@sentry/react-native|native-base|react-native-svg))',
   ],
 };

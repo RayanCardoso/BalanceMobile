@@ -1332,5 +1332,8 @@ Se algum item falhar, **não seguir para ajustes direto**: usar a skill
   de a barra existir deixa telas sem título nenhum.
 - **Tasks 1, 2 e 3 são independentes** e podem ser feitas em paralelo por agentes distintos.
 - O app roda hoje contra o backend em `http://10.0.2.2:5126/api`
+  ([`httpClient.ts:16`](../../../src/shared/api/httpClient.ts)). A base de testes foi realinhada com
+  esse endereço e com a capitalização real das rotas (`/Login`, `/User`) num commit próprio antes
+  da Task 1, para que o branch começasse de uma base verde.
   ([`httpClient.ts:16`](../../../src/shared/api/httpClient.ts)). Os `console.log` de depuração nas
   linhas 72 e 74 desse arquivo são anteriores a este plano e não fazem parte dele.

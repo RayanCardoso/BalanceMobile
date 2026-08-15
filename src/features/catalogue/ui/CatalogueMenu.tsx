@@ -1,5 +1,5 @@
 import { Link } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { colors, radius, space, type } from '@/shared/ui/theme';
 
@@ -13,8 +13,6 @@ import { colors, radius, space, type } from '@/shared/ui/theme';
 export function CatalogueMenu(): React.JSX.Element {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Catálogo</Text>
-
       <Link href="/catalogue/people" style={styles.item}>
         Pessoas
       </Link>
@@ -34,11 +32,6 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: space.md,
     padding: space.lg,
-  },
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.sm,
   },
   item: {
     ...type.body,

@@ -67,7 +67,6 @@ export function RecurringBillsScreen(): React.JSX.Element {
   return (
     <Screen>
       <View style={styles.header}>
-        <Text style={styles.title}>Contas recorrentes</Text>
         <Link href="/recurring/new" style={styles.newLink}>
           Nova conta
         </Link>
@@ -82,12 +81,8 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     marginBottom: space.lg,
-  },
-  title: {
-    ...type.title,
-    color: colors.text.primary,
   },
   newLink: {
     ...type.label,

@@ -77,8 +77,6 @@ export function RegisterIncomeSourceScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Nova fonte de renda</Text>
-
       <Field label="Nome" onChangeText={setName} placeholder="Salário" value={name} />
 
       <Picker label="Tipo" onChange={setType} options={TYPE_OPTIONS} selected={type} />
@@ -116,11 +114,6 @@ export function RegisterIncomeSourceScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.lg,
-  },
   error: {
     ...type.body,
     color: colors.status.negative,

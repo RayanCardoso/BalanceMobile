@@ -41,7 +41,7 @@ describe('the request the client sends', () => {
 
     await request('GET', '/dashboard/2026/8');
 
-    expect(lastUrl()).toBe('http://localhost:5126/api/dashboard/2026/8');
+    expect(lastUrl()).toBe('http://10.0.2.2:5126/api/dashboard/2026/8');
   });
 
   it('attaches the bearer header when the session holds a token', async () => {

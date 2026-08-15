@@ -72,8 +72,6 @@ export function RecordIncomePaymentScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Registrar recebimento</Text>
-
       <Text style={styles.sectionLabel}>Mês de referência</Text>
       <MonthNavigator
         month={period.month}
@@ -126,10 +124,6 @@ export function RecordIncomePaymentScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-  },
   sectionLabel: {
     ...type.label,
     color: colors.text.secondary,
