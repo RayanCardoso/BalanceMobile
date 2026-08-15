@@ -12,7 +12,7 @@ import { colors } from '@/shared/ui/theme';
  * Expo Router trata um arquivo de pasta sem layout sob um `Drawer`.
  *
  * O Resumo é a exceção: é a rota índice do grupo, não tem Stack próprio, e por isso recebe a barra
- * superior daqui em vez de de um layout de pasta.
+ * superior daqui em vez de um layout de pasta.
  *
  * `drawerType: 'front'` desliza a gaveta por cima da tela em vez de empurrá-la. É o que mantém o
  * conteúdo no lugar enquanto o menu está aberto.
