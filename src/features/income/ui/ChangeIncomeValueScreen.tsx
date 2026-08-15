@@ -70,8 +70,6 @@ export function ChangeIncomeValueScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Alterar valor</Text>
-
       <View testID="income-source-picker">
         <Picker
           label="Fonte"
@@ -116,11 +114,6 @@ export function ChangeIncomeValueScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.lg,
-  },
   error: {
     ...type.body,
     color: colors.status.negative,

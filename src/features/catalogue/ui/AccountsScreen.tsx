@@ -115,8 +115,6 @@ export function AccountsScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Contas</Text>
-
       <Field label="Nome" onChangeText={setName} placeholder="Nubank Roxinho" value={name} />
       <Field
         label="Instituição"
@@ -157,11 +155,6 @@ export function AccountsScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.lg,
-  },
   error: {
     ...type.body,
     color: colors.status.negative,

@@ -170,8 +170,6 @@ export function ExpenseMonthScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Despesas</Text>
-
       <MonthNavigator
         month={period.month}
         onChange={(year, month) => {
@@ -186,10 +184,6 @@ export function ExpenseMonthScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-  },
   sections: {
     gap: space.sm,
     marginTop: space.sm,

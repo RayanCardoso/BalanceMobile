@@ -106,8 +106,6 @@ export function RegisterExpenseScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Nova despesa</Text>
-
       <Field label="Nome" onChangeText={setName} placeholder="Mercado" value={name} />
 
       {people.data !== undefined && people.data.length > 1 ? (
@@ -197,11 +195,6 @@ export function RegisterExpenseScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.lg,
-  },
   toggle: {
     paddingVertical: space.sm,
   },

@@ -76,8 +76,6 @@ export function RegisterRecurringExpenseScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.title}>Nova conta recorrente</Text>
-
       <Field label="Nome" onChangeText={setName} placeholder="Aluguel" value={name} />
 
       {people.data !== undefined && people.data.length > 1 ? (
@@ -129,11 +127,6 @@ export function RegisterRecurringExpenseScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  title: {
-    ...type.title,
-    color: colors.text.primary,
-    marginBottom: space.lg,
-  },
   error: {
     ...type.body,
     color: colors.status.negative,
