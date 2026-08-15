@@ -13,3 +13,8 @@ jest.mock('react-native-safe-area-context', () => {
   const mock = require('react-native-safe-area-context/jest/mock');
   return mock.default ?? mock;
 });
+
+// GestureHandlerRootView (wrapped around the whole app in RootLayout.tsx, for the drawer's swipe
+// gesture) calls into a native module on mount. This is react-native-gesture-handler's own test
+// setup: it stubs that native module out, so rendering the root under test doesn't throw.
+require('react-native-gesture-handler/jestSetup');

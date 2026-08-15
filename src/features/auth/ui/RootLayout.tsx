@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { installSessionExpiry } from '@/features/auth/api/useSignOut';
 import { createQueryClient, QueryProvider } from '@/shared/api/queryClient';
@@ -53,11 +54,17 @@ export function RootLayout(): React.JSX.Element {
   }, [restore]);
 
   return (
-    <QueryProvider client={queryClient}>
-      {/* The app is dark everywhere, so the clock and battery above it have to be light - the
-          system default is dark-on-dark and effectively invisible. */}
-      <StatusBar style="light" />
-      <SessionGate status={status} />
-    </QueryProvider>
+    // The drawer (AppShell.tsx, expo-router/drawer) is built on react-native-drawer-layout, which
+    // needs a GestureHandlerRootView ancestor for its pan/swipe gesture to work on Android.
+    // expo-router's own root doesn't provide one, so it lives here - the outermost element - to
+    // cover the whole app, not just the drawer's own screens.
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryProvider client={queryClient}>
+        {/* The app is dark everywhere, so the clock and battery above it have to be light - the
+            system default is dark-on-dark and effectively invisible. */}
+        <StatusBar style="light" />
+        <SessionGate status={status} />
+      </QueryProvider>
+    </GestureHandlerRootView>
   );
 }
