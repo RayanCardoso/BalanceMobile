@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
+import type { StyleProp, TextStyle } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppDrawer } from '@/features/navigation/ui/AppDrawer';
@@ -26,22 +27,17 @@ jest.mock('expo-router', () => {
   const rn = require('react-native') as typeof import('react-native');
 
   const Link = ({
-    href,
     children,
     onPress,
-    testID: componentTestID,
+    testID,
     style,
   }: {
     href: string;
     children: ReactNode;
     onPress?: () => void;
     testID?: string;
-    style?: any;
-  }) => {
-    // Combine component's testID (if active) with the link href testID for test queries
-    const testIDValue = componentTestID || `link-${href}`;
-    return react.createElement(rn.Text, { testID: testIDValue, onPress, style }, children);
-  };
+    style?: StyleProp<TextStyle>;
+  }) => react.createElement(rn.Text, { testID, onPress, style }, children);
 
   return { Link, usePathname: () => mockPathname };
 });
