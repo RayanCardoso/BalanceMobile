@@ -60,14 +60,12 @@ export function Screen({ children }: { children: ReactNode }): React.JSX.Element
     <KeyboardAvoidingView
       // No Android o `windowSoftInputMode` já redimensiona a janela; no iOS não há equivalente.
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.screen}
+      style={styles.avoidingView}
     >
       <ScrollView
-        // Só `insets.bottom`: o `space.lg` da borda inferior já vem de `screen`, no
-        // `KeyboardAvoidingView` pai (a mesma borda que dá top/left/right). Somar `space.lg`
-        // aqui de novo dobraria essa borda no fim da lista mesmo em aparelhos sem barra de
-        // gestos, onde `insets.bottom` é 0.
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom }]}
+        // `content` já tem `space.lg` nas quatro bordas; somar `insets.bottom` aqui é a barra de
+        // gestos do Android por cima dessa borda, não no lugar dela.
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.lg }]}
         keyboardShouldPersistTaps="handled"
         style={styles.scroll}
         testID="screen-scroll"
@@ -113,29 +111,40 @@ export function ErrorState({
 }
 
 const styles = StyleSheet.create({
+  /** Usado direto por `Loading`, que não passa por `KeyboardAvoidingView` nem `ScrollView`. */
   screen: {
     backgroundColor: colors.surface.base,
     flex: 1,
     padding: space.lg,
   },
   /**
-   * Sem `padding`: o `space.lg` de borda já vem de `screen`, no `KeyboardAvoidingView` pai.
-   * Repetir o padding aqui (ou em `content` abaixo) multiplicaria a borda visível em vez de só
-   * posicionar o `ScrollView` dentro do espaço que `screen` já reservou. `backgroundColor` fica
-   * porque o teste consulta o próprio `ScrollView` (`screen-scroll`), não o `KeyboardAvoidingView`
-   * que o envolve.
+   * Sem `padding`: no iOS, `KeyboardAvoidingView` com `behavior="padding"` compõe o seu próprio
+   * `paddingBottom` (a altura do teclado, 0 quando fechado) por cima do `style` recebido, e isso
+   * zera qualquer `paddingBottom` vindo daqui sempre que o teclado está fechado - a maior parte do
+   * tempo. `content` abaixo é por isso a única fonte da borda.
+   */
+  avoidingView: {
+    backgroundColor: colors.surface.base,
+    flex: 1,
+  },
+  /**
+   * Mesmo motivo de `avoidingView`: sem `padding` aqui, só `flex` para o `ScrollView` ocupar o
+   * espaço do pai. `backgroundColor` fica porque o teste consulta o próprio `ScrollView`
+   * (`screen-scroll`), não o `KeyboardAvoidingView` que o envolve.
    */
   scroll: {
     backgroundColor: colors.surface.base,
     flex: 1,
   },
   /**
-   * `flexGrow` e não `flex`: como `contentContainerStyle`, um `flex: 1` prende o conteúdo à altura
-   * da viewport e a rolagem deixa de acontecer justamente quando passa a ser necessária. Sem
-   * padding aqui pelo mesmo motivo de `scroll` acima - `screen` já é a única fonte da borda.
+   * `flexGrow` e não `flex`: um `flex: 1` prenderia o conteúdo à altura da viewport e a rolagem
+   * deixaria de acontecer justamente quando passa a ser necessária. `padding: space.lg` nas quatro
+   * bordas é agora a única fonte de borda da tela - `screen` deixou de fornecer a de baixo, que o
+   * `KeyboardAvoidingView` zerava no iOS (ver `avoidingView` acima).
    */
   content: {
     flexGrow: 1,
+    padding: space.lg,
   },
   centered: {
     alignItems: 'center',
