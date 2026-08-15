@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-query';
 
 import type {
+  ExpenseType,
   RecurringExpense,
   RecurringExpensePayment,
 } from '@/features/recurring/model/recurring';
@@ -41,10 +42,11 @@ export type RegisterRecurringExpenseInput = {
   name: string;
   personId: string;
   categoryId: string;
-  accountId: string;
+  accountId: string | null;
   dueDay: number;
   amount: number;
   isEstimate: boolean;
+  type: ExpenseType;
 };
 
 /** Spec REC AC3: the reference month is the bill's month, the payment date is the day it was paid. */
@@ -55,6 +57,7 @@ export type RegisterRecurringPaymentInput = {
   amountPaid: number;
   notes: string | null;
   accountId: string | null;
+  type: ExpenseType;
 };
 
 /**
@@ -139,12 +142,12 @@ const invalidateEveryMonth = (client: QueryClient): Promise<void> =>
     client.invalidateQueries({ queryKey: qk.dashboards() }),
   ]).then(() => undefined);
 
-/** Spec REC-01/CAT-02's analogue for recurring bills: `GET /api/recurring-expense`, archived or not. */
+/** Spec REC-01/CAT-02's analogue for recurring bills: `GET /api/RecurringExpense`, archived or not. */
 export function useRecurringExpenses(): UseQueryResult<RecurringExpense[], Error> {
   return useQuery({
     queryKey: qk.recurringExpenses(),
     queryFn: async (): Promise<RecurringExpense[]> =>
-      (await get<{ recurringExpenses: RecurringExpense[] }>('/recurring-expense')).recurringExpenses,
+      (await get<{ recurringExpenses: RecurringExpense[] }>('/RecurringExpense')).recurringExpenses,
   });
 }
 
@@ -157,7 +160,7 @@ export function useRegisterRecurringExpense(): UseMutationResult<
 
   return useMutation({
     mutationFn: (input: RegisterRecurringExpenseInput) =>
-      post<RecurringExpense>('/recurring-expense', input),
+      post<RecurringExpense>('/RecurringExpense', input),
     // The bill starts existing at its first version's validity start, which the API decides when the
     // request does not carry one. Months before it never showed the bill and do not now. The list
     // itself (T51) also needs a refresh - a new bill would otherwise not appear until the next reload.
@@ -181,7 +184,7 @@ export function useRegisterRecurringPayment(): UseMutationResult<
 
   return useMutation({
     mutationFn: (input: RegisterRecurringPaymentInput) =>
-      post<RecurringExpensePayment>('/recurring-expense/payment', input),
+      post<RecurringExpensePayment>('/RecurringExpense/payment', input),
     // The month the payment refers to (MAD-003), not the day it was paid and not the month on screen.
     onSuccess: (payment) => invalidateMonthOf(client, payment.referenceMonth),
   });
@@ -197,7 +200,7 @@ export function useUpdateRecurringPayment(): UseMutationResult<
   return useMutation({
     // Spec REC AC5 - the four fields a correction may change, built here so no caller can widen it.
     mutationFn: (input: UpdateRecurringPaymentInput) =>
-      put<RecurringExpensePayment>(`/recurring-expense/payment/${input.paymentId}`, {
+      put<RecurringExpensePayment>(`/RecurringExpense/payment/${input.paymentId}`, {
         paymentDate: input.paymentDate,
         amountPaid: input.amountPaid,
         notes: input.notes,
@@ -216,7 +219,7 @@ export function useChangeRecurringValue(): UseMutationResult<
 
   return useMutation({
     mutationFn: (input: ChangeRecurringValueInput) =>
-      put<RecurringExpense>('/recurring-expense/value', input),
+      put<RecurringExpense>('/RecurringExpense/value', input),
     // Spec REC AC6 - the new value is in effect from its own validity start. Earlier months keep
     // showing the version they were priced under, so they are left alone. The versions arrive oldest
     // first, so the one this change created is the last.
@@ -239,7 +242,7 @@ export function useArchiveRecurringExpense(): UseMutationResult<
 
   return useMutation({
     mutationFn: (input: ArchiveRecurringExpenseInput) =>
-      put<null>(`/recurring-expense/${input.recurringExpenseId}/archive?archived=${input.archived}`),
+      put<null>(`/RecurringExpense/${input.recurringExpenseId}/archive?archived=${input.archived}`),
     // Spec REC AC7 and AC8. A bill leaves - or rejoins - every month at once, so every cached month
     // is stale, including months the user has already scrolled past. The list itself (T51) carries
     // the flag this toggle just flipped, so it is invalidated too.

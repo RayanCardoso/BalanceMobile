@@ -10,6 +10,22 @@
  * inside the monthly expense response. This module holds what the writes send and get back.
  */
 
+/** `ExpenseType` on the wire: 0 Credit, 1 Debit, 2 Pix. */
+export type ExpenseType = 0 | 1 | 2;
+
+/** How a purchase was paid, as the month screen and the register form name it. */
+export const EXPENSE_TYPE_LABEL: Record<ExpenseType, string> = {
+  0: 'Crédito',
+  1: 'Débito',
+  2: 'Pix',
+};
+
+export const EXPENSE_TYPE_OPTIONS: { label: string; value: ExpenseType }[] = [
+  { label: 'Crédito', value: 0 },
+  { label: 'Débito', value: 1 },
+  { label: 'Pix', value: 2 },
+];
+
 /** `ResponseRecurringExpenseVersionJson`. `validityEnd` is null while this version is in effect. */
 export type RecurringExpenseVersion = {
   id: string;
@@ -29,7 +45,7 @@ export type RecurringExpense = {
   name: string;
   personId: string;
   categoryId: string;
-  accountId: string;
+  accountId: string | null;
   dueDay: number;
   isEstimate: boolean;
   archived: boolean;
