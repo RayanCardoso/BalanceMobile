@@ -68,10 +68,7 @@ export async function request<T>(method: HttpMethod, path: string, body?: unknow
       headers: buildHeaders(hasBody),
       body: hasBody ? JSON.stringify(body) : undefined,
     });
-
-    console.log("response", response)
-  } catch (e) {
-    console.log("error", e)
+  } catch {
     // `fetch` rejected: the request never reached the API, so nothing was validated or rejected.
     throw new NetworkError();
   }

@@ -21,7 +21,7 @@ jest.mock('expo-router', () => {
   return { Link };
 });
 
-const BASE = 'http://localhost:5126/api';
+const BASE = 'http://10.0.2.2:5126/api';
 
 const fetchMock = jest.fn();
 

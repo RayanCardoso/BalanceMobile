@@ -14,7 +14,7 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ year: '2026', month: '8' }),
 }));
 
-const BASE = 'http://localhost:5126/api';
+const BASE = 'http://10.0.2.2:5126/api';
 
 const fetchMock = jest.fn();
 

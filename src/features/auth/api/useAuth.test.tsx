@@ -63,7 +63,7 @@ describe('useSignIn', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(lastUrl()).toBe('http://localhost:5126/api/login');
+    expect(lastUrl()).toBe('http://10.0.2.2:5126/api/Login');
     expect(lastBody()).toBe('{"email":"rayan@balance.app","password":"segredo123"}');
   });
 
@@ -140,7 +140,7 @@ describe('useSignUp', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(lastUrl()).toBe('http://localhost:5126/api/user');
+    expect(lastUrl()).toBe('http://10.0.2.2:5126/api/User');
     expect(lastBody()).toBe(
       '{"name":"Rayan","email":"rayan@balance.app","password":"segredo123"}'
     );

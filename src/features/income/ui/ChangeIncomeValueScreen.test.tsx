@@ -23,7 +23,7 @@ jest.mock('@/shared/lib/dates', () => ({
   todayApiDate: () => '2026-08-14',
 }));
 
-const BASE = 'http://localhost:5126/api';
+const BASE = 'http://10.0.2.2:5126/api';
 
 const fetchMock = jest.fn();
 
