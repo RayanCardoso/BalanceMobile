@@ -31,7 +31,7 @@ export function useSignIn(): UseMutationResult<AuthenticatedUser, Error, SignInI
 
 export function useSignUp(): UseMutationResult<AuthenticatedUser, Error, SignUpInput> {
   return useMutation({
-    mutationFn: (input: SignUpInput) => post<AuthenticatedUser>('/user', input),
+    mutationFn: (input: SignUpInput) => post<AuthenticatedUser>('/User', input),
     onSuccess: storeSession,
   });
 }

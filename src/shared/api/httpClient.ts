@@ -13,7 +13,7 @@ import { useSessionStore } from '@/shared/lib/sessionStore';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT';
 
-const DEFAULT_BASE_URL = 'http://localhost:5126/api';
+const DEFAULT_BASE_URL = 'http://10.0.2.2:5126/api';
 
 /**
  * Read per call rather than captured at module load. A device cannot reach `localhost`, so the LAN
@@ -68,7 +68,10 @@ export async function request<T>(method: HttpMethod, path: string, body?: unknow
       headers: buildHeaders(hasBody),
       body: hasBody ? JSON.stringify(body) : undefined,
     });
-  } catch {
+
+    console.log("response", response)
+  } catch (e) {
+    console.log("error", e)
     // `fetch` rejected: the request never reached the API, so nothing was validated or rejected.
     throw new NetworkError();
   }
