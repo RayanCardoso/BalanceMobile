@@ -6,6 +6,7 @@
 module.exports = {
   preset: 'jest-expo',
   globalSetup: '<rootDir>/jest.globalSetup.js',
+  setupFiles: ['<rootDir>/jest.setup.js'],
   // .claude/worktrees holds isolated copies of the whole source tree that background agents work in.
   // Without this, Jest's haste map picks up every duplicate *.test.tsx inside them too, double- (or
   // triple-) counting every test in the suite and colliding on module names.

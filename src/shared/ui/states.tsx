@@ -1,5 +1,15 @@
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { NetworkError } from '@/shared/api/ApiError';
 import { colors, radius, space, type } from '@/shared/ui/theme';
@@ -34,8 +44,34 @@ export function connectivityMessage(error: unknown): string | null {
   return error instanceof NetworkError ? CONNECTIVITY_MESSAGE : null;
 }
 
+/**
+ * O container de toda tela assinada, e o único lugar que trata as bordas do sistema.
+ *
+ * O Expo SDK 57 liga edge-to-edge no Android por padrão, então sem `insets.bottom` o fim de uma
+ * lista nasce debaixo da barra de gestos. A parte de cima é do `TopBar`; daqui para baixo é aqui.
+ *
+ * Rola por padrão porque a alternativa é cada tela de formulário descobrir sozinha, uma de cada
+ * vez, que não cabe num aparelho menor.
+ */
 export function Screen({ children }: { children: ReactNode }): React.JSX.Element {
-  return <View style={styles.screen}>{children}</View>;
+  const insets = useSafeAreaInsets();
+
+  return (
+    <KeyboardAvoidingView
+      // No Android o `windowSoftInputMode` já redimensiona a janela; no iOS não há equivalente.
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.screen}
+    >
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.lg }]}
+        keyboardShouldPersistTaps="handled"
+        style={styles.screen}
+        testID="screen-scroll"
+      >
+        {children}
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 }
 
 export function Loading({ label = 'Carregando…' }: { label?: string }): React.JSX.Element {
@@ -76,6 +112,14 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: colors.surface.base,
     flex: 1,
+    padding: space.lg,
+  },
+  /**
+   * `flexGrow` e não `flex`: como `contentContainerStyle`, um `flex: 1` prende o conteúdo à altura
+   * da viewport e a rolagem deixa de acontecer justamente quando passa a ser necessária.
+   */
+  content: {
+    flexGrow: 1,
     padding: space.lg,
   },
   centered: {
