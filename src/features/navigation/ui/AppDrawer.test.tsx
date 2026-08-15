@@ -24,7 +24,6 @@ let mockPathname = '/';
 jest.mock('expo-router', () => {
   const react = require('react') as typeof import('react');
   const rn = require('react-native') as typeof import('react-native');
-  type TextProps = React.ComponentProps<typeof rn.Text>;
 
   const Link = ({
     href,
@@ -37,7 +36,7 @@ jest.mock('expo-router', () => {
     children: ReactNode;
     onPress?: () => void;
     testID?: string;
-    style?: TextProps['style'];
+    style?: any;
   }) => {
     // Combine component's testID (if active) with the link href testID for test queries
     const testIDValue = componentTestID || `link-${href}`;
