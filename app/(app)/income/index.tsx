@@ -1,4 +1,4 @@
-import { IncomeScreen } from '@/screens/IncomeMonth/IncomeScreen';
+import { IncomeScreen } from '@/screens/Income/IncomeScreen';
 
 /**
  * Mount point only. See `app/(app)/catalogue/people.tsx` for why the screen and its test live under

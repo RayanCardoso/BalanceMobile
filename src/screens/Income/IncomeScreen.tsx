@@ -7,10 +7,11 @@ import { listErrorMessage } from '@/utils/errors/income';
 import { currentMonth } from '@/utils/dates';
 import { Money, StatusBadge, type StatusTone } from '@/components/Money';
 import { MonthNavigator } from '@/components/MonthNavigator';
-import { NewAccountButton } from '@/components/NewAccountButton';
+import { RegisterButton } from '@/components/RegisterButton';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
-
+import {CircleDollarSign, Wallet} from "lucide-react-native";
 import { styles } from './IncomeScreen.styles';
+import { colors } from '@/components/theme';
 
 /**
  * Spec INC AC1 and AC2 - one line per source carrying its expected amount, its received amount and
@@ -107,7 +108,18 @@ export function IncomeScreen(): React.JSX.Element {
         year={period.year}
       />
 
-      <NewAccountButton href="/income/new" />
+      <View style={styles.containerCardIncomeInformation}>
+        <View style={styles.cardIncomeInformations}>
+          <View style={styles.dollarIcon}>
+            <CircleDollarSign color={colors.text.primary} />
+          </View>
+          <View style={styles.incomeInformations}>
+            <Text  style={styles.textIncomeInformations}>Quantidade Total Prevista: XXXX,XX</Text>
+            <Text  style={styles.textIncomeInformations}>Quantidade Total Recebida: XXXX,XX</Text>
+          </View>
+        </View>
+        <RegisterButton href="/income/new" label='Nova receita' />
+      </View>
 
       {renderLines()}
     </Screen>

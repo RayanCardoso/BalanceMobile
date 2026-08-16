@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors, radius, space, type } from '@/components/theme';
 
 /** Primary action used to open any of the new-account registration flows. */
-export function NewAccountButton({ href }: { href: Href }): React.JSX.Element {
+export function RegisterButton({ href, label = "Nova conta" }: { href: Href, label?: string }): React.JSX.Element {
   return (
     <Link href={href} asChild>
       <Pressable
@@ -13,7 +13,7 @@ export function NewAccountButton({ href }: { href: Href }): React.JSX.Element {
         style={styles.button}
         testID="new-account-button"
       >
-        <Text style={styles.label}>+ Nova conta</Text>
+        <Text style={styles.label}>+ {label}</Text>
       </Pressable>
     </Link>
   );

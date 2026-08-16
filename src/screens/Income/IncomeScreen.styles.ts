@@ -37,5 +37,29 @@ export const styles = StyleSheet.create({
     color: colors.text.muted,
     fontSize: 16,
   },
+  containerCardIncomeInformation: {
+    flexDirection: "row", 
+    width: "100%",
+    justifyContent: "space-between",
+    padding: space.xl,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.md,
+    borderWidth: 1
+  },
+  cardIncomeInformations: {
+    flexDirection: "row",
+  },
+  dollarIcon: {
+    backgroundColor: colors.surface.raised,
+    borderRadius: 999,
+    padding: space.md
+  },
+  incomeInformations: {
+    justifyContent: "center",
+    marginLeft: 10
+  },
+  textIncomeInformations: {
+    color: colors.text.primary
+  }
 });
 

@@ -14,10 +14,12 @@ import { listErrorMessage } from '@/utils/errors/expenses';
 import { currentMonth } from '@/utils/dates';
 import { Money, StatusBadge, type StatusTone } from '@/components/Money';
 import { MonthNavigator } from '@/components/MonthNavigator';
-import { NewAccountButton } from '@/components/NewAccountButton';
+import { RegisterButton } from '@/components/RegisterButton';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
 
 import { styles } from './ExpenseMonthScreen.styles';
+import { BarChart3, Repeat, Wallet } from 'lucide-react-native';
+import { colors } from '@/components/theme';
 
 /**
  * Spec EXP AC1 - the month's variable expenses and its recurring bills as two separate groups.
@@ -140,14 +142,26 @@ export function ExpenseMonthScreen(): React.JSX.Element {
 
     return (
       <View style={styles.sections}>
-        <View style={styles.total}>
-          <Text style={styles.figureLabel}>Total comprometido</Text>
-          <View testID="expense-total-committed">
-            <Money value={month.data.totalCommitted} />
+        <View style={styles.containerCardExpenseInformation}>
+          <View style={styles.cardExpenseInformations}>
+            <View style={styles.walletIcon}>
+              <Wallet color={colors.text.primary} />
+            </View>
+            <View style={styles.expenseInformations}>
+              <Text style={styles.textExpenseInformations}>Total comprometido</Text>
+              <Money value={month.data.totalCommitted} />
+            </View>
+          </View>
+          <RegisterButton href="/expenses/new" label='Nova despesa' />
+        </View>
+
+        <View style={styles.sectionContainer}>
+          <BarChart3 size={16} color={colors.text.primary} />
+          <View>
+            <Text style={styles.sectionTitle}>Despesas variáveis</Text> 
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Despesas variáveis</Text>
         <View style={styles.list} testID="variable-line-list">
           {variableLines.length === 0 ? (
             <Text style={styles.detail}>Nenhuma despesa variável neste mês.</Text>
@@ -156,7 +170,13 @@ export function ExpenseMonthScreen(): React.JSX.Element {
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Contas recorrentes</Text>
+
+        <View style={styles.sectionContainer}>
+          <Repeat size={16} color={colors.text.primary} />
+          <View>
+            <Text style={styles.sectionTitle}>Contas recorrentes</Text>
+          </View>
+        </View>
         <View style={styles.list} testID="recurring-line-list">
           {recurringLines.length === 0 ? (
             <Text style={styles.detail}>Nenhuma conta recorrente neste mês.</Text>
@@ -179,8 +199,6 @@ export function ExpenseMonthScreen(): React.JSX.Element {
         }}
         year={period.year}
       />
-
-      <NewAccountButton href="/expenses/new" />
 
       {renderMonth()}
     </Screen>

@@ -7,11 +7,16 @@ export const styles = StyleSheet.create({
     gap: space.sm,
     marginTop: space.sm,
   },
+  sectionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: space.sm
+  },
   sectionTitle: {
     ...type.heading,
     color: colors.text.primary,
-    fontSize: 16,
-    marginTop: space.sm,
+    fontSize: 16
   },
   total: {
     alignItems: 'center',
@@ -62,5 +67,29 @@ export const styles = StyleSheet.create({
     color: colors.text.muted,
     fontSize: 16,
   },
+  containerCardExpenseInformation: {
+    flexDirection: "row", 
+    width: "100%",
+    justifyContent: "space-between",
+    padding: space.xl,
+    borderColor: colors.border.subtle,
+    borderRadius: radius.md,
+    borderWidth: 1
+  },
+  cardExpenseInformations: {
+    flexDirection: "row",
+  },
+  walletIcon: {
+    backgroundColor: colors.surface.raised,
+    borderRadius: 999,
+    padding: space.md
+  },
+  expenseInformations: {
+    justifyContent: "center",
+    marginLeft: 10
+  },
+  textExpenseInformations: {
+    color: colors.text.primary
+  }
 });
 

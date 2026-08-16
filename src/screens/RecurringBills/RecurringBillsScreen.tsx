@@ -2,7 +2,7 @@ import { Text, View } from 'react-native';
 
 import { useRecurringExpenses } from '@/hooks/useRecurring';
 import { ArchiveToggle } from '@/components/ArchiveToggle';
-import { NewAccountButton } from '@/components/NewAccountButton';
+import { RegisterButton } from '@/components/RegisterButton';
 import { listErrorMessage } from '@/utils/errors/recurring';
 import { formatMoney } from '@/utils/money';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
@@ -68,7 +68,7 @@ export function RecurringBillsScreen(): React.JSX.Element {
   return (
     <Screen>
       <View style={styles.header}>
-        <NewAccountButton href="/recurring/new" />
+        <RegisterButton href="/recurring/new" />
       </View>
 
       {renderList()}

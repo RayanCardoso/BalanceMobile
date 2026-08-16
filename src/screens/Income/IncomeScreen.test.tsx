@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 
-import { IncomeScreen } from '@/screens/IncomeMonth/IncomeScreen';
+import { IncomeScreen } from '@/screens/Income/IncomeScreen';
 import { createQueryWrapper, createTestQueryClient } from '@/services/testQueryClient';
 import { useSessionStore } from '@/store/sessionStore';
 
