@@ -94,7 +94,7 @@ export const radius = {
   md: 12,
   lg: 16,
   /** Pills: badges, chips, filter options. */
-  pill: 999,
+  pill: 10
 } as const;
 
 /**

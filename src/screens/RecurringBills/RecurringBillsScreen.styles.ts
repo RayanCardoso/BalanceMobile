@@ -1,18 +1,10 @@
 import { StyleSheet } from 'react-native';
 
-import { colors, control, disabledOpacity, radius, space, type } from '@/components/theme';
+import { colors, radius, space, type } from '@/components/theme';
 
 export const styles = StyleSheet.create({
   header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: space.lg,
-  },
-  newLink: {
-    ...type.label,
-    color: colors.accent.base,
-    fontSize: 14,
+    marginBottom: space.sm,
   },
   list: {
     gap: space.sm,

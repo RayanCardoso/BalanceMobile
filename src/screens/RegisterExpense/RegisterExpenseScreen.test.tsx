@@ -15,6 +15,7 @@ let mockParams: { year?: string; month?: string } = {};
 
 jest.mock('expo-router', () => ({
   useLocalSearchParams: () => mockParams,
+  Link: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 /**

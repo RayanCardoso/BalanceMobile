@@ -1,8 +1,8 @@
-import { Link } from 'expo-router';
 import { Text, View } from 'react-native';
 
 import { useRecurringExpenses } from '@/hooks/useRecurring';
 import { ArchiveToggle } from '@/components/ArchiveToggle';
+import { NewAccountButton } from '@/components/NewAccountButton';
 import { listErrorMessage } from '@/utils/errors/recurring';
 import { formatMoney } from '@/utils/money';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
@@ -68,9 +68,7 @@ export function RecurringBillsScreen(): React.JSX.Element {
   return (
     <Screen>
       <View style={styles.header}>
-        <Link href="/recurring/new" style={styles.newLink}>
-          Nova conta
-        </Link>
+        <NewAccountButton href="/recurring/new" />
       </View>
 
       {renderList()}

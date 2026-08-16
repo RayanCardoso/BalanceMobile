@@ -7,6 +7,7 @@ import { listErrorMessage } from '@/utils/errors/income';
 import { currentMonth } from '@/utils/dates';
 import { Money, StatusBadge, type StatusTone } from '@/components/Money';
 import { MonthNavigator } from '@/components/MonthNavigator';
+import { NewAccountButton } from '@/components/NewAccountButton';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
 
 import { styles } from './IncomeScreen.styles';
@@ -105,6 +106,8 @@ export function IncomeScreen(): React.JSX.Element {
         }}
         year={period.year}
       />
+
+      <NewAccountButton href="/income/new" />
 
       {renderLines()}
     </Screen>

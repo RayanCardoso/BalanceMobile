@@ -14,6 +14,7 @@ import { listErrorMessage } from '@/utils/errors/expenses';
 import { currentMonth } from '@/utils/dates';
 import { Money, StatusBadge, type StatusTone } from '@/components/Money';
 import { MonthNavigator } from '@/components/MonthNavigator';
+import { NewAccountButton } from '@/components/NewAccountButton';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
 
 import { styles } from './ExpenseMonthScreen.styles';
@@ -178,6 +179,8 @@ export function ExpenseMonthScreen(): React.JSX.Element {
         }}
         year={period.year}
       />
+
+      <NewAccountButton href="/expenses/new" />
 
       {renderMonth()}
     </Screen>
