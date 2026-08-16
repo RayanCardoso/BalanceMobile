@@ -171,7 +171,7 @@ export function ExpenseMonthScreen(): React.JSX.Element {
         </View>
 
 
-        <View style={styles.sectionContainer}>
+        <View style={styles.sectionContainer}> 
           <Repeat size={16} color={colors.text.primary} />
           <View>
             <Text style={styles.sectionTitle}>Contas recorrentes</Text>

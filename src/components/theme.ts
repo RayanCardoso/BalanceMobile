@@ -21,61 +21,71 @@ import type { TextStyle } from 'react-native';
 export const colors = {
   surface: {
     /** The screen itself. Nothing sits behind it. */
-    base: '#0B1220',
+    base: '#111827',
+
     /** Cards, list rows, inputs, the tab bar — anything laid on top of the screen. */
-    raised: '#121C2E',
+    raised: '#0B1F44',
+
     /** Modals, menus and pressed rows: one step above a card. */
-    overlay: '#1A2740',
+    overlay: '#132A52',
+
     /** A row or chip that is selected, and the resting fill of a secondary control. */
-    selected: '#1D2E4D',
+    selected: '#173B70',
   },
 
   border: {
     /** Hairlines between rows and around inputs — present, not loud. */
-    subtle: '#22314F',
+    subtle: '#23426F',
+
     /** A focused input, or the edge of something that must be found quickly. */
-    strong: '#334770',
+    strong: '#3566A3',
   },
 
   text: {
     /** Values, headings, anything the user reads to make a decision. */
-    primary: '#E8EEF9',
+    primary: '#E5E7EB',
+
     /** Labels and secondary lines. */
-    secondary: '#A7B4CC',
+    secondary: '#AAB8CF',
+
     /** Captions, placeholders, disabled copy. Never load-bearing. */
-    muted: '#6F7F9C',
+    muted: '#7183A3',
+
     /** Text and icons on top of `accent.base`. */
     onAccent: '#06122A',
   },
 
   accent: {
     /** The single brand blue: primary buttons, links, the active destination. */
-    base: '#4C8DFF',
+    base: '#0D6EFD',
+
     /** Its pressed state. */
-    pressed: '#3B72D6',
+    pressed: '#0A5DD1',
+
     /** A tinted fill for the accent — selected chips, informational panels. */
-    soft: '#16294A',
+    soft: '#102A56',
   },
 
   /**
-   * O escurecido que separa a gaveta da tela atrás dela. Não é uma superfície: é o navy do app com
-   * alfa, para que o conteúdo continue legível como contexto sem competir com o menu.
+   * O escurecido que separa a gaveta da tela atrás dela.
    */
   scrim: 'rgba(6, 18, 42, 0.6)',
 
   /**
-   * Money and status. `positive`/`negative` name the *tone*, not the sign: a paid bill is positive
-   * and an overdue one is negative, in the same colours a credit and a debit use.
+   * Money and status.
    */
   status: {
-    positive: '#4ADE80',
+    positive: '#22C55E',
     positiveSoft: '#102A1D',
-    warning: '#F5B14C',
+
+    warning: '#F59E0B',
     warningSoft: '#2E2312',
-    negative: '#FF6B6B',
+
+    negative: '#EF4444',
     negativeSoft: '#33161A',
-    neutral: '#A7B4CC',
-    neutralSoft: '#1A2740',
+
+    neutral: '#AAB8CF',
+    neutralSoft: '#132A52',
   },
 } as const;
 
