@@ -21,7 +21,6 @@ const DESTINATIONS = [
   { href: '/', label: 'Resumo' },
   { href: '/income', label: 'Receitas' },
   { href: '/expenses', label: 'Despesas' },
-  { href: '/recurring', label: 'Recorrentes' },
   { href: '/catalogue', label: 'Catálogo' },
 ] as const;
 

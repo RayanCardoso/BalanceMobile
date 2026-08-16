@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 
 import { formatMoney } from '@/utils/money';
 import { colors, radius, space, type } from '@/components/theme';
+import { Circle, CircleAlert, CircleCheck } from 'lucide-react-native';
 
 /**
  * A value and a status, rendered the same way everywhere.
@@ -13,11 +14,11 @@ import { colors, radius, space, type } from '@/components/theme';
 
 export type StatusTone = 'neutral' | 'positive' | 'warning';
 
-export function Money({ value }: { value: number }): React.JSX.Element {
+export function Money({ value, style }: { value: number, style?: StyleProp<TextStyle> }): React.JSX.Element {
   // A negative balance is money owed, and the sign is the whole point (spec DASH AC5). It stays in
   // the text; the colour is a second signal, not a replacement for it.
   return (
-    <Text style={[styles.value, value < 0 ? styles.negative : null]}>{formatMoney(value)}</Text>
+    <Text style={[styles.value, value < 0 ? styles.negative : null, style]}>{formatMoney(value)}</Text>
   );
 }
 
@@ -28,11 +29,12 @@ export function StatusBadge({
   label: string;
   tone: StatusTone;
 }): React.JSX.Element {
+  const Icon = typeIcons[tone];
+
   return (
     <View style={[styles.badge, toneStyles[tone]]}>
-      {/* The tone tints the fill and the text together: on a dark surface the fill alone is too
-          quiet to carry the status, and unstyled text on it would be black on near-black. */}
-      <Text style={[styles.badgeLabel, toneLabelStyles[tone]]}>{label}</Text>
+      <Icon size={10} color={colors.status[tone]} />
+      <Text style={styles.badgeLabel}>{label}</Text>
     </View>
   );
 }
@@ -46,33 +48,32 @@ const styles = StyleSheet.create({
     color: colors.status.negative,
   },
   badge: {
+    flexDirection: "row",
+    gap: 5,
+    justifyContent: "center",
+    alignItems: "center",
     alignSelf: 'flex-start',
     borderRadius: radius.pill,
-    paddingHorizontal: space.sm + 2,
-    paddingVertical: 3,
+    paddingHorizontal: space.md,
+    paddingVertical: 5,
   },
   badgeLabel: {
     ...type.caption,
     fontWeight: '600',
+    color: colors.text.primary
   },
   neutral: {
-    backgroundColor: colors.status.neutralSoft,
+    borderWidth: 1,
+    borderColor: colors.status.neutral,
   },
   positive: {
-    backgroundColor: colors.status.positiveSoft,
+    borderWidth: 1,
+    borderColor: colors.status.positive,
   },
   warning: {
-    backgroundColor: colors.status.warningSoft,
-  },
-  neutralLabel: {
-    color: colors.status.neutral,
-  },
-  positiveLabel: {
-    color: colors.status.positive,
-  },
-  warningLabel: {
-    color: colors.status.warning,
-  },
+    borderWidth: 1,
+    borderColor: colors.status.warning,
+  }
 });
 
 const toneStyles = {
@@ -81,8 +82,8 @@ const toneStyles = {
   warning: styles.warning,
 };
 
-const toneLabelStyles = {
-  neutral: styles.neutralLabel,
-  positive: styles.positiveLabel,
-  warning: styles.warningLabel,
+const typeIcons = {
+  neutral: Circle,
+  positive: CircleCheck,
+  warning: CircleAlert,
 };

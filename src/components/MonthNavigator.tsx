@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { monthLabel, shiftMonth } from '@/utils/dates';
 import { colors, radius, space, type } from '@/components/theme';
+import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react-native';
 
 /**
  * The month control every month-scoped screen sits under. It holds no state: the year and month it
@@ -26,11 +27,13 @@ export function MonthNavigator({
   return (
     <View style={styles.bar}>
       <Pressable accessibilityRole="button" onPress={move(-1)} style={styles.control}>
+        <ArrowLeftIcon size={12} color={colors.text.primary} />
         <Text style={styles.controlLabel}>Mês anterior</Text>
       </Pressable>
       <Text style={styles.month}>{monthLabel(year, month)}</Text>
       <Pressable accessibilityRole="button" onPress={move(1)} style={styles.control}>
         <Text style={styles.controlLabel}>Próximo mês</Text>
+        <ArrowRightIcon size={12} color={colors.text.primary} />
       </Pressable>
     </View>
   );
@@ -45,8 +48,11 @@ const styles = StyleSheet.create({
     paddingVertical: space.md,
   },
   control: {
-    backgroundColor: colors.surface.raised,
-    borderColor: colors.border.subtle,
+    flexDirection: "row",
+    gap: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    borderColor: colors.border.default,
     borderRadius: radius.pill,
     borderWidth: 1,
     paddingHorizontal: space.md,
@@ -54,7 +60,8 @@ const styles = StyleSheet.create({
   },
   controlLabel: {
     ...type.label,
-    color: colors.accent.base,
+    color: colors.text.primary,
+    fontSize: 10
   },
   month: {
     ...type.heading,

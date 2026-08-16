@@ -38,7 +38,6 @@ export function AppNavigator(): React.JSX.Element {
       />
       <Drawer.Screen name="income" />
       <Drawer.Screen name="expenses" />
-      <Drawer.Screen name="recurring" />
       <Drawer.Screen name="catalogue" />
     </Drawer>
   );

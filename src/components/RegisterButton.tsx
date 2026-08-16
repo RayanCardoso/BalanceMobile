@@ -1,19 +1,43 @@
 import { Link, type Href } from 'expo-router';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import {
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  Text,
+  ViewStyle,
+} from 'react-native';
+import { Plus, type LucideIcon } from 'lucide-react-native';
 
 import { colors, radius, space, type } from '@/components/theme';
 
-/** Primary action used to open any of the new-account registration flows. */
-export function RegisterButton({ href, label = "Nova conta" }: { href: Href, label?: string }): React.JSX.Element {
+type RegisterButtonProps = {
+  href: Href;
+  label?: string;
+  style?: StyleProp<ViewStyle>;
+  icon?: LucideIcon;
+};
+
+export function RegisterButton({
+  href,
+  label = 'Nova conta',
+  style,
+  icon: Icon = Plus,
+}: RegisterButtonProps): React.JSX.Element {
   return (
     <Link href={href} asChild>
       <Pressable
-        accessibilityLabel="Cadastrar nova conta"
+        accessibilityLabel={label}
         accessibilityRole="button"
-        style={styles.button}
+        style={StyleSheet.flatten([styles.button, style])}
         testID="new-account-button"
       >
-        <Text style={styles.label}>+ {label}</Text>
+        <Icon
+          size={16}
+          color={colors.text.primary}
+          strokeWidth={2}
+        />
+
+        <Text style={styles.label}>{label}</Text>
       </Pressable>
     </Link>
   );
@@ -25,26 +49,23 @@ const styles = StyleSheet.create({
     borderColor: colors.border.strong,
     borderRadius: radius.sm,
     borderWidth: 1,
-    width: "40%",
+    width: '40%',
+    height: 40,
     flexDirection: 'row',
     gap: space.sm,
     justifyContent: 'center',
     paddingHorizontal: space.md,
     paddingVertical: space.md,
   },
+
   buttonPressed: {
     backgroundColor: colors.accent.soft,
     borderColor: colors.accent.base,
   },
-  icon: {
-    color: colors.accent.base,
-    fontSize: 18,
-    fontWeight: '600',
-    lineHeight: 18,
-  },
+
   label: {
     ...type.label,
-    color: colors.accent.base,
+    color: colors.text.primary,
     fontSize: 14,
   },
 });

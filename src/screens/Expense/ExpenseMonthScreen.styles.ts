@@ -68,28 +68,65 @@ export const styles = StyleSheet.create({
     fontSize: 16,
   },
   containerCardExpenseInformation: {
-    flexDirection: "row", 
     width: "100%",
-    justifyContent: "space-between",
     padding: space.xl,
+    backgroundColor: colors.surface.raised,
     borderColor: colors.border.subtle,
     borderRadius: radius.md,
-    borderWidth: 1
+    borderWidth: 1,
   },
-  cardExpenseInformations: {
+
+  expenseHeader: {
     flexDirection: "row",
+    alignItems: "center",
+    gap: space.md,
+    marginBottom: space.xl,
   },
+
   walletIcon: {
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: colors.surface.raised,
     borderRadius: 999,
-    padding: space.md
   },
-  expenseInformations: {
-    justifyContent: "center",
-    marginLeft: 10
+
+  expenseTitle: {
+    ...type.body,
+    color: colors.text.primary,
+    fontSize: 18,
+    fontWeight: "700",
   },
-  textExpenseInformations: {
-    color: colors.text.primary
-  }
+
+  expenseInformation: {
+    width: "100%",
+    marginBottom: space.xl,
+  },
+
+  expenseLabel: {
+    ...type.caption,
+    color: colors.text.secondary,
+    fontSize: 13,
+    marginBottom: space.xs,
+  },
+
+  expenseAmount: {
+    marginBottom: space.xs,
+  },
+
+  expenseQuantity: {
+    ...type.caption,
+    color: colors.text.secondary,
+    fontSize: 13,
+  },
+
+  containerRegisterButton: {
+    width: "100%",
+    alignItems: "center",
+    gap: 10
+  },
+
+  registerButton: {
+    width: "100%",
+  },
 });
 

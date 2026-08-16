@@ -34,6 +34,8 @@ export const colors = {
   },
 
   border: {
+    default: 'rgb(51, 129, 255)',
+    
     /** Hairlines between rows and around inputs — present, not loud. */
     subtle: '#23426F',
 
@@ -47,6 +49,8 @@ export const colors = {
 
     /** Labels and secondary lines. */
     secondary: '#AAB8CF',
+
+    tertiary: "rgb(51, 129, 255)",
 
     /** Captions, placeholders, disabled copy. Never load-bearing. */
     muted: '#7183A3',
@@ -84,7 +88,7 @@ export const colors = {
     negative: '#EF4444',
     negativeSoft: '#33161A',
 
-    neutral: '#AAB8CF',
+    neutral: 'rgb(51, 129, 255)',
     neutralSoft: '#132A52',
   },
 } as const;

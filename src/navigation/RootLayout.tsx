@@ -8,6 +8,7 @@ import { createQueryClient, QueryProvider } from '@/services/queryClient';
 import { useSessionStore, type SessionStatus } from '@/store/sessionStore';
 import { Loading } from '@/components/states';
 import { stackScreenOptions } from '@/components/theme';
+import { MenuProvider } from 'react-native-popup-menu';
 
 /**
  * The only thing standing between a signed-out user and the whole app.
@@ -32,14 +33,16 @@ export function SessionGate({ status }: { status: SessionStatus }): React.JSX.El
   }
 
   return (
-    <Stack screenOptions={stackScreenOptions}>
-      <Stack.Protected guard={status === 'signedIn'}>
-        <Stack.Screen name="(app)" />
-      </Stack.Protected>
-      <Stack.Protected guard={status === 'signedOut'}>
-        <Stack.Screen name="(auth)" />
-      </Stack.Protected>
-    </Stack>
+    <MenuProvider>
+      <Stack screenOptions={stackScreenOptions}>
+        <Stack.Protected guard={status === 'signedIn'}>
+          <Stack.Screen name="(app)" />
+        </Stack.Protected>
+        <Stack.Protected guard={status === 'signedOut'}>
+          <Stack.Screen name="(auth)" />
+        </Stack.Protected>
+      </Stack>
+    </MenuProvider>
   );
 }
 

@@ -143,16 +143,49 @@ export function ExpenseMonthScreen(): React.JSX.Element {
     return (
       <View style={styles.sections}>
         <View style={styles.containerCardExpenseInformation}>
-          <View style={styles.cardExpenseInformations}>
+          <View style={styles.expenseHeader}>
             <View style={styles.walletIcon}>
-              <Wallet color={colors.text.primary} />
+              <Wallet
+                size={23}
+                color={colors.text.primary}
+              />
             </View>
-            <View style={styles.expenseInformations}>
-              <Text style={styles.textExpenseInformations}>Total comprometido</Text>
+
+            <Text style={styles.expenseTitle}>
+              Resumo das despesas
+            </Text>
+          </View>
+
+          <View style={styles.expenseInformation}>
+            <Text style={styles.expenseLabel}>
+              Total comprometido
+            </Text>
+
+            <View style={styles.expenseAmount}>
               <Money value={month.data.totalCommitted} />
             </View>
           </View>
-          <RegisterButton href="/expenses/new" label='Nova despesa' />
+
+          <View style={styles.containerRegisterButton}>
+            <RegisterButton
+              icon={BarChart3}
+              href="/expenses/variable/new"
+              label="Nova despesa variável"
+              style={styles.registerButton}
+            />
+            <RegisterButton
+              icon={Repeat}
+              href="/expenses/recurring/new"
+              label="Nova despesa recorrente"
+              style={styles.registerButton}
+            />
+            <RegisterButton
+              icon={Repeat}
+              href="/expenses/variable/installment-plan"
+              label="Nova despesa recorrente"
+              style={styles.registerButton}
+            />
+          </View>
         </View>
 
         <View style={styles.sectionContainer}>

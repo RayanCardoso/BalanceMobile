@@ -9,9 +9,11 @@ import { Money, StatusBadge, type StatusTone } from '@/components/Money';
 import { MonthNavigator } from '@/components/MonthNavigator';
 import { RegisterButton } from '@/components/RegisterButton';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
-import {CircleDollarSign, Wallet} from "lucide-react-native";
+import {CircleDollarSign, EllipsisVertical, Wallet} from "lucide-react-native";
 import { styles } from './IncomeScreen.styles';
 import { colors } from '@/components/theme';
+import { Menu, MenuTrigger, MenuOptions, MenuOption  } from "react-native-popup-menu";
+import { router } from 'expo-router';
 
 /**
  * Spec INC AC1 and AC2 - one line per source carrying its expected amount, its received amount and
@@ -64,33 +66,84 @@ export function IncomeScreen(): React.JSX.Element {
             style={styles.row}
             testID={`income-line-${line.incomeSourceId}`}
           >
-            <Text style={styles.rowName}>{line.name}</Text>
+            <View style={styles.rowHeader}>
+              <Text style={styles.rowName}>{line.name}</Text>
+              <Menu>
+                <MenuTrigger>
+                  <EllipsisVertical
+                    size={20}
+                    color={colors.text.primary}
+                  />
+                </MenuTrigger>
 
-            <View style={styles.figure}>
-              <Text style={styles.figureLabel}>Previsto</Text>
-              <View testID={`income-expected-${line.incomeSourceId}`}>
-                {line.expectedAmount === null ? (
-                  <Text style={styles.absent}>—</Text>
-                ) : (
-                  <Money value={line.expectedAmount} />
-                )}
-              </View>
+                <MenuOptions
+                  customStyles={{
+                    optionsContainer: {
+                      backgroundColor: colors.surface.raised,
+                      borderColor: colors.border.subtle,
+                      borderWidth: 1,
+                      borderRadius: 8,
+                      padding: 4,
+                      width: 220,
+                    },
+                    optionText: {
+                      color: "#ffffff"
+                    }
+                  }}
+                >
+                  <MenuOption
+                    onSelect={() =>
+                      router.push({
+                        pathname: '/income/payment',
+                        params: {
+                          incomeSourceId: line.incomeSourceId,
+                        },
+                      })
+                    }
+                    text="Registrar recebimento"
+                  />
+
+                  <MenuOption
+                    onSelect={() =>
+                      router.push({
+                        pathname: '/income/change-value',
+                        params: {
+                          incomeSourceId: line.incomeSourceId,
+                        },
+                      })
+                    }
+                    text="Alterar valor"
+                  />
+                </MenuOptions>
+              </Menu>
             </View>
+            <View style={styles.containerFigureAndLabel}>
+              <View style={styles.containerFigure}>
+                <View style={styles.figure}>
+                  <Text style={styles.figureLabel}>Previsto</Text>
+                  <View testID={`income-expected-${line.incomeSourceId}`}>
+                    {line.expectedAmount === null ? (
+                      <Text style={[styles.absent, styles.expectedAmountText]}>—</Text>
+                    ) : (
+                      <Money value={line.expectedAmount} style={styles.expectedAmountText} />
+                    )}
+                  </View>
+                </View>
 
-            <View style={styles.figure}>
-              <Text style={styles.figureLabel}>Recebido</Text>
-              <View testID={`income-received-${line.incomeSourceId}`}>
-                <Money value={line.receivedAmount} />
+                <View style={styles.figure}>
+                  <Text style={styles.figureLabel}>Recebido</Text>
+                  <View testID={`income-received-${line.incomeSourceId}`}>
+                    <Money value={line.receivedAmount} />
+                  </View>
+                </View>
               </View>
-            </View>
-
-            {/* `Recebido` is both a figure label here and the status 1 label. Each of the three
-                fields the criterion names gets its own subtree so a test can tell them apart. */}
-            <View testID={`income-status-${line.incomeSourceId}`}>
-              <StatusBadge
-                label={INCOME_STATUS_LABEL[line.status]}
-                tone={STATUS_TONE[line.status]}
-              />
+              
+              <View testID={`income-status-${line.incomeSourceId}`}>
+                <StatusBadge
+                  label={INCOME_STATUS_LABEL[line.status]}
+                  tone={STATUS_TONE[line.status]}
+                />
+              </View>
             </View>
           </View>
         ))}
@@ -109,17 +162,58 @@ export function IncomeScreen(): React.JSX.Element {
       />
 
       <View style={styles.containerCardIncomeInformation}>
-        <View style={styles.cardIncomeInformations}>
+        <View style={styles.incomeHeader}>
           <View style={styles.dollarIcon}>
-            <CircleDollarSign color={colors.text.primary} />
+            <CircleDollarSign size={23} color={colors.text.primary} />
           </View>
-          <View style={styles.incomeInformations}>
-            <Text  style={styles.textIncomeInformations}>Quantidade Total Prevista: XXXX,XX</Text>
-            <Text  style={styles.textIncomeInformations}>Quantidade Total Recebida: XXXX,XX</Text>
+
+          <Text style={styles.incomeTitle}>
+            Resumo do mês
+          </Text>
+        </View>
+
+        <View style={styles.incomeValues}>
+          <View style={styles.incomeValue}>
+            <Text style={styles.incomeLabel}>
+              Total previsto
+            </Text>
+
+            <Text style={styles.incomeAmount}>
+              R$ 4.675,00
+            </Text>
+
+            <Text style={styles.incomeQuantity}>
+              3 receitas previstas
+            </Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.incomeValue}>
+            <Text style={styles.incomeLabel}>
+              Total recebido
+            </Text>
+
+            <Text style={styles.incomeAmount}>
+              R$ 0,00
+            </Text>
+
+            <Text style={styles.incomeQuantity}>
+              0 recebidas
+            </Text>
           </View>
         </View>
-        <RegisterButton href="/income/new" label='Nova receita' />
+
+        <View style={styles.containerRegisterButton}>
+          <RegisterButton
+            href="/income/new"
+            label="Nova receita"
+            style={styles.registerButton}
+          />
+        </View>
       </View>
+
+      <Text style={styles.sectionTitle}>Receitas</Text>
 
       {renderLines()}
     </Screen>

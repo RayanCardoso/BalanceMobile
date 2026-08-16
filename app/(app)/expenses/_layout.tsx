@@ -13,8 +13,11 @@ export default function ExpensesLayout(): React.JSX.Element {
   return (
     <Stack screenOptions={{ ...stackScreenOptions, headerShown: true, header: stackHeader }}>
       <Stack.Screen name="index" options={{ title: 'Despesas' }} />
-      <Stack.Screen name="new" options={{ title: 'Nova despesa' }} />
-      <Stack.Screen name="installment-plan" options={{ title: 'Nova compra parcelada' }} />
+      <Stack.Screen name="variable/new" options={{ title: 'Nova despesa' }} />
+      <Stack.Screen name="variable/installment-plan" options={{ title: 'Nova compra parcelada' }} />
+      <Stack.Screen name="recurring/new" options={{ title: 'Nova despesa recorrente' }} />
+      <Stack.Screen name="recurring/payment" options={{ title: 'Pagamento de despesa recorrente' }} />
+      <Stack.Screen name="recurring/change-value" options={{ title: 'Alterar valor base' }} />
     </Stack>
   );
 }
