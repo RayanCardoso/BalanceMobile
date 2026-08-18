@@ -363,7 +363,7 @@ describe('the screen states', () => {
       expect(screen.getByText('Agosto de 2026')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Próximo mês'));
+    fireEvent.press(screen.getByLabelText('Próximo mês'));
 
     await waitFor(() => {
       expect(within(screen.getByTestId('variable-line-list')).getByText('Notebook')).toBeTruthy();

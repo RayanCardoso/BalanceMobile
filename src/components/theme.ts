@@ -117,6 +117,28 @@ export const radius = {
  */
 export const control = { size: 44, bar: 2 } as const;
 
+/**
+ * A geometria da linha de tendência sob o navegador de mês.
+ *
+ * Está aqui, e não dentro do componente, pela mesma razão que as cores estão: altura de gráfico e
+ * raio de ponto são decisão de design, e um número escrito solto no `MonthTrend` seria uma decisão
+ * que nenhuma outra parte do app enxerga.
+ *
+ * `padding` é o respiro entre o valor extremo e a borda da área desenhada — sem ele o maior mês
+ * encosta no topo e o menor no chão, e a linha parece cortada em vez de plotada. A largura de um mês
+ * não está aqui: ela é medida em tempo de layout, para que três meses caibam na tela de qualquer
+ * aparelho.
+ */
+export const chart = {
+  height: 72,
+  padding: 10,
+  line: 2,
+  dot: 3,
+  dotSelected: 5,
+  /** O anel que separa o ponto selecionado da área desenhada atrás dele. */
+  dotRing: 2,
+} as const;
+
 export const type: Record<
   'title' | 'heading' | 'body' | 'label' | 'caption' | 'money',
   TextStyle
@@ -153,4 +175,4 @@ export const stackScreenOptions = {
   contentStyle: { backgroundColor: colors.surface.base },
 };
 
-export const theme = { colors, space, radius, type, disabledOpacity } as const;
+export const theme = { colors, space, radius, type, chart, disabledOpacity } as const;

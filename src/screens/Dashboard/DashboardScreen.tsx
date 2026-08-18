@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { useDashboard } from '@/hooks/useDashboard';
+import { useDashboard, useDashboardSeries } from '@/hooks/useDashboard';
 import type { MonthlyDashboard } from '@/types/dashboard';
 import { listErrorMessage } from '@/utils/errors/dashboard';
 import type { RecurringExpenseLine, VariableExpenseLine } from '@/types/expense';
@@ -134,6 +134,7 @@ export function DashboardScreen(): React.JSX.Element {
   const [period, setPeriod] = useState(() => currentMonth());
 
   const month = useDashboard(period.year, period.month);
+  const series = useDashboardSeries(period.year, period.month);
 
   const renderMonth = (): React.JSX.Element => {
     if (month.isError) {
@@ -211,6 +212,7 @@ export function DashboardScreen(): React.JSX.Element {
         onChange={(year, month) => {
           setPeriod({ year, month });
         }}
+        series={series}
         year={period.year}
       />
 

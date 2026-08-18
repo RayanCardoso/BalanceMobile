@@ -268,7 +268,7 @@ describe('moving between months', () => {
     expect(screen.getByText('Agosto de 2026')).toBeTruthy();
 
     stub('GET', '/income/2026/9', 200, monthBody('2026-09-01', [freelance]));
-    fireEvent.press(screen.getByText('Próximo mês'));
+    fireEvent.press(screen.getByLabelText('Próximo mês'));
 
     await waitFor(() => {
       expect(screen.getByText('Setembro de 2026')).toBeTruthy();

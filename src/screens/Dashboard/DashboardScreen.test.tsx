@@ -154,6 +154,16 @@ const renderScreen = (): void => {
   );
 };
 
+/**
+ * The balance the screen prints, read inside its own card.
+ *
+ * The trend line above spells out the selected month's balance as well, so a page-wide query for the
+ * amount now matches twice - and "the amount is somewhere on screen" was never the claim these tests
+ * were making.
+ */
+const balanceShows = (amount: string) =>
+  within(screen.getByTestId('dashboard-balance')).getByText(amount);
+
 beforeEach(() => {
   jest.clearAllMocks();
   stubs.clear();
@@ -252,10 +262,10 @@ describe('moving between months (spec DASH AC2)', () => {
     renderScreen();
 
     await waitFor(() => {
-      expect(screen.getByText('R$ 5.529,50')).toBeTruthy();
+      expect(balanceShows('R$ 5.529,50')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Próximo mês'));
+    fireEvent.press(screen.getByLabelText('Próximo mês'));
 
     await waitFor(() => {
       expect(screen.getByText('Setembro de 2026')).toBeTruthy();
@@ -270,33 +280,87 @@ describe('moving between months (spec DASH AC2)', () => {
     expect(within(screen.getByTestId('dashboard-total-received')).getByText('R$ 0,00')).toBeTruthy();
   });
 
-  it('shows a loading state rather than the previous month while the next one is still coming', async () => {
+  /**
+   * Spec DASH AC3 - "rather than stale figures from another month". August's balance surviving under
+   * a September heading is the failure the criterion names, and it is what is asserted here.
+   *
+   * What is deliberately *not* asserted any more is a loading indicator on the way. The trend line
+   * reads the months around the current one through the same key `useDashboard` uses, so a neighbour
+   * is already in the cache by the time the user moves onto it and its real figures are on screen in
+   * the same frame. There is nothing stale in that - the figures shown belong to September - and a
+   * test demanding a spinner would be pinning a gap the window exists to close.
+   */
+  it('never shows the previous month figures under the new month heading', async () => {
     stub('GET', '/dashboard/2026/8', 200, august);
     stub('GET', '/dashboard/2026/9', 200, september);
     renderScreen();
 
     await waitFor(() => {
-      expect(screen.getByText('R$ 5.529,50')).toBeTruthy();
+      expect(balanceShows('R$ 5.529,50')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Próximo mês'));
+    fireEvent.press(screen.getByLabelText('Próximo mês'));
 
-    /*
-     * Asserted synchronously, with no `await` in between: the stubbed response resolves on a
-     * microtask, which cannot run while this block is still executing, so this is the frame
-     * between the month changing and September answering.
-     *
-     * Spec DASH AC3 - a loading state "rather than stale figures from another month". August's
-     * balance surviving under a September heading is exactly the failure the criterion names.
-     */
+    // Asserted synchronously, with no `await` in between: the stubbed response resolves on a
+    // microtask, which cannot run while this block is still executing.
     expect(screen.getByText('Setembro de 2026')).toBeTruthy();
-    expect(screen.getByTestId('loading-indicator')).toBeTruthy();
-    expect(screen.queryByText('R$ 5.529,50')).toBeNull();
-    expect(screen.queryByTestId('dashboard-balance')).toBeNull();
+    expect(within(screen.getByTestId('dashboard-balance')).queryByText('R$ 5.529,50')).toBeNull();
 
     await waitFor(() => {
       expect(screen.getByTestId('dashboard-balance')).toBeTruthy();
     });
+  });
+
+  /** A month with nothing cached behind it still waits, which is the other half of AC3. */
+  it('shows a loading state while the first month is still coming', () => {
+    stub('GET', '/dashboard/2026/8', 200, august);
+    renderScreen();
+
+    expect(screen.getByTestId('loading-indicator')).toBeTruthy();
+    expect(screen.queryByTestId('dashboard-balance')).toBeNull();
+  });
+});
+
+/**
+ * The trend line the navigator draws. What is asserted here is the wiring - that the screen hands it
+ * the dashboard's own months - and not the drawing, which `MonthTrend` owns and tests.
+ */
+describe('the trend behind the navigator', () => {
+  it('plots the months around the one on screen and moves to the one touched', async () => {
+    stub('GET', '/dashboard/2026/6', 200, dashboardBody({ competenceMonth: '2026-06-01', balance: 100 }));
+    stub('GET', '/dashboard/2026/7', 200, dashboardBody({ competenceMonth: '2026-07-01', balance: 200 }));
+    stub('GET', '/dashboard/2026/8', 200, august);
+    stub('GET', '/dashboard/2026/9', 200, september);
+    stub('GET', '/dashboard/2026/10', 200, dashboardBody({ competenceMonth: '2026-10-01', balance: 300 }));
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Julho de 2026, R$ 200,00')).toBeTruthy();
+    });
+
+    ['Jun', 'Jul', 'Ago', 'Set', 'Out'].forEach((label) => {
+      expect(screen.getByText(label)).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByLabelText('Julho de 2026, R$ 200,00'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Julho de 2026')).toBeTruthy();
+    });
+  });
+
+  /** A neighbour that failed is a point the line leaves out, never an error state on the screen. */
+  it('still shows the month when a neighbour could not be read', async () => {
+    stub('GET', '/dashboard/2026/8', 200, august);
+    renderScreen();
+
+    await waitFor(() => {
+      expect(balanceShows('R$ 5.529,50')).toBeTruthy();
+    });
+
+    expect(screen.getByLabelText('Julho de 2026, sem valor')).toBeTruthy();
+    expect(screen.queryByText('Tentar novamente')).toBeNull();
+    expect(balanceShows('R$ 5.529,50')).toBeTruthy();
   });
 });
 
@@ -307,10 +371,10 @@ describe('a negative balance (spec DASH AC5)', () => {
     renderScreen();
 
     await waitFor(() => {
-      expect(screen.getByText('R$ 5.529,50')).toBeTruthy();
+      expect(balanceShows('R$ 5.529,50')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByText('Próximo mês'));
+    fireEvent.press(screen.getByLabelText('Próximo mês'));
 
     await waitFor(() => {
       expect(within(screen.getByTestId('dashboard-balance')).getByText('-R$ 470,50')).toBeTruthy();

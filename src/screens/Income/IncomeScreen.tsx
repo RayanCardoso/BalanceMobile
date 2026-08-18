@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { useIncomeMonth } from '@/hooks/useIncome';
+import { useIncomeMonth, useIncomeMonthSeries } from '@/hooks/useIncome';
 import { INCOME_STATUS_LABEL, type IncomeStatus } from '@/types/income';
 import { listErrorMessage } from '@/utils/errors/income';
 import { currentMonth } from '@/utils/dates';
@@ -35,6 +35,7 @@ export function IncomeScreen(): React.JSX.Element {
   const [period, setPeriod] = useState(() => currentMonth());
 
   const month = useIncomeMonth(period.year, period.month);
+  const series = useIncomeMonthSeries(period.year, period.month);
 
   const renderLines = (): React.JSX.Element => {
     if (month.isError) {
@@ -158,6 +159,7 @@ export function IncomeScreen(): React.JSX.Element {
         onChange={(year, month) => {
           setPeriod({ year, month });
         }}
+        series={series}
         year={period.year}
       />
 

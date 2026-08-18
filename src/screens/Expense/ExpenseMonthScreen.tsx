@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { PRIORITY_LABEL } from '@/types/priority';
-import { useExpenseMonth } from '@/hooks/useExpenses';
+import { useExpenseMonth, useExpenseMonthSeries } from '@/hooks/useExpenses';
 import {
   EXPENSE_STATUS_LABEL,
   EXPENSE_TYPE_LABEL,
@@ -18,7 +18,7 @@ import { RegisterButton } from '@/components/RegisterButton';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
 
 import { styles } from './ExpenseMonthScreen.styles';
-import { BarChart3, Repeat, Wallet } from 'lucide-react-native';
+import { BarChart3, Calendar, Repeat, Wallet } from 'lucide-react-native';
 import { colors } from '@/components/theme';
 
 /**
@@ -115,6 +115,7 @@ export function ExpenseMonthScreen(): React.JSX.Element {
   const [period, setPeriod] = useState(() => currentMonth());
 
   const month = useExpenseMonth(period.year, period.month);
+  const series = useExpenseMonthSeries(period.year, period.month);
 
   const renderMonth = (): React.JSX.Element => {
     if (month.isError) {
@@ -180,9 +181,9 @@ export function ExpenseMonthScreen(): React.JSX.Element {
               style={styles.registerButton}
             />
             <RegisterButton
-              icon={Repeat}
+              icon={Calendar}
               href="/expenses/variable/installment-plan"
-              label="Nova despesa recorrente"
+              label="Novo parcelamento"
               style={styles.registerButton}
             />
           </View>
@@ -230,6 +231,7 @@ export function ExpenseMonthScreen(): React.JSX.Element {
         onChange={(year, month) => {
           setPeriod({ year, month });
         }}
+        series={series}
         year={period.year}
       />
 
