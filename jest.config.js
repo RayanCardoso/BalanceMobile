@@ -17,6 +17,13 @@ module.exports = {
   moduleNameMapper: {
     '^@/assets/(.*)$': '<rootDir>/assets/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
+    // Every component that draws an icon imports `lucide-react-native`, whose `react-native` export
+    // condition is untranspiled ESM - under Jest that is `SyntaxError: Unexpected token 'export'`
+    // and the suite dies before a test runs. The package ships a CJS build of the same icons, and
+    // pointing at it is what the alternative (adding the package to `transformIgnorePatterns`)
+    // cannot afford: the ESM entry re-exports some 1500 icon modules, and transforming all of them
+    // takes a suite from 2 seconds to 48.
+    '^lucide-react-native$': '<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js',
   },
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|standard-navigation|@sentry/react-native|native-base|react-native-svg))',

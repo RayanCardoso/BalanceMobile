@@ -12,4 +12,11 @@
  */
 module.exports = async () => {
   process.env.TZ = 'Pacific/Midway';
+
+  // The API base every stubbed request is registered under. `api.ts` reads this variable per call
+  // and falls back to `localhost`, so without it the whole suite builds one URL and stubs another:
+  // every fetch misses its stub, becomes a `NetworkError`, and the failure reads as a broken hook
+  // rather than as an unset variable. Pinned here so a run does not depend on the developer's own
+  // `.env` - the value only has to match what the tests stub.
+  process.env.EXPO_PUBLIC_API_URL = 'http://10.0.2.2:5126/api';
 };
