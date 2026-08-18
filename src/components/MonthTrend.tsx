@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react-native';
@@ -115,8 +116,20 @@ export function MonthTrend({
   month: number;
   onChange: (year: number, month: number) => void;
 }): React.JSX.Element {
-  const [width, setWidth] = useState(0);
+  const { width: windowWidth } = useWindowDimensions();
+  const [measured, setMeasured] = useState(0);
   const drag = useRef(new Animated.Value(0)).current;
+
+  /*
+   * `onLayout` is the truth, but it answers a frame late - and on this project's web target it does
+   * not answer at all, which is not this component's to fix but is this component's to survive. A
+   * width of zero puts every point at the same x and draws the five months as one vertical line, so
+   * the first paint uses what the layout already implies: `Screen` pads its content by `space.lg` on
+   * both sides and the card draws a 1pt border on each. The estimate is replaced the moment a real
+   * measurement arrives.
+   */
+  const estimate = Math.max(0, windowWidth - space.lg * 2 - 2);
+  const width = measured > 0 ? measured : estimate;
 
   // Read on the gesture's own callbacks, which close over the render they were created in. Kept in
   // refs so the responder created once still decides against the current window.
@@ -231,7 +244,7 @@ export function MonthTrend({
           }
         }}
         onLayout={(event: LayoutChangeEvent) => {
-          setWidth(event.nativeEvent.layout.width);
+          setMeasured(event.nativeEvent.layout.width);
         }}
         style={styles.viewport}
       >

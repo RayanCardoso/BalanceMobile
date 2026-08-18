@@ -144,6 +144,12 @@ Recebe `series`, `year`, `month`, `onChange`. Estrutura, de cima para baixo:
 fica centrado com um vizinho de cada lado à mostra e a série continua para fora da tela. A posição de
 repouso é `translateX = -slot` (o slot 2 de 5 centrado), e é dela que o gesto parte.
 
+Enquanto a medição não chega, a largura é estimada a partir de `useWindowDimensions` menos o padding
+que a `Screen` aplica e a borda do cartão. Não é preciosismo: verificado no alvo web deste projeto, o
+`onLayout` **não dispara** — nem no componente, nem num `View` vazio de teste — e uma largura zero
+põe os cinco pontos no mesmo `x`, desenhando os meses como um traço vertical. A estimativa é
+substituída no instante em que uma medição real chega, que é o que acontece no Android e no iOS.
+
 **Escala vertical.** Mínimo e máximo dos valores presentes, com respiro em cima e embaixo. Série de
 valores iguais (ou de um único ponto) desenha uma linha no meio da altura, não colada numa borda.
 Zero não é forçado como piso: com `balance` negativo o gráfico ainda tem que ter forma.
