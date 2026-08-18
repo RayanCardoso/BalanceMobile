@@ -1,6 +1,7 @@
 import {
   currentMonth,
   fromApiDate,
+  monthAbbrev,
   monthLabel,
   shiftMonth,
   toApiDate,
@@ -82,6 +83,29 @@ describe('monthLabel', () => {
 
   it('names the first month of a year', () => {
     expect(monthLabel(2027, 1)).toBe('Janeiro de 2027');
+  });
+});
+
+describe('monthAbbrev', () => {
+  it('abbreviates a month inside the reference year to three letters', () => {
+    expect(monthAbbrev(2026, 8, 2026)).toBe('Ago');
+  });
+
+  it('carries the year when the month is not in the reference year', () => {
+    expect(monthAbbrev(2025, 12, 2026)).toBe('Dez 25');
+  });
+
+  it('carries the year forward across the boundary too', () => {
+    expect(monthAbbrev(2027, 1, 2026)).toBe('Jan 27');
+  });
+
+  it('keeps the accent the full name carries', () => {
+    expect(monthAbbrev(2026, 3, 2026)).toBe('Mar');
+    expect(monthAbbrev(2026, 5, 2026)).toBe('Mai');
+  });
+
+  it('rejects a month outside 1..12, like monthLabel does', () => {
+    expect(() => monthAbbrev(2026, 13, 2026)).toThrow(RangeError);
   });
 });
 

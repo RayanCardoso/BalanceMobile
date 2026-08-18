@@ -60,6 +60,26 @@ export function monthLabel(year: number, month: number): string {
 }
 
 /**
+ * The short form a chart axis uses: `(2026, 8, 2026)` becomes `'Ago'`.
+ *
+ * `reference` is the year the reading is anchored on — the month the screen is showing. A month
+ * outside it carries its own two-digit year (`'Dez 25'`), because a series that crosses a year
+ * boundary would otherwise show December and January as two unrelated three-letter labels and give
+ * the user no way to tell which side of the turn each one is on.
+ */
+export function monthAbbrev(year: number, month: number, reference: number): string {
+  const name = MONTH_NAMES[month - 1];
+
+  if (name === undefined) {
+    throw new RangeError(`month out of range: ${month}`);
+  }
+
+  const abbrev = name.slice(0, 3);
+
+  return year === reference ? abbrev : `${abbrev} ${pad(year % 100, 2)}`;
+}
+
+/**
  * Today, as the `YYYY-MM-DD` string the API's `DateOnly` expects.
  *
  * Built from the local getters rather than from `toISOString()`, which is UTC: at 21:00 on 21 August

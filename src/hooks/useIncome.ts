@@ -16,6 +16,7 @@ import type {
 import { get, post, put } from '@/services/api';
 import { qk } from '@/services/queryKeys';
 import { fromApiDate } from '@/utils/dates';
+import { useMonthSeries, type MonthValue } from '@/hooks/useMonthSeries';
 
 /**
  * The income month and the three writes against it.
@@ -71,10 +72,29 @@ const invalidateMonthOf = (client: QueryClient, apiDate: string): Promise<void> 
   ]).then(() => undefined);
 };
 
+/** The one place the income month route is written. Shared by the month and by the series. */
+const readIncomeMonth = (year: number, month: number): Promise<MonthlyIncome> =>
+  get<MonthlyIncome>(`/income/${year}/${month}`);
+
 export function useIncomeMonth(year: number, month: number): UseQueryResult<MonthlyIncome, Error> {
   return useQuery({
     queryKey: qk.incomeMonth(year, month),
-    queryFn: () => get<MonthlyIncome>(`/income/${year}/${month}`),
+    queryFn: () => readIncomeMonth(year, month),
+  });
+}
+
+/**
+ * The months behind the trend line in the income screen's `MonthNavigator`.
+ *
+ * The value of a month is `totalReceived` - what arrived, not `totalExpected`. The expected amount
+ * is a forecast the screen already shows line by line; plotting it as history would draw months of
+ * income that were never actually received.
+ */
+export function useIncomeMonthSeries(year: number, month: number): MonthValue[] {
+  return useMonthSeries(year, month, {
+    queryKey: qk.incomeMonth,
+    queryFn: readIncomeMonth,
+    value: (data) => data.totalReceived,
   });
 }
 

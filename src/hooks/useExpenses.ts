@@ -16,6 +16,7 @@ import type {
 import { get, post } from '@/services/api';
 import { qk } from '@/services/queryKeys';
 import { fromApiDate } from '@/utils/dates';
+import { useMonthSeries, type MonthValue } from '@/hooks/useMonthSeries';
 
 /**
  * The expense month and the two writes against it.
@@ -73,10 +74,30 @@ const invalidateMonthsOf = (client: QueryClient, apiDates: string[]): Promise<vo
   ).then(() => undefined);
 };
 
+/** The one place the expense month route is written. Shared by the month and by the series. */
+const readExpenseMonth = (year: number, month: number): Promise<MonthlyExpense> =>
+  get<MonthlyExpense>(`/expense/${year}/${month}`);
+
 export function useExpenseMonth(year: number, month: number): UseQueryResult<MonthlyExpense, Error> {
   return useQuery({
     queryKey: qk.expenseMonth(year, month),
-    queryFn: () => get<MonthlyExpense>(`/expense/${year}/${month}`),
+    queryFn: () => readExpenseMonth(year, month),
+  });
+}
+
+/**
+ * The months behind the trend line in the expense screen's `MonthNavigator`.
+ *
+ * The value of a month is `totalCommitted`: variable purchases plus recurring bills, which is what
+ * the month cost in full and the same total the screen prints under the lists. Plotting
+ * `totalVariable` instead would draw a line that ignores the fixed bills and disagrees with the
+ * figure right below it.
+ */
+export function useExpenseMonthSeries(year: number, month: number): MonthValue[] {
+  return useMonthSeries(year, month, {
+    queryKey: qk.expenseMonth,
+    queryFn: readExpenseMonth,
+    value: (data) => data.totalCommitted,
   });
 }
 

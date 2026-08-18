@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 
-import { useDashboard } from '@/hooks/useDashboard';
+import { useDashboard, useDashboardSeries } from '@/hooks/useDashboard';
 import { qk } from '@/services/queryKeys';
 import { createQueryWrapper, createTestQueryClient } from '@/services/testQueryClient';
 import { useSessionStore } from '@/store/sessionStore';
@@ -119,5 +119,57 @@ describe('reading a month of the dashboard (spec DASH AC1)', () => {
 
     expect(client.getQueryData(qk.dashboard(2026, 8))).toEqual(august);
     expect(client.getQueryData(qk.dashboard(2026, 9))).toEqual(september);
+  });
+});
+
+/**
+ * The trend line under the month navigator. What belongs to the dashboard here is only *which*
+ * number is the value of a month - the window and the reading are `useMonthSeries`'.
+ *
+ * `balance` is the API's own subtraction (MAD-001) and it arrives signed, so a month the user owes
+ * money in plots below the others rather than as a positive spike.
+ */
+describe('the dashboard series (the balance of each month)', () => {
+  it('reads the five months around the one it was given and plots their balance', async () => {
+    stub('GET', '/dashboard/2026/6', 200, dashboardBody('2026-06-01', 5000, 1000));
+    stub('GET', '/dashboard/2026/7', 200, dashboardBody('2026-07-01', 5000, 2000));
+    stub('GET', '/dashboard/2026/8', 200, august);
+    stub('GET', '/dashboard/2026/9', 200, september);
+    stub('GET', '/dashboard/2026/10', 200, dashboardBody('2026-10-01', 5000, 3000));
+
+    const { result } = renderDashboardHook(() => useDashboardSeries(2026, 8));
+
+    await waitFor(() => {
+      expect(result.current.every((entry) => entry.value !== null)).toBe(true);
+    });
+
+    expect(result.current).toEqual([
+      { year: 2026, month: 6, value: 1000 },
+      { year: 2026, month: 7, value: 2000 },
+      { year: 2026, month: 8, value: 4329.5 },
+      { year: 2026, month: 9, value: -470.5 },
+      { year: 2026, month: 10, value: 3000 },
+    ]);
+  });
+
+  /** The centre month is the screen's own query, not a second request against the same route. */
+  it('shares the centre month with the screen instead of requesting it twice', async () => {
+    stub('GET', '/dashboard/2026/6', 200, dashboardBody('2026-06-01', 5000, 1000));
+    stub('GET', '/dashboard/2026/7', 200, dashboardBody('2026-07-01', 5000, 2000));
+    stub('GET', '/dashboard/2026/8', 200, august);
+    stub('GET', '/dashboard/2026/9', 200, september);
+    stub('GET', '/dashboard/2026/10', 200, dashboardBody('2026-10-01', 5000, 3000));
+
+    const { result } = renderDashboardHook(() => ({
+      month: useDashboard(2026, 8),
+      series: useDashboardSeries(2026, 8),
+    }));
+
+    await waitFor(() => {
+      expect(result.current.month.isSuccess).toBe(true);
+      expect(result.current.series[2]?.value).toBe(4329.5);
+    });
+
+    expect(callsTo('GET', '/dashboard/2026/8')).toHaveLength(1);
   });
 });

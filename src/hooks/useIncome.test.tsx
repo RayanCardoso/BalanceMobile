@@ -4,6 +4,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import {
   useChangeIncomeValue,
   useIncomeMonth,
+  useIncomeMonthSeries,
   useRegisterIncomePayment,
   useRegisterIncomeSource,
 } from '@/hooks/useIncome';
@@ -129,6 +130,62 @@ describe('reading the income month', () => {
 
     expect(result.current.data?.lines[0]?.expectedAmount).toBeNull();
     expect(result.current.data?.lines[0]?.expectedDay).toBeNull();
+  });
+});
+
+/**
+ * The trend line under the month navigator on the income screen. The value of a month is
+ * `totalReceived` - what actually arrived, not what was expected: the expected amount is a forecast
+ * the screen already shows line by line, and plotting it would draw a history that never happened.
+ */
+describe('the income series (what each month received)', () => {
+  const receiving = (referenceMonth: string, totalReceived: number) => ({
+    referenceMonth,
+    totalExpected: 5000,
+    totalReceived,
+    lines: [],
+  });
+
+  it('reads the five months around the one it was given and plots what each received', async () => {
+    stub('GET', '/income/2026/6', 200, receiving('2026-06-01', 100));
+    stub('GET', '/income/2026/7', 200, receiving('2026-07-01', 200));
+    stub('GET', '/income/2026/8', 200, receiving('2026-08-01', 300));
+    stub('GET', '/income/2026/9', 200, receiving('2026-09-01', 400));
+    stub('GET', '/income/2026/10', 200, receiving('2026-10-01', 500));
+
+    const { result } = renderIncomeHook(() => useIncomeMonthSeries(2026, 8));
+
+    await waitFor(() => {
+      expect(result.current.every((entry) => entry.value !== null)).toBe(true);
+    });
+
+    expect(result.current).toEqual([
+      { year: 2026, month: 6, value: 100 },
+      { year: 2026, month: 7, value: 200 },
+      { year: 2026, month: 8, value: 300 },
+      { year: 2026, month: 9, value: 400 },
+      { year: 2026, month: 10, value: 500 },
+    ]);
+  });
+
+  it('shares the centre month with the screen instead of requesting it twice', async () => {
+    stub('GET', '/income/2026/6', 200, receiving('2026-06-01', 100));
+    stub('GET', '/income/2026/7', 200, receiving('2026-07-01', 200));
+    stub('GET', '/income/2026/8', 200, receiving('2026-08-01', 300));
+    stub('GET', '/income/2026/9', 200, receiving('2026-09-01', 400));
+    stub('GET', '/income/2026/10', 200, receiving('2026-10-01', 500));
+
+    const { result } = renderIncomeHook(() => ({
+      month: useIncomeMonth(2026, 8),
+      series: useIncomeMonthSeries(2026, 8),
+    }));
+
+    await waitFor(() => {
+      expect(result.current.month.isSuccess).toBe(true);
+      expect(result.current.series[2]?.value).toBe(300);
+    });
+
+    expect(callsTo('GET', '/income/2026/8')).toHaveLength(1);
   });
 });
 

@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 
 import {
   useExpenseMonth,
+  useExpenseMonthSeries,
   useRegisterExpense,
   useRegisterInstallmentPlan,
 } from '@/hooks/useExpenses';
@@ -217,6 +218,61 @@ describe('reading the expense month', () => {
 
     expect(result.current.data?.recurringLines[0]?.actualAmount).toBeNull();
     expect(result.current.data?.recurringLines[0]?.expectedAmount).toBe(150);
+  });
+});
+
+/**
+ * The trend line under the month navigator on the expense screen. `totalCommitted` is what the month
+ * cost in full - variable purchases plus recurring bills - which is the number the screen's own
+ * total already shows, so the line and the figure under it cannot disagree.
+ */
+describe('the expense series (what each month committed)', () => {
+  /** A month whose only interesting feature is its committed total. */
+  const committing = (competenceMonth: string, totalCommitted: number) => ({
+    ...monthBody(competenceMonth, [], []),
+    totalCommitted,
+  });
+
+  it('reads the five months around the one it was given and plots what each committed', async () => {
+    stub('GET', '/expense/2026/6', 200, committing('2026-06-01', 100));
+    stub('GET', '/expense/2026/7', 200, committing('2026-07-01', 200));
+    stub('GET', '/expense/2026/8', 200, committing('2026-08-01', 300));
+    stub('GET', '/expense/2026/9', 200, committing('2026-09-01', 400));
+    stub('GET', '/expense/2026/10', 200, committing('2026-10-01', 500));
+
+    const { result } = renderExpenseHook(() => useExpenseMonthSeries(2026, 8));
+
+    await waitFor(() => {
+      expect(result.current.every((entry) => entry.value !== null)).toBe(true);
+    });
+
+    expect(result.current).toEqual([
+      { year: 2026, month: 6, value: 100 },
+      { year: 2026, month: 7, value: 200 },
+      { year: 2026, month: 8, value: 300 },
+      { year: 2026, month: 9, value: 400 },
+      { year: 2026, month: 10, value: 500 },
+    ]);
+  });
+
+  it('shares the centre month with the screen instead of requesting it twice', async () => {
+    stub('GET', '/expense/2026/6', 200, committing('2026-06-01', 100));
+    stub('GET', '/expense/2026/7', 200, committing('2026-07-01', 200));
+    stub('GET', '/expense/2026/8', 200, committing('2026-08-01', 300));
+    stub('GET', '/expense/2026/9', 200, committing('2026-09-01', 400));
+    stub('GET', '/expense/2026/10', 200, committing('2026-10-01', 500));
+
+    const { result } = renderExpenseHook(() => ({
+      month: useExpenseMonth(2026, 8),
+      series: useExpenseMonthSeries(2026, 8),
+    }));
+
+    await waitFor(() => {
+      expect(result.current.month.isSuccess).toBe(true);
+      expect(result.current.series[2]?.value).toBe(300);
+    });
+
+    expect(callsTo('GET', '/expense/2026/8')).toHaveLength(1);
   });
 });
 
