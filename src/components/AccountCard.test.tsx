@@ -1,18 +1,15 @@
-import { render, screen } from '@testing-library/react-native';
-import type { ReactNode } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { AccountCard } from '@/components/AccountCard';
 import { colors } from '@/components/theme';
 import type { Account } from '@/types/catalogue';
 
-/** `Link` vira um passa-through: o que se testa aqui é o cartão, não a navegação. */
-jest.mock('expo-router', () => {
-  const react = require('react') as typeof import('react');
+jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 
-  return {
-    Link: ({ children }: { children: ReactNode }) =>
-      react.createElement(react.Fragment, null, children),
-  };
+const { router } = require('expo-router') as { router: { push: jest.Mock } };
+
+beforeEach(() => {
+  router.push.mockClear();
 });
 
 /** Um cartão de crédito: tem os três campos que só um cartão tem. */
@@ -119,5 +116,15 @@ describe('quem usa leitor de tela', () => {
     render(<AccountCard account={debit} owner={null} />);
 
     expect(screen.getByLabelText('Inter Débito, Inter')).toBeTruthy();
+  });
+});
+
+describe('tocar no cartão', () => {
+  it('leva à tela de contas', () => {
+    render(<AccountCard account={credit} owner="Rayan" />);
+
+    fireEvent.press(screen.getByTestId('account-card-a1'));
+
+    expect(router.push).toHaveBeenCalledWith('/accounts');
   });
 });

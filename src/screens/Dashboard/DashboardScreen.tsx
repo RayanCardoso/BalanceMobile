@@ -1,140 +1,282 @@
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  CalendarClock,
+  ChevronRight,
+  Coins,
+  Plus,
+  Repeat,
+  ShoppingBag,
+  type LucideIcon,
+} from 'lucide-react-native';
 
+import { useAccounts, usePeople } from '@/hooks/useCatalogue';
 import { useDashboard, useDashboardSeries } from '@/hooks/useDashboard';
 import type { MonthlyDashboard } from '@/types/dashboard';
 import { listErrorMessage } from '@/utils/errors/dashboard';
-import type { RecurringExpenseLine, VariableExpenseLine } from '@/types/expense';
-import type { MonthlyIncomeLine } from '@/types/income';
 import { currentMonth } from '@/utils/dates';
+import { formatMoney } from '@/utils/money';
+import {
+  balancePair,
+  expensePair,
+  incomeGroup,
+  incomePair,
+  progress,
+  recurringExpenseGroup,
+  variableExpenseGroup,
+  type Group,
+  type Pair,
+} from '@/utils/dashboard/projection';
+import { AccountCard } from '@/components/AccountCard';
 import { Money } from '@/components/Money';
 import { MonthNavigator } from '@/components/MonthNavigator';
+import { QuickActions } from '@/components/QuickActions';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
+import { card, colors, space } from '@/components/theme';
 
 import { styles } from './DashboardScreen.styles';
 
 /**
- * The app's landing screen: what came in, what the month costs and what is left (spec DASH AC1).
+ * A tela inicial: quanto o mês devia ser, quanto ele é, e de onde o dinheiro sai.
  *
- * Nothing is added up here. `totalReceived`, `totalCommitted` and `balance` are all the API's own
- * figures (MAD-001), and `balance` arrives already signed - a negative one is money owed and is
- * rendered with its sign, never as an absolute value (spec DASH AC5). The groups below carry no
- * subtotals for the same reason: the API publishes no per-group total, and computing one here would
- * be the client deciding what a group is worth.
+ * Ela deixou de listar lançamento por lançamento. As telas de Receitas e Despesas já mostram cada
+ * linha com status, menu e valor provisório — repetir os nomes aqui gastava a tela inteira com uma
+ * cópia pior. O que sobrou é o que só esta tela responde: o par previsto × real de cada metade do
+ * mês, e as quatro partições reduzidas a uma linha cada (spec DASH AC6), que leva à tela dona.
  *
- * The four groups (spec DASH AC6) are a partition of two lists the API already returns: the income
- * lines split on the `type` each one carries, and the expense month's two arrays. No line is
- * classified by this screen - it only puts each where the field it arrived with says it goes.
+ * `balance` continua vindo assinado da API e é renderizado com o sinal (spec DASH AC5). O previsto,
+ * esse sim, é somado no cliente — ver `@/utils/dashboard/projection`, que documenta por que essa
+ * exceção ao MAD-001 existe e quando apagá-la.
  *
- * Each month is its own query key, so moving to another month has no data until that month answers
- * and the loading state shows instead of the previous month's figures (spec DASH AC3). A screen
- * keyed on one entry would leave August's totals on screen under September's heading.
+ * Contas e pessoas são consultas laterais. Nenhuma das duas pode derrubar o mês: quando a de contas
+ * falha o carrossel não aparece, quando a de pessoas falha o dono some do cartão, e o mês continua
+ * na tela nos dois casos.
  */
 
-function LineRow({
+/** A trilha só é desenhada quando existe proporção a mostrar — ver `progress`. */
+function Bar({ pair, tone }: { pair: Pair; tone: string }): React.JSX.Element | null {
+  const ratio = progress(pair);
+
+  if (ratio === null) {
+    return null;
+  }
+
+  return (
+    <View style={styles.track}>
+      <View style={[styles.fill, { backgroundColor: tone, width: `${ratio * 100}%` }]} />
+    </View>
+  );
+}
+
+function SummaryLine({
+  label,
+  pair,
+  tone,
+  expectedTestID,
+  actualTestID,
+  last = false,
+}: {
+  label: string;
+  pair: Pair;
+  tone: string;
+  expectedTestID: string;
+  actualTestID: string;
+  /** O saldo: fecha o card com uma régua e não leva barra, porque os dois lados podem ser negativos. */
+  last?: boolean;
+}): React.JSX.Element {
+  return (
+    <View style={[styles.line, last ? styles.balanceLine : null]}>
+      <View style={styles.lineTop}>
+        <Text style={styles.lineLabel}>{label}</Text>
+
+        <View style={styles.figures}>
+          <View testID={expectedTestID}>
+            <Money style={styles.expected} value={pair.expected} />
+          </View>
+          <Text style={styles.arrow}>→</Text>
+          <View testID={actualTestID}>
+            <Money value={pair.actual} />
+          </View>
+        </View>
+      </View>
+
+      {last ? null : <Bar pair={pair} tone={tone} />}
+    </View>
+  );
+}
+
+function GroupRow({
   testID,
+  href,
   name,
-  value,
+  group,
+  icon: Icon,
+  tone,
 }: {
   testID: string;
+  href: '/income' | '/expenses';
   name: string;
-  value: number | null;
+  group: Group;
+  icon: LucideIcon;
+  tone: string;
 }): React.JSX.Element {
+  const count = `${group.count} ${group.count === 1 ? 'lançamento' : 'lançamentos'}`;
+
   return (
-    <View style={styles.row} testID={testID}>
-      <Text style={styles.rowName}>{name}</Text>
-      {value === null ? <Text style={styles.absent}>—</Text> : <Money value={value} />}
+    <Pressable
+      // A linha inteira é um alvo só, então ela é anunciada como uma frase e não como três textos.
+      accessibilityLabel={`${name}, ${count}, ${formatMoney(group.total)}`}
+      accessibilityRole="button"
+      onPress={() => {
+        router.push(href);
+      }}
+      style={styles.group}
+      testID={testID}
+    >
+      <Icon color={tone} size={18} />
+
+      <View style={styles.groupText}>
+        <Text style={styles.groupName}>{name}</Text>
+        <Text style={styles.groupCount}>{count}</Text>
+      </View>
+
+      <Money value={group.total} />
+      <ChevronRight color={colors.text.muted} size={16} />
+    </Pressable>
+  );
+}
+
+function Summary({ data }: { data: MonthlyDashboard }): React.JSX.Element {
+  return (
+    <View style={styles.summary}>
+      <View style={styles.summaryHeader}>
+        <Text style={styles.summaryTitle}>Resumo do mês</Text>
+        <Text style={styles.summaryHint}>previsto → real</Text>
+      </View>
+
+      <SummaryLine
+        actualTestID="dashboard-total-received"
+        expectedTestID="dashboard-income-expected"
+        label="Receitas"
+        pair={incomePair(data)}
+        tone={colors.status.positive}
+      />
+
+      <SummaryLine
+        actualTestID="dashboard-expense-actual"
+        expectedTestID="dashboard-expense-expected"
+        label="Despesas"
+        pair={expensePair(data)}
+        tone={colors.status.warning}
+      />
+
+      <SummaryLine
+        actualTestID="dashboard-balance"
+        expectedTestID="dashboard-balance-expected"
+        label="Saldo"
+        last
+        pair={balancePair(data)}
+        tone={colors.accent.base}
+      />
     </View>
   );
 }
 
-function Group({
-  testID,
-  title,
-  empty,
-  children,
-}: {
-  testID: string;
-  title: string;
-  empty: string;
-  children: React.ReactNode[];
-}): React.JSX.Element {
+function Groups({ data }: { data: MonthlyDashboard }): React.JSX.Element {
   return (
-    <View style={styles.group}>
-      <Text style={styles.groupTitle}>{title}</Text>
-      <View style={styles.list} testID={testID}>
-        {children.length === 0 ? <Text style={styles.detail}>{empty}</Text> : children}
-      </View>
+    <View style={styles.groups}>
+      <GroupRow
+        group={incomeGroup(data, 0)}
+        href="/income"
+        icon={Repeat}
+        name="Receitas recorrentes"
+        testID="dashboard-group-recurring-income"
+        tone={colors.status.positive}
+      />
+      <GroupRow
+        group={incomeGroup(data, 1)}
+        href="/income"
+        icon={Coins}
+        name="Receitas variáveis"
+        testID="dashboard-group-variable-income"
+        tone={colors.status.positive}
+      />
+      <GroupRow
+        group={recurringExpenseGroup(data)}
+        href="/expenses"
+        icon={CalendarClock}
+        name="Despesas recorrentes"
+        testID="dashboard-group-recurring-expenses"
+        tone={colors.status.warning}
+      />
+      <GroupRow
+        group={variableExpenseGroup(data)}
+        href="/expenses"
+        icon={ShoppingBag}
+        name="Despesas variáveis"
+        testID="dashboard-group-variable-expenses"
+        tone={colors.status.warning}
+      />
     </View>
   );
 }
-
-function Totals({ data }: { data: MonthlyDashboard }): React.JSX.Element {
-  return (
-    <View style={styles.totals}>
-      <View style={styles.total}>
-        <Text style={styles.totalLabel}>Recebido</Text>
-        <View testID="dashboard-total-received">
-          <Money value={data.income.totalReceived} />
-        </View>
-      </View>
-
-      <View style={styles.total}>
-        <Text style={styles.totalLabel}>Comprometido</Text>
-        <View testID="dashboard-total-committed">
-          <Money value={data.expenses.totalCommitted} />
-        </View>
-      </View>
-
-      <View style={styles.total}>
-        <Text style={styles.totalLabel}>Saldo</Text>
-        <View testID="dashboard-balance">
-          <Money value={data.balance} />
-        </View>
-      </View>
-    </View>
-  );
-}
-
-/** A recurring bill reads as what was paid once it arrived, and as what is expected until then. */
-const recurringFigure = (line: RecurringExpenseLine): number | null =>
-  line.actualAmount ?? line.expectedAmount;
-
-const incomeOfType = (lines: MonthlyIncomeLine[], type: 0 | 1): MonthlyIncomeLine[] =>
-  lines.filter((line) => line.type === type);
-
-const incomeRow = (line: MonthlyIncomeLine): React.JSX.Element => (
-  <LineRow
-    key={line.incomeSourceId}
-    name={line.name}
-    testID={`dashboard-income-${line.incomeSourceId}`}
-    value={line.receivedAmount}
-  />
-);
-
-const variableExpenseRow = (line: VariableExpenseLine): React.JSX.Element => (
-  <LineRow
-    key={line.expenseId}
-    name={line.name}
-    testID={`dashboard-expense-${line.expenseId}`}
-    value={line.amount}
-  />
-);
-
-const recurringExpenseRow = (line: RecurringExpenseLine): React.JSX.Element => (
-  <LineRow
-    key={line.recurringExpenseId}
-    name={line.name}
-    testID={`dashboard-expense-${line.recurringExpenseId}`}
-    value={recurringFigure(line)}
-  />
-);
 
 export function DashboardScreen(): React.JSX.Element {
   const [period, setPeriod] = useState(() => currentMonth());
 
   const month = useDashboard(period.year, period.month);
   const series = useDashboardSeries(period.year, period.month);
+  const accounts = useAccounts();
+  const people = usePeople();
+
+  /** Null enquanto as pessoas não chegaram, ou se a consulta falhou — o cartão omite a linha. */
+  const ownerOf = (personId: string): string | null =>
+    people.data?.find((person) => person.id === personId)?.name ?? null;
+
+  const renderAccounts = (): React.JSX.Element | null => {
+    // A lista de contas não é o assunto da tela: enquanto ela não chega, ou se falhou, o mês fica.
+    if (accounts.data === undefined) {
+      return null;
+    }
+
+    return (
+      <View>
+        <Text style={styles.sectionTitle}>Minhas contas</Text>
+
+        {accounts.data.length === 0 ? (
+          <Pressable
+            accessibilityLabel="Cadastrar conta"
+            accessibilityRole="button"
+            onPress={() => {
+              router.push('/accounts');
+            }}
+            style={styles.emptyCard}
+            testID="dashboard-accounts-empty"
+          >
+            <Plus color={colors.accent.base} size={20} />
+            <Text style={styles.emptyCardLabel}>Cadastrar conta</Text>
+          </Pressable>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.carouselContent}
+            decelerationRate="fast"
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            // O passo é a largura do cartão mais o vão entre dois: sem somar o vão, o carrossel
+            // acumula um deslocamento a cada parada e o terceiro cartão para fora de lugar.
+            snapToInterval={card.width + space.md}
+            style={styles.carousel}
+            testID="dashboard-accounts"
+          >
+            {accounts.data.map((account) => (
+              <AccountCard account={account} key={account.id} owner={ownerOf(account.personId)} />
+            ))}
+          </ScrollView>
+        )}
+      </View>
+    );
+  };
 
   const renderMonth = (): React.JSX.Element => {
     if (month.isError) {
@@ -161,46 +303,18 @@ export function DashboardScreen(): React.JSX.Element {
 
     return (
       <View style={styles.sections}>
-        {/* Spec DASH AC4: the totals are rendered for an empty month too, zeroed rather than gone. */}
-        <Totals data={month.data} />
+        {/* Spec DASH AC4: os totais aparecem zerados num mês vazio, em vez de sumirem. */}
+        <Summary data={month.data} />
 
         {empty ? (
           <EmptyState message="Nenhum registro neste mês. Receitas, despesas e contas recorrentes aparecem aqui assim que forem lançadas." />
         ) : (
-          <>
-            <Group
-              empty="Nenhuma receita recorrente neste mês."
-              testID="group-recurring-income"
-              title="Receitas recorrentes"
-            >
-              {incomeOfType(income.lines, 0).map(incomeRow)}
-            </Group>
-
-            <Group
-              empty="Nenhuma receita variável neste mês."
-              testID="group-variable-income"
-              title="Receitas variáveis"
-            >
-              {incomeOfType(income.lines, 1).map(incomeRow)}
-            </Group>
-
-            <Group
-              empty="Nenhuma conta recorrente neste mês."
-              testID="group-recurring-expenses"
-              title="Despesas recorrentes"
-            >
-              {expenses.recurringLines.map(recurringExpenseRow)}
-            </Group>
-
-            <Group
-              empty="Nenhuma despesa variável neste mês."
-              testID="group-variable-expenses"
-              title="Despesas variáveis"
-            >
-              {expenses.variableLines.map(variableExpenseRow)}
-            </Group>
-          </>
+          <Groups data={month.data} />
         )}
+
+        {renderAccounts()}
+
+        <QuickActions />
       </View>
     );
   };

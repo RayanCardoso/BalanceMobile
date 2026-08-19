@@ -1,17 +1,17 @@
-import { render, screen } from '@testing-library/react-native';
-import type { ReactNode } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { QuickActions } from '@/components/QuickActions';
 
-/** `Link` vira uma `View` com o `href` como `testID`, o mesmo substituto de `AppDrawer.test.tsx`. */
-jest.mock('expo-router', () => {
-  const react = require('react') as typeof import('react');
-  const rn = require('react-native') as typeof import('react-native');
+/**
+ * `router` é o alvo da asserção: o que interessa provar é para onde cada círculo leva, e o `router`
+ * do expo-router é justamente a peça que não pode ser exercida de verdade sem um container.
+ */
+jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 
-  const Link = ({ href, children }: { href: string; children: ReactNode }) =>
-    react.createElement(rn.View, { testID: `link-${href}` }, children);
+const { router } = require('expo-router') as { router: { push: jest.Mock } };
 
-  return { Link };
+beforeEach(() => {
+  router.push.mockClear();
 });
 
 describe('os atalhos de cadastro', () => {
@@ -22,9 +22,13 @@ describe('os atalhos de cadastro', () => {
   it('alcança conta, pessoa e categoria', () => {
     render(<QuickActions />);
 
-    expect(screen.getByTestId('link-/accounts')).toBeTruthy();
-    expect(screen.getByTestId('link-/people')).toBeTruthy();
-    expect(screen.getByTestId('link-/categories')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Nova conta'));
+    fireEvent.press(screen.getByLabelText('Nova pessoa'));
+    fireEvent.press(screen.getByLabelText('Nova categoria'));
+
+    expect(router.push).toHaveBeenNthCalledWith(1, '/accounts');
+    expect(router.push).toHaveBeenNthCalledWith(2, '/people');
+    expect(router.push).toHaveBeenNthCalledWith(3, '/categories');
   });
 
   it('legenda cada um em português', () => {

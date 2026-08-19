@@ -84,12 +84,21 @@ const energy = {
   status: 0 as const,
 };
 
+/**
+ * Os totais previstos são parâmetros e não constantes: a tela agora mostra o previsto ao lado do
+ * real, então um mês vazio precisa poder chegar com **todos** os campos em zero. Fixá-los aqui era
+ * o que fazia `emptyMonth` publicar uma receita prevista de R$ 5.000,00 sem nenhuma linha de receita.
+ */
 const dashboardBody = ({
   competenceMonth,
   incomeLines = [],
   variableLines = [],
   recurringLines = [],
+  totalExpected = 5000,
   totalReceived = 0,
+  totalVariable = 320.5,
+  totalRecurringExpected = 150,
+  totalRecurringPaid = 0,
   totalCommitted = 0,
   balance = 0,
 }: {
@@ -97,14 +106,18 @@ const dashboardBody = ({
   incomeLines?: unknown[];
   variableLines?: unknown[];
   recurringLines?: unknown[];
+  totalExpected?: number;
   totalReceived?: number;
+  totalVariable?: number;
+  totalRecurringExpected?: number;
+  totalRecurringPaid?: number;
   totalCommitted?: number;
   balance?: number;
 }) => ({
   competenceMonth,
   income: {
     referenceMonth: competenceMonth,
-    totalExpected: 5000,
+    totalExpected,
     totalReceived,
     lines: incomeLines,
   },
@@ -112,9 +125,9 @@ const dashboardBody = ({
     competenceMonth,
     variableLines,
     recurringLines,
-    totalVariable: 320.5,
-    totalRecurringExpected: 150,
-    totalRecurringPaid: 0,
+    totalVariable,
+    totalRecurringExpected,
+    totalRecurringPaid,
     totalCommitted,
   },
   balance,
@@ -140,8 +153,43 @@ const september = dashboardBody({
   balance: -470.5,
 });
 
+/**
+ * As contas e as pessoas que o carrossel desenha. Uma delas e cartao de credito, a outra nao - a
+ * diferenca importa porque so a primeira tem dias de fechamento e vencimento a mostrar.
+ */
+const accounts = [
+  {
+    id: 'a1',
+    name: 'Nubank Roxinho',
+    institution: 'Nu Pagamentos',
+    personId: 'p1',
+    closingDay: 5,
+    dueDay: 12,
+    limit: 8000,
+  },
+  {
+    id: 'a2',
+    name: 'Inter Debito',
+    institution: 'Inter',
+    personId: 'p2',
+    closingDay: null,
+    dueDay: null,
+    limit: null,
+  },
+];
+
+const people = [
+  { id: 'p1', name: 'Rayan', description: null, isAccountOwner: true },
+  { id: 'p2', name: 'Ana', description: null, isAccountOwner: false },
+];
+
 /** A month before anything was recorded. Every figure is zero, and no line exists at all. */
-const emptyMonth = dashboardBody({ competenceMonth: '2026-08-01' });
+const emptyMonth = dashboardBody({
+  competenceMonth: '2026-08-01',
+  totalExpected: 0,
+  totalVariable: 0,
+  totalRecurringExpected: 0,
+});
 
 let client = createTestQueryClient();
 
@@ -167,6 +215,9 @@ const balanceShows = (amount: string) =>
 beforeEach(() => {
   jest.clearAllMocks();
   stubs.clear();
+  // A tela le contas e pessoas alem do mes; sem estes stubs todo `it` morre em "no stub for".
+  stub('GET', '/account', 200, { accounts });
+  stub('GET', '/person', 200, { people });
   fetchMock.mockReset();
   fetchMock.mockImplementation(async (url: string, init: { method: string }) => {
     const key = `${init.method} ${url}`;
@@ -195,8 +246,8 @@ afterEach(() => {
   client.clear();
 });
 
-describe('the month at a glance (spec DASH AC1)', () => {
-  it('opens on the current month and shows what came in, what it costs and what is left', async () => {
+describe('o mês em previsto e real (spec DASH AC1)', () => {
+  it('abre no mês atual mostrando o previsto e o real de cada metade', async () => {
     stub('GET', '/dashboard/2026/8', 200, august);
     renderScreen();
 
@@ -205,53 +256,161 @@ describe('the month at a glance (spec DASH AC1)', () => {
     });
 
     expect(screen.getByText('Agosto de 2026')).toBeTruthy();
-    expect(within(screen.getByTestId('dashboard-total-received')).getByText('R$ 6.000,00')).toBeTruthy();
+
     expect(
-      within(screen.getByTestId('dashboard-total-committed')).getByText('R$ 470,50')
+      within(screen.getByTestId('dashboard-income-expected')).getByText('R$ 5.000,00')
+    ).toBeTruthy();
+    expect(
+      within(screen.getByTestId('dashboard-total-received')).getByText('R$ 6.000,00')
+    ).toBeTruthy();
+
+    // Previsto = variáveis + recorrentes estimadas; real = variáveis + recorrentes pagas.
+    expect(
+      within(screen.getByTestId('dashboard-expense-expected')).getByText('R$ 470,50')
+    ).toBeTruthy();
+    expect(
+      within(screen.getByTestId('dashboard-expense-actual')).getByText('R$ 320,50')
+    ).toBeTruthy();
+
+    expect(
+      within(screen.getByTestId('dashboard-balance-expected')).getByText('R$ 4.529,50')
     ).toBeTruthy();
     expect(within(screen.getByTestId('dashboard-balance')).getByText('R$ 5.529,50')).toBeTruthy();
   });
 });
 
 /**
- * Spec DASH AC6 - "recurring income, variable income, recurring expenses and variable expenses as
- * four distinguishable groups". Each line is asserted **inside its own group** and denied in the
- * others, so a screen rendering everything in one list fails rather than passing a page-wide query.
+ * Spec DASH AC6 - as quatro partições continuam distinguíveis, agora como uma linha cada em vez de
+ * uma lista cada. O que cada linha mostra é a contagem e o subtotal do seu grupo, e o que ela faz é
+ * levar à tela que possui aqueles lançamentos.
  */
-describe('the four groups (spec DASH AC6)', () => {
-  it('puts each line in the group its own type names', async () => {
+describe('as quatro linhas de grupo (spec DASH AC6)', () => {
+  it('mostra cada grupo com a sua contagem e o seu subtotal', async () => {
     stub('GET', '/dashboard/2026/8', 200, august);
     renderScreen();
 
     await waitFor(() => {
-      expect(screen.getByTestId('group-recurring-income')).toBeTruthy();
+      expect(screen.getByTestId('dashboard-group-recurring-income')).toBeTruthy();
     });
 
-    expect(within(screen.getByTestId('group-recurring-income')).getByText('Salário')).toBeTruthy();
-    expect(within(screen.getByTestId('group-variable-income')).getByText('Freela')).toBeTruthy();
-    expect(within(screen.getByTestId('group-recurring-expenses')).getByText('Energia')).toBeTruthy();
-    expect(within(screen.getByTestId('group-variable-expenses')).getByText('Mercado')).toBeTruthy();
+    const recurringIncome = within(screen.getByTestId('dashboard-group-recurring-income'));
+    expect(recurringIncome.getByText('Receitas recorrentes')).toBeTruthy();
+    expect(recurringIncome.getByText('1 lançamento')).toBeTruthy();
+    expect(recurringIncome.getByText('R$ 4.800,00')).toBeTruthy();
 
-    // A recurring source in the variable group would mean the split ignored the line's `type`.
-    expect(within(screen.getByTestId('group-variable-income')).queryByText('Salário')).toBeNull();
-    expect(within(screen.getByTestId('group-recurring-income')).queryByText('Freela')).toBeNull();
-    expect(within(screen.getByTestId('group-variable-expenses')).queryByText('Energia')).toBeNull();
-    expect(within(screen.getByTestId('group-recurring-expenses')).queryByText('Mercado')).toBeNull();
+    expect(
+      within(screen.getByTestId('dashboard-group-variable-income')).getByText('R$ 1.200,00')
+    ).toBeTruthy();
+    expect(
+      within(screen.getByTestId('dashboard-group-variable-expenses')).getByText('R$ 320,50')
+    ).toBeTruthy();
+    // A conta de energia não foi paga: o grupo recorrente custou zero até agora.
+    expect(
+      within(screen.getByTestId('dashboard-group-recurring-expenses')).getByText('R$ 0,00')
+    ).toBeTruthy();
   });
 
-  // Lesson L-004: the figure the user reads on each line, not only the totals above them.
-  it('shows each line with the amount it carries', async () => {
+  /** A linha inteira é um alvo só, e um leitor de tela tem de ouvi-la como uma frase. */
+  it('anuncia cada grupo com nome, contagem e subtotal', async () => {
     stub('GET', '/dashboard/2026/8', 200, august);
     renderScreen();
 
     await waitFor(() => {
-      expect(screen.getByTestId('dashboard-income-i1')).toBeTruthy();
+      expect(screen.getByTestId('dashboard-group-recurring-income')).toBeTruthy();
     });
 
-    expect(within(screen.getByTestId('dashboard-income-i1')).getByText('R$ 4.800,00')).toBeTruthy();
-    expect(within(screen.getByTestId('dashboard-income-i2')).getByText('R$ 1.200,00')).toBeTruthy();
-    expect(within(screen.getByTestId('dashboard-expense-e1')).getByText('R$ 320,50')).toBeTruthy();
-    expect(within(screen.getByTestId('dashboard-expense-r1')).getByText('R$ 150,00')).toBeTruthy();
+    expect(screen.getByTestId('dashboard-group-recurring-income')).toHaveProp(
+      'accessibilityLabel',
+      'Receitas recorrentes, 1 lançamento, R$ 4.800,00'
+    );
+  });
+
+  /** O nome de cada lançamento saiu daqui: quem quer "Salário" vai à tela de Receitas. */
+  it('não lista mais os lançamentos um a um', async () => {
+    stub('GET', '/dashboard/2026/8', 200, august);
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('dashboard-group-recurring-income')).toBeTruthy();
+    });
+
+    expect(screen.queryByText('Salário')).toBeNull();
+    expect(screen.queryByText('Mercado')).toBeNull();
+    expect(screen.queryByTestId('dashboard-income-i1')).toBeNull();
+  });
+});
+
+describe('o carrossel de contas', () => {
+  it('mostra uma conta por cartão, com o dono de cada uma', async () => {
+    stub('GET', '/dashboard/2026/8', 200, august);
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('account-card-a1')).toBeTruthy();
+    });
+
+    expect(screen.getByText('Nubank Roxinho')).toBeTruthy();
+    expect(screen.getByText('Inter Debito')).toBeTruthy();
+    expect(screen.getByTestId('account-card-owner-a1')).toHaveTextContent('Rayan');
+    expect(screen.getByTestId('account-card-owner-a2')).toHaveTextContent('Ana');
+  });
+
+  /** Nenhuma conta cadastrada não é um buraco: é um convite. */
+  it('convida a cadastrar quando não há nenhuma conta', async () => {
+    stub('GET', '/account', 200, { accounts: [] });
+    stub('GET', '/dashboard/2026/8', 200, august);
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('dashboard-accounts-empty')).toBeTruthy();
+    });
+
+    expect(screen.getByText('Cadastrar conta')).toBeTruthy();
+  });
+
+  /**
+   * A tela é o mês. Contas e pessoas são consultas laterais, e nenhuma delas pode derrubar o mês
+   * que já chegou.
+   */
+  it('mostra o mês mesmo quando as contas não puderam ser lidas', async () => {
+    stub('GET', '/account', 500, {});
+    stub('GET', '/dashboard/2026/8', 200, august);
+    renderScreen();
+
+    await waitFor(() => {
+      expect(balanceShows('R$ 5.529,50')).toBeTruthy();
+    });
+
+    expect(screen.queryByTestId('account-card-a1')).toBeNull();
+    expect(screen.queryByText('Tentar novamente')).toBeNull();
+  });
+
+  it('desenha o cartão sem o dono quando as pessoas não puderam ser lidas', async () => {
+    stub('GET', '/person', 500, {});
+    stub('GET', '/dashboard/2026/8', 200, august);
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('account-card-a1')).toBeTruthy();
+    });
+
+    expect(screen.getByText('Nubank Roxinho')).toBeTruthy();
+    expect(screen.queryByTestId('account-card-owner-a1')).toBeNull();
+  });
+});
+
+describe('os atalhos de cadastro', () => {
+  it('oferece conta, pessoa e categoria', async () => {
+    stub('GET', '/dashboard/2026/8', 200, august);
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('quick-actions')).toBeTruthy();
+    });
+
+    expect(screen.getByLabelText('Nova conta')).toBeTruthy();
+    expect(screen.getByLabelText('Nova pessoa')).toBeTruthy();
+    expect(screen.getByLabelText('Nova categoria')).toBeTruthy();
   });
 });
 
@@ -273,7 +432,7 @@ describe('moving between months (spec DASH AC2)', () => {
 
     await waitFor(() => {
       expect(
-        within(screen.getByTestId('dashboard-total-committed')).getByText('R$ 470,50')
+        within(screen.getByTestId('dashboard-expense-expected')).getByText('R$ 470,50')
       ).toBeTruthy();
     });
 
@@ -396,7 +555,7 @@ describe('a month with nothing in it (spec DASH AC4)', () => {
 
     expect(within(screen.getByTestId('dashboard-total-received')).getByText('R$ 0,00')).toBeTruthy();
     expect(
-      within(screen.getByTestId('dashboard-total-committed')).getByText('R$ 0,00')
+      within(screen.getByTestId('dashboard-expense-expected')).getByText('R$ 0,00')
     ).toBeTruthy();
     expect(within(screen.getByTestId('dashboard-balance')).getByText('R$ 0,00')).toBeTruthy();
 

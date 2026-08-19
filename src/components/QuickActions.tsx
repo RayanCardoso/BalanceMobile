@@ -1,4 +1,4 @@
-import { Link, type Href } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Landmark, Tags, UserPlus, type LucideIcon } from 'lucide-react-native';
 
@@ -14,6 +14,10 @@ import { colors, control, space, type } from '@/components/theme';
  * O círculo tem `control.size` de lado — o mesmo alvo de toque mínimo que o `TopBar` usa — e a
  * legenda embaixo é apoio, não o alvo. Por isso o `accessibilityLabel` está no `Pressable`: sem ele,
  * um leitor de tela anunciaria um botão sem nome e leria a legenda como texto solto ao lado.
+ *
+ * Navega por `router.push` e não por `<Link asChild>`: o `asChild` envolve o filho num Slot que só
+ * monta sob um container de navegação, e estes atalhos vivem numa tela que é renderizada sozinha
+ * em teste.
  */
 
 const ACTIONS: { href: Href; label: string; icon: LucideIcon }[] = [
@@ -26,15 +30,21 @@ export function QuickActions(): React.JSX.Element {
   return (
     <View style={styles.row} testID="quick-actions">
       {ACTIONS.map(({ href, label, icon: Icon }) => (
-        <Link asChild href={href} key={label}>
-          <Pressable accessibilityLabel={label} accessibilityRole="button" style={styles.action}>
-            <View style={styles.circle}>
-              <Icon color={colors.text.primary} size={20} />
-            </View>
+        <Pressable
+          accessibilityLabel={label}
+          accessibilityRole="button"
+          key={label}
+          onPress={() => {
+            router.push(href);
+          }}
+          style={styles.action}
+        >
+          <View style={styles.circle}>
+            <Icon color={colors.text.primary} size={20} />
+          </View>
 
-            <Text style={styles.label}>{label}</Text>
-          </Pressable>
-        </Link>
+          <Text style={styles.label}>{label}</Text>
+        </Pressable>
       ))}
     </View>
   );

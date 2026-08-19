@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { CreditCard } from 'lucide-react-native';
 
@@ -19,6 +19,10 @@ import type { Account } from '@/types/catalogue';
  *
  * A marca d'água de pontos é decoração e nada mais: a API não guarda número de cartão, então não há
  * dígito nenhum em jogo. Ela existe para que o objeto na tela seja lido como cartão à primeira vista.
+ *
+ * A navegação é `router.push` num `Pressable`, e não `<Link asChild>`: o `asChild` envolve o filho
+ * num Slot que só monta sob um container de navegação, e o cartão precisa poder ser renderizado
+ * sozinho. É também como o menu da tela de Receitas já navega.
  */
 
 /** `5` vira `05`: dois dígitos alinham "fecha 05 · vence 12" com "fecha 15 · vence 22". */
@@ -40,59 +44,61 @@ export function AccountCard({
   ].filter((part) => part !== null);
 
   return (
-    <Link asChild href="/accounts">
-      <Pressable
-        accessibilityLabel={
-          owner === null
-            ? `${account.name}, ${account.institution}`
-            : `${account.name}, ${account.institution}, de ${owner}`
-        }
-        accessibilityRole="button"
-        style={[styles.card, { backgroundColor: colour.fill }]}
-        testID={`account-card-${account.id}`}
-      >
-        <View style={styles.header}>
-          <View style={styles.brand}>
-            <View style={[styles.seal, { borderColor: colour.ink }]}>
-              <Text style={[styles.sealLetter, ink]}>{bankInitial(account.institution)}</Text>
-            </View>
-            <Text numberOfLines={1} style={[styles.institution, ink]}>
-              {account.institution}
-            </Text>
+    <Pressable
+      accessibilityLabel={
+        owner === null
+          ? `${account.name}, ${account.institution}`
+          : `${account.name}, ${account.institution}, de ${owner}`
+      }
+      accessibilityRole="button"
+      onPress={() => {
+        router.push('/accounts');
+      }}
+      style={[styles.card, { backgroundColor: colour.fill }]}
+      testID={`account-card-${account.id}`}
+    >
+      <View style={styles.header}>
+        <View style={styles.brand}>
+          <View style={[styles.seal, { borderColor: colour.ink }]}>
+            <Text style={[styles.sealLetter, ink]}>{bankInitial(account.institution)}</Text>
           </View>
 
-          <CreditCard color={colour.ink} size={18} />
+          <Text numberOfLines={1} style={[styles.institution, ink]}>
+            {account.institution}
+          </Text>
         </View>
 
-        <Text style={[styles.watermark, ink]} testID={`account-card-watermark-${account.id}`}>
-          •••• •••• •••• ••••
+        <CreditCard color={colour.ink} size={18} />
+      </View>
+
+      <Text style={[styles.watermark, ink]} testID={`account-card-watermark-${account.id}`}>
+        •••• •••• •••• ••••
+      </Text>
+
+      <View style={styles.footer}>
+        <Text numberOfLines={1} style={[styles.name, ink]}>
+          {account.name}
         </Text>
 
-        <View style={styles.footer}>
-          <Text numberOfLines={1} style={[styles.name, ink]}>
-            {account.name}
-          </Text>
+        <View style={styles.meta}>
+          {owner === null ? null : (
+            <Text
+              numberOfLines={1}
+              style={[styles.detail, ink]}
+              testID={`account-card-owner-${account.id}`}
+            >
+              {owner}
+            </Text>
+          )}
 
-          <View style={styles.meta}>
-            {owner === null ? null : (
-              <Text
-                numberOfLines={1}
-                style={[styles.detail, ink]}
-                testID={`account-card-owner-${account.id}`}
-              >
-                {owner}
-              </Text>
-            )}
-
-            {days.length === 0 ? null : (
-              <Text style={[styles.detail, ink]} testID={`account-card-days-${account.id}`}>
-                {days.join(' · ')}
-              </Text>
-            )}
-          </View>
+          {days.length === 0 ? null : (
+            <Text style={[styles.detail, ink]} testID={`account-card-days-${account.id}`}>
+              {days.join(' · ')}
+            </Text>
+          )}
         </View>
-      </Pressable>
-    </Link>
+      </View>
+    </Pressable>
   );
 }
 
