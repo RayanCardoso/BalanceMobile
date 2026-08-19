@@ -91,6 +91,51 @@ export const colors = {
     neutral: 'rgb(51, 129, 255)',
     neutralSoft: '#132A52',
   },
+
+  /**
+   * A cor de cada banco, e a tinta que se lê em cima dela.
+   *
+   * `fill` e `ink` são declarados **juntos** de propósito. A alternativa seria calcular luminância em
+   * tempo de execução para decidir entre texto claro e escuro; declarar o par transforma uma dedução
+   * numa decisão revisável lendo este arquivo — o amarelo do Banco do Brasil nasce com tinta escura,
+   * o roxo do Nubank com tinta clara, e ninguém precisa confiar numa fórmula.
+   *
+   * A chave é o nome normalizado (ver `src/utils/bank.ts`) e o casamento é por prefixo, então `nu`
+   * cobre "Nubank" e "Nu Pagamentos", e `itau` cobre "Itaú Unibanco".
+   *
+   * É a única superfície do app que não é azul-marinho, e é deliberado: um cartão é reconhecido pela
+   * cor antes de ser lido.
+   */
+  bank: {
+    nu: { fill: '#820AD1', ink: '#FFFFFF' },
+    inter: { fill: '#FF7A00', ink: '#2B1400' },
+    itau: { fill: '#EC7000', ink: '#2B1400' },
+    bradesco: { fill: '#CC092F', ink: '#FFFFFF' },
+    santander: { fill: '#EC0000', ink: '#FFFFFF' },
+    caixa: { fill: '#005CA9', ink: '#FFFFFF' },
+    brasil: { fill: '#FAE128', ink: '#241F00' },
+    picpay: { fill: '#21C25E', ink: '#04240F' },
+    original: { fill: '#00A94F', ink: '#04240F' },
+    next: { fill: '#00E05C', ink: '#04240F' },
+    will: { fill: '#00E88F', ink: '#04240F' },
+    c6: { fill: '#242424', ink: '#F2F2F2' },
+    xp: { fill: '#0A0A0A', ink: '#FFD200' },
+    bb: { fill: '#FAE128', ink: '#241F00' },
+  },
+
+  /**
+   * A paleta de quem não está no mapa. Escolhida por hash do nome, de modo que a mesma instituição
+   * receba sempre a mesma cor e duas instituições desconhecidas continuem distinguíveis entre si —
+   * que é exatamente o que um cinza único para "outros" destruiria.
+   */
+  bankFallback: [
+    { fill: '#4C5FD7', ink: '#FFFFFF' },
+    { fill: '#1F7A8C', ink: '#FFFFFF' },
+    { fill: '#8E5AC8', ink: '#FFFFFF' },
+    { fill: '#B4543A', ink: '#FFFFFF' },
+    { fill: '#2E7D5B', ink: '#FFFFFF' },
+    { fill: '#8A6D3B', ink: '#FFFFFF' },
+  ],
 } as const;
 
 /** A 4pt scale. Gaps and padding come from here so rhythm survives being edited by someone else. */
@@ -138,6 +183,15 @@ export const chart = {
   /** O anel que separa o ponto selecionado da área desenhada atrás dele. */
   dotRing: 2,
 } as const;
+
+/**
+ * A geometria do cartão de conta no carrossel do resumo.
+ *
+ * Largura fixa, e não uma fração da tela: é ela que o `snapToInterval` do `ScrollView` usa para parar
+ * um cartão por vez, e uma largura percentual daria um passo diferente em cada aparelho — o carrossel
+ * pararia no lugar certo num telefone e no meio de um cartão no seguinte.
+ */
+export const card = { width: 264, height: 156 } as const;
 
 export const type: Record<
   'title' | 'heading' | 'body' | 'label' | 'caption' | 'money',
