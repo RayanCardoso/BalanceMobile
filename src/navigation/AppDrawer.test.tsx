@@ -70,14 +70,23 @@ afterEach(() => {
 });
 
 describe('os destinos que a gaveta alcança (spec DASH AC1)', () => {
-  it('alcança resumo, receitas, despesas, recorrentes e catálogo', () => {
+  it('alcança resumo, receitas e despesas', () => {
     renderDrawer();
 
     expect(screen.getByTestId('link-/')).toBeTruthy();
     expect(screen.getByTestId('link-/income')).toBeTruthy();
     expect(screen.getByTestId('link-/expenses')).toBeTruthy();
-    expect(screen.getByTestId('link-/recurring')).toBeTruthy();
-    expect(screen.getByTestId('link-/catalogue')).toBeTruthy();
+  });
+
+  /**
+   * O catálogo era um índice de três links. Os três destinos continuam existindo como rotas — o que
+   * some é o menu intermediário, substituído pelos atalhos em círculo do resumo.
+   */
+  it('não oferece mais um destino de catálogo', () => {
+    renderDrawer();
+
+    expect(screen.queryByTestId('link-/catalogue')).toBeNull();
+    expect(screen.queryByText('Catálogo')).toBeNull();
   });
 
   it('rotula cada destino em português', () => {
@@ -86,8 +95,6 @@ describe('os destinos que a gaveta alcança (spec DASH AC1)', () => {
     expect(screen.getByText('Resumo')).toBeTruthy();
     expect(screen.getByText('Receitas')).toBeTruthy();
     expect(screen.getByText('Despesas')).toBeTruthy();
-    expect(screen.getByText('Recorrentes')).toBeTruthy();
-    expect(screen.getByText('Catálogo')).toBeTruthy();
   });
 
   it('avisa quem abriu a gaveta que um destino foi escolhido, para ela poder fechar', () => {

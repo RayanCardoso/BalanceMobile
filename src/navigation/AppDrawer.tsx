@@ -7,11 +7,15 @@ import { useSessionStore } from '@/store/sessionStore';
 import { colors, radius, space, type } from '@/components/theme';
 
 /**
- * O conteúdo da gaveta: os cinco destinos do app e a saída dele.
+ * O conteúdo da gaveta: os três destinos do app e a saída dele.
  *
  * O destino ativo sai de `usePathname`, não de estado guardado aqui. Um menu com o próprio
  * "selecionado" passaria a mentir na primeira vez que o usuário voltasse pelo botão do Android,
  * porque essa navegação não passa por este componente.
+ *
+ * Contas, Pessoas e Categorias **não** estão aqui. Continuam existindo como rotas, mas são
+ * alcançadas pelos atalhos em círculo do resumo: um menu intermediário para três telas de cadastro
+ * era navegação a mais para informação que cabe na tela inicial.
  *
  * **Sair mora aqui** (spec AUTH AC6). A gaveta é a superfície alcançável de qualquer tela
  * assinada, que é a mesma razão pela qual o controle vivia na barra do rodapé antes dela.
@@ -21,7 +25,6 @@ const DESTINATIONS = [
   { href: '/', label: 'Resumo' },
   { href: '/income', label: 'Receitas' },
   { href: '/expenses', label: 'Despesas' },
-  { href: '/catalogue', label: 'Catálogo' },
 ] as const;
 
 /**

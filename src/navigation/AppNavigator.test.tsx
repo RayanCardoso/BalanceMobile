@@ -27,14 +27,26 @@ jest.mock('expo-router/drawer', () => {
 });
 
 describe('os destinos que o navegador declara (spec DASH AC1)', () => {
-  it('declara resumo, receitas, despesas, recorrentes e catálogo', () => {
+  it('declara resumo, receitas, despesas e as três telas de cadastro', () => {
     render(<AppNavigator />);
 
     expect(screen.getByTestId('screen-index')).toBeTruthy();
     expect(screen.getByTestId('screen-income')).toBeTruthy();
     expect(screen.getByTestId('screen-expenses')).toBeTruthy();
-    expect(screen.getByTestId('screen-recurring')).toBeTruthy();
-    expect(screen.getByTestId('screen-catalogue')).toBeTruthy();
+    expect(screen.getByTestId('screen-people')).toBeTruthy();
+    expect(screen.getByTestId('screen-categories')).toBeTruthy();
+    expect(screen.getByTestId('screen-accounts')).toBeTruthy();
+  });
+
+  /**
+   * As três telas de cadastro são declaradas aqui porque toda pasta sob `(app)` é uma tela do
+   * Drawer — mas não aparecem no menu, que desenha apenas a constante `DESTINATIONS` do `AppDrawer`.
+   * Chega-se a elas pelos atalhos do resumo.
+   */
+  it('não declara mais um destino de catálogo', () => {
+    render(<AppNavigator />);
+
+    expect(screen.queryByTestId('screen-catalogue')).toBeNull();
   });
 
   /**
