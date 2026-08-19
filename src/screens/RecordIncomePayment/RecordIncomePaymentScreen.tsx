@@ -27,18 +27,19 @@ import { styles } from './RecordIncomePaymentScreen.styles';
  * several payments in one month, unlike a recurring bill, which the API rejects.
  */
 export function RecordIncomePaymentScreen(): React.JSX.Element {
-  const params = useLocalSearchParams<{ year?: string; month?: string }>();
+  const params = useLocalSearchParams<{ 
+    year?: string; 
+    month?: string, 
+    incomeSourceId: string 
+  }>();
 
-  const [period, setPeriod] = useState(() => {
-    const year = Number(params.year);
-    const month = Number(params.month);
+  const yearParams = Number(params.year);
+  const monthParams = Number(params.month);
 
-    return Number.isInteger(year) && Number.isInteger(month) && month >= 1 && month <= 12
-      ? { year, month }
-      : currentMonth();
-  });
+  const period = Number.isInteger(yearParams) && Number.isInteger(monthParams) && monthParams >= 1 && monthParams <= 12
+      ? { year: yearParams, month: monthParams }
+      : currentMonth()
 
-  const [incomeSourceId, setIncomeSourceId] = useState<string | null>(null);
   const [paymentDate, setPaymentDate] = useState(() => todayApiDate());
   const [amountReceived, setAmountReceived] = useState('');
   const [notes, setNotes] = useState('');
@@ -49,13 +50,13 @@ export function RecordIncomePaymentScreen(): React.JSX.Element {
   const messages = record.isError ? apiMessages(record.error) : [];
 
   const submit = (): void => {
-    if (incomeSourceId === null) {
+    if (params.incomeSourceId === null) {
       return;
     }
 
     record.mutate(
       {
-        incomeSourceId,
+        incomeSourceId: params.incomeSourceId,
         paymentDate,
         // Any day inside the month; the API normalises it to the first.
         referenceMonth: toApiDate({ year: period.year, month: period.month, day: 1 }),
@@ -73,28 +74,6 @@ export function RecordIncomePaymentScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.sectionLabel}>Mês de referência</Text>
-      <MonthNavigator
-        month={period.month}
-        onChange={(year, month) => {
-          setPeriod({ year, month });
-          setIncomeSourceId(null);
-        }}
-        year={period.year}
-      />
-
-      <View testID="income-source-picker">
-        <Picker
-          label="Fonte"
-          onChange={setIncomeSourceId}
-          options={(month.data?.lines ?? []).map((line) => ({
-            label: line.name,
-            value: line.incomeSourceId,
-          }))}
-          selected={incomeSourceId}
-        />
-      </View>
-
       <Field
         label="Data do pagamento"
         onChangeText={setPaymentDate}

@@ -370,6 +370,7 @@ const styles = StyleSheet.create({
     gap: space.sm,
     overflow: 'hidden',
     paddingVertical: space.lg,
+    marginBottom: space.lg
   },
   header: {
     alignItems: 'center',
