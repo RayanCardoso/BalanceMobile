@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { useIncomeMonth, useIncomeMonthSeries } from '@/hooks/useIncome';
-import { INCOME_STATUS_LABEL, type IncomeStatus } from '@/types/income';
+import { INCOME_STATUS_LABEL, type IncomeStatus, type MonthlyIncomeLine } from '@/types/income';
 import { listErrorMessage } from '@/utils/errors/income';
 import { currentMonth } from '@/utils/dates';
 import { Money, StatusBadge, type StatusTone } from '@/components/Money';
 import { MonthNavigator } from '@/components/MonthNavigator';
+import { RecordIncomePaymentModal } from '@/components/RecordIncomePaymentModal';
 import { RegisterButton } from '@/components/RegisterButton';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
 import {CircleDollarSign, EllipsisVertical, Wallet} from "lucide-react-native";
@@ -33,6 +34,12 @@ const STATUS_TONE: Record<IncomeStatus, StatusTone> = {
 
 export function IncomeScreen(): React.JSX.Element {
   const [period, setPeriod] = useState(() => currentMonth());
+
+  /**
+   * A linha cujo recebimento está sendo registrado, ou null com o modal fechado. Guardar a linha, e
+   * não só o id, é o que permite o modal mostrar de quem é o recebimento sem consultar nada.
+   */
+  const [payingFor, setPayingFor] = useState<MonthlyIncomeLine | null>(null);
 
   const month = useIncomeMonth(period.year, period.month);
   const series = useIncomeMonthSeries(period.year, period.month);
@@ -93,14 +100,9 @@ export function IncomeScreen(): React.JSX.Element {
                   }}
                 >
                   <MenuOption
-                    onSelect={() =>
-                      router.push({
-                        pathname: '/income/payment',
-                        params: {
-                          incomeSourceId: line.incomeSourceId,
-                        },
-                      })
-                    }
+                    onSelect={() => {
+                      setPayingFor(line);
+                    }}
                     text="Registrar recebimento"
                   />
 
@@ -218,6 +220,14 @@ export function IncomeScreen(): React.JSX.Element {
       <Text style={styles.sectionTitle}>Receitas</Text>
 
       {renderLines()}
+
+      <RecordIncomePaymentModal
+        line={payingFor}
+        onClose={() => {
+          setPayingFor(null);
+        }}
+        period={period}
+      />
     </Screen>
   );
 }

@@ -6,6 +6,7 @@ import { apiMessages } from '@/utils/errors/recurring';
 import { todayApiDate } from '@/utils/dates';
 import { parseMoneyInput } from '@/utils/money';
 import { Field, Picker, SubmitButton } from '@/components/form';
+import { DateField } from '@/components/DateField';
 import { Screen } from '@/components/states';
 
 import { styles } from './ChangeRecurringValueScreen.styles';
@@ -65,10 +66,9 @@ export function ChangeRecurringValueScreen(): React.JSX.Element {
       </View>
 
       <Field label="Novo valor" onChangeText={setAmount} placeholder="2400,00" value={amount} />
-      <Field
+      <DateField
         label="Início da vigência"
-        onChangeText={setValidityStart}
-        placeholder="2026-09-01"
+        onChange={setValidityStart}
         value={validityStart}
       />
       <Field

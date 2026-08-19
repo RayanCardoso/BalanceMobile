@@ -6,6 +6,7 @@ import {
   shiftMonth,
   toApiDate,
   todayApiDate,
+  formatBrDate,
 } from '@/utils/dates';
 
 /** Every expected value below is a literal, never a value recomputed through a `Date`. */
@@ -44,6 +45,26 @@ describe('todayApiDate', () => {
 
     expect(lateEvening.toISOString().slice(0, 10)).toBe('2026-08-22');
     expect(todayApiDate(lateEvening)).toBe('2026-08-21');
+  });
+});
+
+describe('formatBrDate', () => {
+  it('mostra a data como o Brasil a lê', () => {
+    expect(formatBrDate('2026-09-03')).toBe('03/09/2026');
+  });
+
+  it('mantém os dois dígitos de dia e mês', () => {
+    expect(formatBrDate('2026-12-25')).toBe('25/12/2026');
+  });
+
+  /**
+   * O componente de data pergunta pela data que tem em mãos, e o que ele tem pode ser lixo vindo de
+   * um estado antigo. Devolver a própria string é o que faz o campo mostrar o problema em vez de
+   * mostrar "NaN/NaN/NaN" — e nunca estourar no meio de um formulário.
+   */
+  it('devolve a entrada intacta quando ela não é uma data da API', () => {
+    expect(formatBrDate('não é data')).toBe('não é data');
+    expect(formatBrDate('')).toBe('');
   });
 });
 

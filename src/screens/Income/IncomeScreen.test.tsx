@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 
+import { MenuProvider } from 'react-native-popup-menu';
+
 import { IncomeScreen } from '@/screens/Income/IncomeScreen';
 import { createQueryWrapper, createTestQueryClient } from '@/services/testQueryClient';
 import { useSessionStore } from '@/store/sessionStore';
@@ -84,12 +86,20 @@ const monthBody = (referenceMonth: string, lines: unknown[]) => ({
 
 let client = createTestQueryClient();
 
+/**
+ * `MenuProvider` envolve o render pelo mesmo motivo que envolve o app em `RootLayout`: o `Menu` de
+ * cada linha o exige como ancestral e estoura sem ele. Sem este envelope, a tela inteira falha ao
+ * montar e todo teste abaixo morre em "Unable to find node on an unmounted component" — que é o que
+ * acontecia aqui.
+ */
 const renderScreen = (): void => {
   const Wrapper = createQueryWrapper(client);
   render(
-    <Wrapper>
-      <IncomeScreen />
-    </Wrapper>
+    <MenuProvider>
+      <Wrapper>
+        <IncomeScreen />
+      </Wrapper>
+    </MenuProvider>
   );
 };
 

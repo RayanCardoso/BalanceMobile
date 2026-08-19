@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 
 import { ChangeIncomeValueScreen } from '@/screens/ChangeIncomeValue/ChangeIncomeValueScreen';
+import { pickDate } from '@/utils/testDate';
 import { createQueryWrapper, createTestQueryClient } from '@/services/testQueryClient';
 import { useSessionStore } from '@/store/sessionStore';
 
@@ -138,7 +139,8 @@ describe('changing a recurring source value (spec INC AC7)', () => {
 
     fireEvent.changeText(screen.getByLabelText('Novo valor'), '5500,00');
     fireEvent.changeText(screen.getByLabelText('Novo dia esperado'), '6');
-    fireEvent.changeText(screen.getByLabelText('Início da vigência'), '2026-08-01');
+    // Hoje é 14 de agosto; a vigência escolhida é o dia 1. As duas datas diferem de propósito.
+    pickDate('Início da vigência', '2026-08-14', '2026-08-01');
     fireEvent.changeText(screen.getByLabelText('Motivo da alteração'), 'Dissídio anual');
     fireEvent.press(screen.getByText('Salvar novo valor'));
 
@@ -158,7 +160,7 @@ describe('changing a recurring source value (spec INC AC7)', () => {
 
     await chooseSalary();
 
-    expect(screen.getByLabelText('Início da vigência').props.value).toBe('2026-08-14');
+    expect(screen.getByLabelText('Início da vigência, 14/08/2026')).toBeTruthy();
 
     fireEvent.changeText(screen.getByLabelText('Novo valor'), '5500,00');
     fireEvent.changeText(screen.getByLabelText('Novo dia esperado'), '6');

@@ -7,6 +7,7 @@ import { apiMessages } from '@/utils/errors/income';
 import { currentMonth, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput, parseOptionalInt } from '@/utils/money';
 import { Field, Picker, SubmitButton } from '@/components/form';
+import { DateField } from '@/components/DateField';
 import { Screen } from '@/components/states';
 
 import { styles } from './ChangeIncomeValueScreen.styles';
@@ -90,10 +91,9 @@ export function ChangeIncomeValueScreen(): React.JSX.Element {
         placeholder="6"
         value={expectedDay}
       />
-      <Field
+      <DateField
         label="Início da vigência"
-        onChangeText={setValidityStart}
-        placeholder="2026-08-01"
+        onChange={setValidityStart}
         value={validityStart}
       />
       <Field

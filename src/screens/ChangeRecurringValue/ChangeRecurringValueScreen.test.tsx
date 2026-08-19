@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import { ChangeRecurringValueScreen } from '@/screens/ChangeRecurringValue/ChangeRecurringValueScreen';
+import { pickDate } from '@/utils/testDate';
 import { createQueryWrapper, createTestQueryClient } from '@/services/testQueryClient';
 import { useSessionStore } from '@/store/sessionStore';
 
@@ -8,6 +9,18 @@ jest.mock('@/utils/tokenStorage', () => ({
   getToken: jest.fn(),
   setToken: jest.fn(),
   clearToken: jest.fn(),
+}));
+
+/**
+ * Hoje é fixado para que o rótulo do campo de data seja um literal. Sem isto o teste dependeria do
+ * relógio da máquina: o `DateField` compõe o seu rótulo de acessibilidade com a data que mostra, e
+ * essa data é hoje enquanto ninguém escolher outra.
+ */
+const TODAY = '2026-08-14';
+
+jest.mock('@/utils/dates', () => ({
+  ...jest.requireActual<Record<string, unknown>>('@/utils/dates'),
+  todayApiDate: () => '2026-08-14',
 }));
 
 const BASE = 'http://10.0.2.2:5126/api';
@@ -66,7 +79,7 @@ const renderScreen = (): void => {
 const selectBillAndFill = (amount: string, validityStart: string, reason: string): void => {
   fireEvent.press(screen.getByText('Aluguel'));
   fireEvent.changeText(screen.getByLabelText('Novo valor'), amount);
-  fireEvent.changeText(screen.getByLabelText('Início da vigência'), validityStart);
+  pickDate('Início da vigência', TODAY, validityStart);
   fireEvent.changeText(screen.getByLabelText('Motivo da alteração'), reason);
 };
 

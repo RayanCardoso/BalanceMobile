@@ -9,6 +9,7 @@ import { apiMessages } from '@/utils/errors/expenses';
 import { currentMonth, fromApiDate, monthLabel, toApiDate, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput } from '@/utils/money';
 import { Field, Picker, SubmitButton } from '@/components/form';
+import { DateField } from '@/components/DateField';
 import { MonthNavigator } from '@/components/MonthNavigator';
 import { Screen } from '@/components/states';
 
@@ -151,7 +152,11 @@ export function RegisterExpenseScreen(): React.JSX.Element {
         />
       </View>
 
-      <Field label="Data" onChangeText={setDate} placeholder="2026-08-21" value={date} />
+      <DateField
+        label="Data"
+        onChange={setDate}
+        value={date}
+      />
 
       <View testID="competence-override">
         <Pressable

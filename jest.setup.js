@@ -18,3 +18,51 @@ jest.mock('react-native-safe-area-context', () => {
 // gesture) calls into a native module on mount. This is react-native-gesture-handler's own test
 // setup: it stubs that native module out, so rendering the root under test doesn't throw.
 require('react-native-gesture-handler/jestSetup');
+
+// O picker de data é um módulo nativo: sob o Jest ele não tem implementação e o render estoura.
+//
+// O substituto expõe um alvo por evento — escolher e cancelar — para que uma tela use o campo de
+// data sem repetir o mock. Qual data ele devolve é decidido por `globalThis.__pickDate`: um teste
+// que precisa de uma data diferente da que o campo já mostra a escreve ali antes de tocar em
+// "escolher"; sem isso o substituto devolve o valor que recebeu, que é o comportamento de quem abre
+// o calendário e confirma sem mexer.
+//
+// `DateField.test.tsx` tem o seu próprio mock, mais detalhado, porque lá o assunto é o componente;
+// aqui o assunto é só não derrubar as telas que o usam.
+globalThis.__pickDate = null;
+
+jest.mock('@react-native-community/datetimepicker', () => {
+  const react = require('react');
+  const rn = require('react-native');
+
+  const chosen = (fallback) => {
+    const wanted = globalThis.__pickDate;
+
+    if (typeof wanted !== 'string') {
+      return fallback;
+    }
+
+    const [year, month, day] = wanted.split('-').map(Number);
+
+    // Construído pelos getters locais, nunca por `new Date(string)`, que é UTC — a mesma regra que
+    // `src/utils/dates.ts` documenta e que este substituto tem de respeitar para não deslocar um dia.
+    return new Date(year, month - 1, day);
+  };
+
+  return {
+    __esModule: true,
+    default: ({ onChange, value }) =>
+      react.createElement(rn.View, { testID: 'native-picker' }, [
+        react.createElement(rn.Text, {
+          key: 'set',
+          testID: 'native-picker-set',
+          onPress: () => onChange({ type: 'set' }, chosen(value)),
+        }),
+        react.createElement(rn.Text, {
+          key: 'dismiss',
+          testID: 'native-picker-dismiss',
+          onPress: () => onChange({ type: 'dismissed' }, undefined),
+        }),
+      ]),
+  };
+});

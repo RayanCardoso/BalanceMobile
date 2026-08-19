@@ -11,6 +11,7 @@ import { apiMessages } from '@/utils/errors/recurring';
 import { currentMonth, toApiDate, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput } from '@/utils/money';
 import { Field, Picker, SubmitButton } from '@/components/form';
+import { DateField } from '@/components/DateField';
 import { MonthNavigator } from '@/components/MonthNavigator';
 import { Screen } from '@/components/states';
 
@@ -122,10 +123,9 @@ export function RecordRecurringPaymentScreen(): React.JSX.Element {
         />
       </View>
 
-      <Field
+      <DateField
         label="Data do pagamento"
-        onChangeText={setPaymentDate}
-        placeholder="2026-08-15"
+        onChange={setPaymentDate}
         value={paymentDate}
       />
       <Field label="Valor pago" onChangeText={setAmountPaid} placeholder="220,00" value={amountPaid} />

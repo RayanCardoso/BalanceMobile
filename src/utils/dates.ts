@@ -48,6 +48,27 @@ export function fromApiDate(value: string): ApiDateParts | null {
   return { year: Number(year), month: Number(month), day: Number(day) };
 }
 
+/**
+ * `'2026-09-03'` becomes `'03/09/2026'`, which is how a Brazilian reads a date.
+ *
+ * The API's `YYYY-MM-DD` is the wire format and stays the wire format — this is the only place that
+ * turns it around for a human, and it does so without constructing a `Date` (see the note at the top
+ * of this file: `new Date('2026-09-03')` is UTC midnight and reads as the 2nd in São Paulo).
+ *
+ * A string that is not an API date is returned untouched. A date control asks this function to
+ * render whatever it currently holds, and showing the raw value beats showing `NaN/NaN/NaN` or
+ * throwing in the middle of a form.
+ */
+export function formatBrDate(value: string): string {
+  const parts = fromApiDate(value);
+
+  if (parts === null) {
+    return value;
+  }
+
+  return `${pad(parts.day, 2)}/${pad(parts.month, 2)}/${pad(parts.year, 4)}`;
+}
+
 /** `(2026, 8)` becomes `'Agosto de 2026'`. */
 export function monthLabel(year: number, month: number): string {
   const name = MONTH_NAMES[month - 1];

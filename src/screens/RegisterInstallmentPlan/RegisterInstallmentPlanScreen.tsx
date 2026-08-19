@@ -8,6 +8,7 @@ import { apiMessages } from '@/utils/errors/expenses';
 import { fromApiDate, monthLabel, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput, parseOptionalInt } from '@/utils/money';
 import { Field, Picker, SubmitButton } from '@/components/form';
+import { DateField } from '@/components/DateField';
 import { Money } from '@/components/Money';
 import { Screen } from '@/components/states';
 
@@ -141,7 +142,11 @@ export function RegisterInstallmentPlanScreen(): React.JSX.Element {
         />
       </View>
 
-      <Field label="Data da compra" onChangeText={setStartDate} placeholder="2026-09-15" value={startDate} />
+      <DateField
+        label="Data da compra"
+        onChange={setStartDate}
+        value={startDate}
+      />
 
       {messages.map((message, index) => (
         <Text key={`${message}-${index}`} style={styles.error} testID="form-error">
