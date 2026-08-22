@@ -88,7 +88,7 @@ export function IncomeScreen(): React.JSX.Element {
                       width: 220,
                     },
                     optionText: {
-                      color: "#ffffff"
+                      color: colors.text.primary
                     }
                   }}
                 >

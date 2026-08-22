@@ -47,10 +47,15 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: space.sm,
   },
-  /** O previsto é a referência, não a resposta: fica no azul de apoio, menor que o real ao lado. */
+  /**
+   * O previsto é a referência, não a resposta: fica em cinza de apoio, menor que o real ao lado.
+   *
+   * Era `text.tertiary`, um azul quase idêntico ao `accent.base`. Dois azuis na mesma tela, e nenhum
+   * dos dois era a ação — é exatamente o que fazia o destaque real desaparecer.
+   */
   expected: {
     ...type.caption,
-    color: colors.text.tertiary,
+    color: colors.text.muted,
   },
   arrow: {
     ...type.caption,
@@ -58,7 +63,7 @@ export const styles = StyleSheet.create({
   },
   /** A trilha da barra. A largura do preenchimento é calculada na tela, não aqui. */
   track: {
-    backgroundColor: colors.surface.overlay,
+    backgroundColor: colors.surface.selected,
     borderRadius: radius.pill,
     height: space.xs,
     overflow: 'hidden',
@@ -74,18 +79,41 @@ export const styles = StyleSheet.create({
     paddingTop: space.md,
   },
 
+  /**
+   * As quatro partições são um bloco só, não quatro cartões: a borda e o raio vivem aqui, e cada
+   * linha lá dentro não tem chrome nenhum. `overflow` é o que impede a primeira e a última linha de
+   * vazarem por cima do raio quando estão pressionadas.
+   */
   groups: {
-    gap: space.sm,
-  },
-  group: {
-    alignItems: 'center',
     backgroundColor: colors.surface.raised,
     borderColor: colors.border.subtle,
     borderRadius: radius.md,
     borderWidth: 1,
+    overflow: 'hidden',
+  },
+  group: {
+    alignItems: 'center',
     flexDirection: 'row',
     gap: space.md,
     padding: space.md,
+  },
+  groupPressed: {
+    backgroundColor: colors.surface.overlay,
+  },
+  /** Um disco cinza em vez de um ícone solto: iguala o peso das quatro linhas e ancora a coluna. */
+  groupIcon: {
+    alignItems: 'center',
+    backgroundColor: colors.surface.overlay,
+    borderRadius: space.xxl,
+    height: space.xxl,
+    justifyContent: 'center',
+    width: space.xxl,
+  },
+  /** Recuada até depois do disco, para separar os nomes em vez de cortar a linha inteira. */
+  rule: {
+    backgroundColor: colors.border.subtle,
+    height: StyleSheet.hairlineWidth,
+    marginLeft: space.md + space.xxl + space.md,
   },
   groupText: {
     flex: 1,
@@ -101,10 +129,14 @@ export const styles = StyleSheet.create({
     color: colors.text.muted,
   },
 
+  /** Rótulo de seção, não título: menor que os nomes que ele encabeça, e fora do bloco deles. */
   sectionTitle: {
-    ...type.label,
-    color: colors.text.secondary,
+    ...type.caption,
+    color: colors.text.muted,
+    fontWeight: '600',
+    letterSpacing: 1,
     marginBottom: space.sm,
+    textTransform: 'uppercase',
   },
   /** `overflow: 'visible'` deixa o cartão sangrar até a borda da tela enquanto o carrossel rola. */
   carousel: {
@@ -128,6 +160,6 @@ export const styles = StyleSheet.create({
   },
   emptyCardLabel: {
     ...type.label,
-    color: colors.accent.base,
+    color: colors.accent.text,
   },
 });

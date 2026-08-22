@@ -399,18 +399,41 @@ describe('o carrossel de contas', () => {
   });
 });
 
-describe('os atalhos de cadastro', () => {
-  it('oferece conta, pessoa e categoria', async () => {
+describe('o botão de adicionar', () => {
+  /**
+   * Ele tomou o lugar da fileira de três círculos. Conta, pessoa e categoria não têm outra porta no
+   * app inteiro — a gaveta não as lista —, então se saírem daqui três telas ficam inalcançáveis.
+   */
+  it('abre os lançamentos e os cadastros', async () => {
     stub('GET', '/dashboard/2026/8', 200, august);
     renderScreen();
 
     await waitFor(() => {
-      expect(screen.getByTestId('quick-actions')).toBeTruthy();
+      expect(screen.getByTestId('add-menu-trigger')).toBeTruthy();
     });
 
+    fireEvent.press(screen.getByTestId('add-menu-trigger'));
+
+    expect(screen.getByLabelText('Nova receita')).toBeTruthy();
+    expect(screen.getByLabelText('Nova despesa variável')).toBeTruthy();
+    expect(screen.getByLabelText('Nova despesa recorrente')).toBeTruthy();
+    expect(screen.getByLabelText('Novo parcelamento')).toBeTruthy();
     expect(screen.getByLabelText('Nova conta')).toBeTruthy();
     expect(screen.getByLabelText('Nova pessoa')).toBeTruthy();
     expect(screen.getByLabelText('Nova categoria')).toBeTruthy();
+  });
+
+  /** Fechado, o botão é um alvo só: nenhuma das opções está na tela para ser tocada por engano. */
+  it('não mostra as opções antes de ser tocado', async () => {
+    stub('GET', '/dashboard/2026/8', 200, august);
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('add-menu-trigger')).toBeTruthy();
+    });
+
+    expect(screen.queryByTestId('add-menu-sheet')).toBeNull();
+    expect(screen.queryByLabelText('Nova receita')).toBeNull();
   });
 });
 

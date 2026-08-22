@@ -50,7 +50,7 @@ export const styles = StyleSheet.create({
   },
 
   expectedAmountText: {
-    color: colors.text.tertiary
+    color: colors.text.muted
   },
 
   sectionTitle: {

@@ -97,6 +97,6 @@ const styles = StyleSheet.create({
   },
   link: {
     ...type.label,
-    color: colors.accent.base,
+    color: colors.accent.text,
   },
 });

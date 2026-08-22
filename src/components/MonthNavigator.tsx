@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     gap: 5,
     justifyContent: "center",
     alignItems: "center",
-    borderColor: colors.border.default,
+    borderColor: colors.border.subtle,
     borderRadius: radius.pill,
     borderWidth: 1,
     paddingHorizontal: space.md,

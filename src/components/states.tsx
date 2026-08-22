@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { NetworkError } from '@/services/ApiError';
-import { colors, radius, space, type } from '@/components/theme';
+import { colors, control, radius, space, type } from '@/components/theme';
 
 /**
  * The four things a screen can be showing. Every list screen is built from these, which is what
@@ -52,9 +52,21 @@ export function connectivityMessage(error: unknown): string | null {
  *
  * Rola por padrão porque a alternativa é cada tela de formulário descobrir sozinha, uma de cada
  * vez, que não cabe num aparelho menor.
+ *
+ * `floating` é o que fica *por cima* da rolagem — hoje só o botão de adicionar do resumo. Ele é
+ * irmão do `ScrollView`, e não filho: um filho rolaria junto com a lista e deixaria de ser um botão
+ * flutuante. Quando existe, a borda de baixo do conteúdo cresce o tamanho dele, senão o último
+ * cartão da tela nasce debaixo do botão e nunca é alcançável por rolagem.
  */
-export function Screen({ children }: { children: ReactNode }): React.JSX.Element {
+export function Screen({
+  children,
+  floating,
+}: {
+  children: ReactNode;
+  floating?: ReactNode;
+}): React.JSX.Element {
   const insets = useSafeAreaInsets();
+  const reserved = floating === undefined ? 0 : control.fab + space.lg;
 
   return (
     <KeyboardAvoidingView
@@ -65,13 +77,20 @@ export function Screen({ children }: { children: ReactNode }): React.JSX.Element
       <ScrollView
         // `content` já tem `space.lg` nas quatro bordas; somar `insets.bottom` aqui é a barra de
         // gestos do Android por cima dessa borda, não no lugar dela.
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space.lg }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + space.lg + reserved },
+        ]}
         keyboardShouldPersistTaps="handled"
         style={styles.scroll}
         testID="screen-scroll"
       >
         {children}
       </ScrollView>
+
+      {floating === undefined ? null : (
+        <View style={[styles.floating, { bottom: insets.bottom + space.lg }]}>{floating}</View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -146,6 +165,14 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: space.lg,
   },
+  /**
+   * `right` e não `alignItems`: o container é posicionado, então ele encosta na borda direita sem
+   * esticar por cima da tela inteira e sem interceptar toques que eram da lista.
+   */
+  floating: {
+    position: 'absolute',
+    right: space.lg,
+  },
   centered: {
     alignItems: 'center',
     gap: space.md,
@@ -166,6 +193,6 @@ const styles = StyleSheet.create({
   },
   retryLabel: {
     ...type.label,
-    color: colors.accent.base,
+    color: colors.accent.text,
   },
 });
