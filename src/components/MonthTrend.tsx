@@ -337,26 +337,6 @@ export function MonthTrend({
         </Animated.View>
         </View>
       </View>
-
-      <Pressable
-        accessibilityLabel="Mês anterior"
-        accessibilityRole="button"
-        disabled={reach === 0}
-        onPress={move(-1)}
-        style={[styles.arrow, styles.arrowLeft]}
-      >
-        <ChevronLeftIcon color={colors.text.secondary} size={16} />
-      </Pressable>
-
-      <Pressable
-        accessibilityLabel="Próximo mês"
-        accessibilityRole="button"
-        disabled={reach === 0}
-        onPress={move(1)}
-        style={[styles.arrow, styles.arrowRight]}
-      >
-        <ChevronRightIcon color={colors.text.secondary} size={16} />
-      </Pressable>
     </View>
   );
 }

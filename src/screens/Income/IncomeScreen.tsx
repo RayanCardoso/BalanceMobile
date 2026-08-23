@@ -2,9 +2,14 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { useIncomeMonth, useIncomeMonthSeries } from '@/hooks/useIncome';
-import { INCOME_STATUS_LABEL, type IncomeStatus } from '@/types/income';
+import {
+  INCOME_STATUS_LABEL,
+  type IncomeStatus,
+  type MonthlyIncome,
+} from '@/types/income';
 import { listErrorMessage } from '@/utils/errors/income';
 import { currentMonth } from '@/utils/dates';
+import { formatMoney } from '@/utils/money';
 import { Money, StatusBadge, type StatusTone } from '@/components/Money';
 import { MonthNavigator } from '@/components/MonthNavigator';
 import { RegisterButton } from '@/components/RegisterButton';
@@ -31,11 +36,41 @@ const STATUS_TONE: Record<IncomeStatus, StatusTone> = {
   2: 'warning',
 };
 
+/**
+ * O resumo do cartão: os dois totais que a API publica, e quantas linhas estão por trás de cada um.
+ *
+ * As contagens não são `lines.length`. Uma fonte variável não tem valor previsto (`expectedAmount`
+ * null), então ela não entra em "receitas previstas"; e "recebidas" conta o que de fato chegou -
+ * inclusive a divergente, que recebeu um valor diferente do previsto, mas recebeu.
+ */
+type IncomeSummary = {
+  expectedTotal: number;
+  expectedCount: number;
+  receivedTotal: number;
+  receivedCount: number;
+};
+
+const summarise = (data: MonthlyIncome): IncomeSummary => ({
+  expectedTotal: data.totalExpected,
+  expectedCount: data.lines.filter((line) => line.expectedAmount !== null).length,
+  receivedTotal: data.totalReceived,
+  receivedCount: data.lines.filter((line) => line.receivedAmount > 0).length,
+});
+
+const expectedLabel = (count: number): string =>
+  count === 1 ? '1 receita prevista' : `${count} receitas previstas`;
+
+const receivedLabel = (count: number): string => (count === 1 ? '1 recebida' : `${count} recebidas`);
+
 export function IncomeScreen(): React.JSX.Element {
   const [period, setPeriod] = useState(() => currentMonth());
 
   const month = useIncomeMonth(period.year, period.month);
   const series = useIncomeMonthSeries(period.year, period.month);
+
+  // Enquanto o mês não chegou não há total nenhum: o cartão mostra travessão, e não `R$ 0,00`, que
+  // seria uma resposta — a de que nada foi previsto nem recebido.
+  const summary = month.data === undefined ? null : summarise(month.data);
 
   const renderLines = (): React.JSX.Element => {
     if (month.isError) {
@@ -180,12 +215,12 @@ export function IncomeScreen(): React.JSX.Element {
               Total previsto
             </Text>
 
-            <Text style={styles.incomeAmount}>
-              R$ 4.675,00
+            <Text style={styles.incomeAmount} testID="income-total-expected">
+              {summary === null ? '—' : formatMoney(summary.expectedTotal)}
             </Text>
 
             <Text style={styles.incomeQuantity}>
-              3 receitas previstas
+              {summary === null ? '—' : expectedLabel(summary.expectedCount)}
             </Text>
           </View>
 
@@ -196,12 +231,12 @@ export function IncomeScreen(): React.JSX.Element {
               Total recebido
             </Text>
 
-            <Text style={styles.incomeAmount}>
-              R$ 0,00
+            <Text style={styles.incomeAmount} testID="income-total-received">
+              {summary === null ? '—' : formatMoney(summary.receivedTotal)}
             </Text>
 
             <Text style={styles.incomeQuantity}>
-              0 recebidas
+              {summary === null ? '—' : receivedLabel(summary.receivedCount)}
             </Text>
           </View>
         </View>
