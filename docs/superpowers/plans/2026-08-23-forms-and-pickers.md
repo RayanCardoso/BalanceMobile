@@ -1381,8 +1381,12 @@ export function DateField({
  *
  * Só as chaves que precisam mudar: `useDefaultStyles()` responde por toda a geometria, e reescrevê-la
  * aqui seria manter uma cópia do layout da biblioteca.
+ *
+ * Objeto literal e **não** `StyleSheet.create`: estes estilos são espalhados dentro do objeto que a
+ * biblioteca monta (`{ ...defaults, ...calendar }`) e lidos por ela. `StyleSheet.create` existe para
+ * entregar estilo a um componente do RN, não para ser mesclado por terceiros.
  */
-const calendar = StyleSheet.create({
+const calendar = {
   header: { backgroundColor: colors.surface.base },
   month_selector_label: { ...type.label, color: colors.text.primary },
   year_selector_label: { ...type.label, color: colors.text.primary },
@@ -1403,8 +1407,11 @@ const calendar = StyleSheet.create({
   button_next_image: { tintColor: colors.text.secondary },
   button_prev_image: { tintColor: colors.text.secondary },
   days: { paddingTop: space.sm },
-});
+};
 ```
+
+Com o objeto literal, o `import { StyleSheet } from 'react-native'` deste arquivo deixa de ser
+necessário — remova-o.
 
 Nota sobre o `placeholder` do `FieldTrigger`: a data **sempre** tem valor (o campo nasce em hoje), então `value` e `placeholder` recebem a mesma string. Isso mantém o `accessibilityLabel` em `` `${label}, ${formatBrDate(value)}` ``, que é o que `src/utils/testDate.ts` procura.
 
@@ -1737,8 +1744,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: space.xs,
     justifyContent: 'center',
-    // O alvo confortável nas duas plataformas. Um chip de 26pt de altura é um chip que erra.
-    minHeight: control.size - space.md,
+    // O alvo confortável nas duas plataformas, e o mínimo que a spec fixa. Um chip de 26pt de
+    // altura é um chip que erra.
+    minHeight: control.size,
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
   },
@@ -2633,7 +2641,9 @@ Backend: `dotnet test`. Mobile: `npx tsc --noEmit && npm test`.
 
 - [ ] **Conferir a lista do balance-design**
 
-1. Nenhum hex novo fora de `theme.ts` — `grep -rn "#[0-9a-fA-F]\{6\}" src --include=*.tsx --include=*.ts | grep -v theme.ts` deve voltar vazio.
+1. Nenhum hex **novo** fora de `theme.ts`. Compare com o estado anterior em vez de exigir vazio:
+   `git diff main...HEAD -- 'src/**' | grep "^+" | grep -n "#[0-9a-fA-F]\{6\}"` não deve trazer nada
+   fora de `src/components/theme.ts`.
 2. Todo container de tela tem `backgroundColor` explícito.
 3. Todo `TextInput` tem `color` e `placeholderTextColor` (o campo de busca do `SelectSheet` é o único novo).
 4. Nenhum `padding`/`gap`/`fontSize` numérico solto.
