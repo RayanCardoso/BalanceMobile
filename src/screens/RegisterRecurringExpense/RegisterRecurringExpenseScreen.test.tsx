@@ -51,9 +51,15 @@ const stubCatalogue = (): void => {
   });
 };
 
+/**
+ * A conta só é perguntada quando o tipo é Crédito - é a fatura dela que fecha o mês. Por isso o tipo
+ * é escolhido antes: pressionar a conta antes de escolher Crédito é pressionar algo que não está na
+ * tela ainda.
+ */
 const fillForm = (name: string, dueDay: string, amount: string): void => {
   fireEvent.changeText(screen.getByLabelText('Nome'), name);
   fireEvent.press(screen.getByText('Moradia'));
+  fireEvent.press(screen.getByText('Crédito'));
   fireEvent.press(screen.getByText('Inter Débito'));
   fireEvent.changeText(screen.getByLabelText('Dia de vencimento'), dueDay);
   fireEvent.changeText(screen.getByLabelText('Valor base'), amount);
@@ -94,7 +100,7 @@ afterEach(() => {
 describe('registering a recurring bill (spec REC AC1)', () => {
   it('sends the estimate flag true when "Estimativa" is chosen', async () => {
     stubCatalogue();
-    stub('POST', '/recurring-expense', 201, {
+    stub('POST', '/RecurringExpense', 201, {
       id: 'r1',
       name: 'Luz',
       personId: 'p1',
@@ -116,7 +122,7 @@ describe('registering a recurring bill (spec REC AC1)', () => {
     fireEvent.press(screen.getByText('Cadastrar conta'));
 
     await waitFor(() => {
-      const sent = bodySentTo('POST', '/recurring-expense');
+      const sent = bodySentTo('POST', '/RecurringExpense');
       expect(sent).toBeDefined();
       expect((JSON.parse(sent!) as Record<string, unknown>).isEstimate).toBe(true);
     });
@@ -124,7 +130,7 @@ describe('registering a recurring bill (spec REC AC1)', () => {
 
   it('sends the estimate flag false when "Valor fixo" is chosen', async () => {
     stubCatalogue();
-    stub('POST', '/recurring-expense', 201, {
+    stub('POST', '/RecurringExpense', 201, {
       id: 'r1',
       name: 'Netflix',
       personId: 'p1',
@@ -146,15 +152,15 @@ describe('registering a recurring bill (spec REC AC1)', () => {
     fireEvent.press(screen.getByText('Cadastrar conta'));
 
     await waitFor(() => {
-      const sent = bodySentTo('POST', '/recurring-expense');
+      const sent = bodySentTo('POST', '/RecurringExpense');
       expect(sent).toBeDefined();
       expect((JSON.parse(sent!) as Record<string, unknown>).isEstimate).toBe(false);
     });
   });
 
-  it('sends the name, person, category, account, due day and amount', async () => {
+  it('sends the name, person, category, account, type, due day and amount', async () => {
     stubCatalogue();
-    stub('POST', '/recurring-expense', 201, {
+    stub('POST', '/RecurringExpense', 201, {
       id: 'r1',
       name: 'Aluguel',
       personId: 'p1',
@@ -176,8 +182,8 @@ describe('registering a recurring bill (spec REC AC1)', () => {
     fireEvent.press(screen.getByText('Cadastrar conta'));
 
     await waitFor(() => {
-      expect(bodySentTo('POST', '/recurring-expense')).toBe(
-        '{"name":"Aluguel","personId":"p1","categoryId":"c1","accountId":"a1","dueDay":10,"amount":2250,"isEstimate":false}'
+      expect(bodySentTo('POST', '/RecurringExpense')).toBe(
+        '{"name":"Aluguel","personId":"p1","categoryId":"c1","accountId":"a1","dueDay":10,"amount":2250,"isEstimate":false,"type":0}'
       );
     });
   });
@@ -186,7 +192,7 @@ describe('registering a recurring bill (spec REC AC1)', () => {
 describe('when the API rejects the due day', () => {
   it('shows the message the API sent', async () => {
     stubCatalogue();
-    stub('POST', '/recurring-expense', 400, { errorMessages: ['O dia deve estar entre 1 e 31.'] });
+    stub('POST', '/RecurringExpense', 400, { errorMessages: ['O dia deve estar entre 1 e 31.'] });
     renderRegister();
 
     await waitFor(() => {

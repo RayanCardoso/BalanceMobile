@@ -50,7 +50,7 @@ export const styles = StyleSheet.create({
   },
 
   expectedAmountText: {
-    color: colors.text.tertiary
+    color: colors.text.muted
   },
 
   sectionTitle: {
@@ -139,29 +139,5 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
 
-  optionsMenu: {
-    alignSelf: 'flex-end',
-    width: 210,
-    backgroundColor: colors.surface.raised,
-    borderColor: colors.border.subtle,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    marginTop: space.xs,
-    overflow: 'hidden',
-  },
-
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-    paddingHorizontal: space.md,
-    paddingVertical: space.md,
-  },
-
-  optionText: {
-    ...type.body,
-    color: colors.text.primary,
-    fontSize: 14,
-  },
 });
 

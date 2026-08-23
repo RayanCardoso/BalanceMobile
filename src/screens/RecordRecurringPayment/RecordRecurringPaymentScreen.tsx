@@ -3,10 +3,8 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { useExpenseMonth } from '@/hooks/useExpenses';
-import {
-  useRegisterRecurringPayment,
-  useUpdateRecurringPayment,
-} from '@/hooks/useRecurring';
+import { useRegisterRecurringPayment, useUpdateRecurringPayment } from '@/hooks/useRecurring';
+import { EXPENSE_TYPE_OPTIONS, type ExpenseType } from '@/types/expense';
 import { apiMessages } from '@/utils/errors/recurring';
 import { currentMonth, toApiDate, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput } from '@/utils/money';
@@ -23,9 +21,19 @@ import { styles } from './RecordRecurringPaymentScreen.styles';
  * this month and POSTs a new payment; present means it has, and the screen PUTs to that exact id
  * instead of sending a second POST the API would reject with `PAYMENT_ALREADY_RECORDED`. The id is
  * never re-derived or re-fetched - it is read straight off the line the month query already returned.
+ *
+ * A conta pode chegar de dois jeitos, e a diferença é só quem escolheu. Vindo do menu de uma linha do
+ * mês, `recurringExpenseId` chega por parâmetro e não há o que escolher — a conta já foi escolhida
+ * lá. Aberta pela rota direta, a tela mostra o seletor. O mês de referência continua sendo um
+ * controle nos dois casos: uma conta de agosto paga em setembro é exatamente o caso que a spec nomeia,
+ * e mover o mês troca a linha lida — e com ela o `paymentId` que decide entre POST e PUT.
  */
 export function RecordRecurringPaymentScreen(): React.JSX.Element {
-  const params = useLocalSearchParams<{ year?: string; month?: string }>();
+  const params = useLocalSearchParams<{
+    year?: string;
+    month?: string;
+    recurringExpenseId?: string;
+  }>();
 
   const [period, setPeriod] = useState(() => {
     const year = Number(params.year);
@@ -36,22 +44,27 @@ export function RecordRecurringPaymentScreen(): React.JSX.Element {
       : currentMonth();
   });
 
-  const [recurringExpenseId, setRecurringExpenseId] = useState<string | null>(null);
+  const [pickedId, setPickedId] = useState<string | null>(null);
   const [paymentDate, setPaymentDate] = useState(() => todayApiDate());
   const [amountPaid, setAmountPaid] = useState('');
   const [notes, setNotes] = useState('');
+  /** Null enquanto o usuário não trocar: aí vale o tipo que a própria linha já carrega. */
+  const [pickedType, setPickedType] = useState<ExpenseType | null>(null);
 
   const month = useExpenseMonth(period.year, period.month);
   const register = useRegisterRecurringPayment();
   const update = useUpdateRecurringPayment();
 
+  const recurringExpenseId = params.recurringExpenseId ?? pickedId;
+
   const selectedLine = month.data?.recurringLines.find(
     (line) => line.recurringExpenseId === recurringExpenseId
   );
 
-  const mutation = selectedLine?.paymentId === undefined || selectedLine.paymentId === null
-    ? register
-    : update;
+  const paymentType = pickedType ?? selectedLine?.type ?? null;
+
+  const mutation =
+    selectedLine?.paymentId === undefined || selectedLine.paymentId === null ? register : update;
 
   const messages = mutation.isError ? apiMessages(mutation.error) : [];
 
@@ -74,6 +87,7 @@ export function RecordRecurringPaymentScreen(): React.JSX.Element {
           amountPaid: parseMoneyInput(amountPaid) ?? 0,
           notes: notes.trim() === '' ? null : notes,
           accountId: null,
+          type: paymentType,
         },
         { onSuccess }
       );
@@ -88,6 +102,7 @@ export function RecordRecurringPaymentScreen(): React.JSX.Element {
         amountPaid: parseMoneyInput(amountPaid) ?? 0,
         notes: notes.trim() === '' ? null : notes,
         accountId: null,
+        type: paymentType,
       },
       { onSuccess }
     );
@@ -105,22 +120,28 @@ export function RecordRecurringPaymentScreen(): React.JSX.Element {
         month={period.month}
         onChange={(year, month) => {
           setPeriod({ year, month });
-          setRecurringExpenseId(null);
+          setPickedId(null);
         }}
         year={period.year}
       />
 
-      <View testID="recurring-bill-picker">
-        <Picker
-          label="Conta"
-          onChange={setRecurringExpenseId}
-          options={(month.data?.recurringLines ?? []).map((line) => ({
-            label: line.name,
-            value: line.recurringExpenseId,
-          }))}
-          selected={recurringExpenseId}
-        />
-      </View>
+      {params.recurringExpenseId === undefined ? (
+        <View testID="recurring-bill-picker">
+          <Picker
+            label="Conta"
+            onChange={setPickedId}
+            options={(month.data?.recurringLines ?? []).map((line) => ({
+              label: line.name,
+              value: line.recurringExpenseId,
+            }))}
+            selected={pickedId}
+          />
+        </View>
+      ) : (
+        <Text style={styles.billName} testID="recurring-bill-name">
+          {selectedLine?.name ?? '—'}
+        </Text>
+      )}
 
       <Field
         label="Data do pagamento"
@@ -128,7 +149,25 @@ export function RecordRecurringPaymentScreen(): React.JSX.Element {
         placeholder="2026-08-15"
         value={paymentDate}
       />
-      <Field label="Valor pago" onChangeText={setAmountPaid} placeholder="220,00" value={amountPaid} />
+      <Field
+        label="Valor pago"
+        onChangeText={setAmountPaid}
+        placeholder="220,00"
+        value={amountPaid}
+      />
+
+      {/*
+        O tipo é um sobrescrito **do mês**: a API guarda o tipo da conta e aceita outro para um mês
+        que foi pago de outro jeito. Vem preenchido com o que a linha já mostra, então quem não tem
+        nada a corrigir não precisa responder nada.
+      */}
+      <Picker
+        label="Tipo de pagamento"
+        onChange={setPickedType}
+        options={EXPENSE_TYPE_OPTIONS}
+        selected={paymentType}
+      />
+
       <Field label="Observações" onChangeText={setNotes} placeholder="Opcional" value={notes} />
 
       {messages.map((message, index) => (
