@@ -1,76 +1,46 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-
-import { colors, radius, space, type } from '@/components/theme';
-
-import { fieldStyles } from './styles';
+import { OptionChips } from '@/components/form/OptionChips';
+import { SelectSheet } from '@/components/form/SelectSheet';
 
 export type PickerOption<T> = { label: string; value: T };
 
+/** Acima disto, os chips viram uma parede e a lista passa a ser o controle honesto. */
+const CHIPS_UP_TO = 4;
+
+/**
+ * A escolha de uma opção entre várias, nas duas formas que ela pode ter.
+ *
+ * **Quem escolhe a forma é o tamanho de `options`, nunca a tela.** É o mesmo princípio do
+ * `MonthTrend`: as telas não escolhem um layout, só dizem que dados têm. Uma casa com três
+ * categorias ganha chips sem ninguém configurar nada, e a mesma casa no dia em que tiver trinta
+ * ganha a lista pelo mesmo motivo.
+ */
 export function Picker<T extends string | number>({
   label,
   options,
   selected,
   onChange,
+  placeholder = 'Selecionar',
+  error,
 }: {
   label: string;
   options: PickerOption<T>[];
   selected: T | null;
   onChange: (value: T) => void;
+  placeholder?: string;
+  error?: string;
 }): React.JSX.Element {
+  if (options.length <= CHIPS_UP_TO) {
+    return <OptionChips label={label} onChange={onChange} options={options} selected={selected} />;
+  }
+
   return (
-    <View style={fieldStyles.field}>
-      <Text style={fieldStyles.label}>{label}</Text>
-      <View style={styles.options}>
-        {options.map((option, index) => (
-          // Two catalogue entries may legitimately carry the same name, so the index keeps them
-          // apart as separate options rather than collapsing them.
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: option.value === selected }}
-            key={`${String(option.value)}-${index}`}
-            onPress={() => {
-              onChange(option.value);
-            }}
-            style={[styles.option, option.value === selected ? styles.optionSelected : null]}
-          >
-            <Text
-              style={[
-                styles.optionLabel,
-                option.value === selected ? styles.optionLabelSelected : null,
-              ]}
-            >
-              {option.label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-    </View>
+    <SelectSheet
+      error={error}
+      label={label}
+      onChange={onChange}
+      options={options}
+      placeholder={placeholder}
+      selected={selected}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  options: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space.sm,
-  },
-  option: {
-    backgroundColor: colors.surface.raised,
-    borderColor: colors.border.subtle,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    paddingHorizontal: space.md,
-    paddingVertical: space.xs + 2,
-  },
-  optionSelected: {
-    backgroundColor: colors.accent.soft,
-    borderColor: colors.accent.base,
-  },
-  optionLabel: {
-    ...type.label,
-    color: colors.text.secondary,
-  },
-  optionLabelSelected: {
-    color: colors.accent.base,
-  },
-});
