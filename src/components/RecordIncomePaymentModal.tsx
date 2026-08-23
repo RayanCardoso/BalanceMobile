@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { X } from 'lucide-react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import { useRegisterIncomePayment } from '@/hooks/useIncome';
 import type { MonthlyIncomeLine } from '@/types/income';
@@ -8,8 +7,8 @@ import { apiMessages } from '@/utils/errors/income';
 import { monthLabel, toApiDate, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput } from '@/utils/money';
 import { DateField } from '@/components/DateField';
-import { Field, SubmitButton } from '@/components/form';
-import { colors, radius, space, type } from '@/components/theme';
+import { Field, Sheet, SubmitButton } from '@/components/form';
+import { colors, space, type } from '@/components/theme';
 
 /**
  * Registrar um recebimento, sobre a lista do mês em vez de no lugar dela.
@@ -88,112 +87,35 @@ function PaymentForm({
   };
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} transparent visible>
-      {/* O escurecido é o mesmo da gaveta: é a mesma ideia de "a tela continua ali atrás". */}
-      <View style={styles.scrim}>
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <View style={styles.heading}>
-              <Text style={styles.title}>Registrar recebimento</Text>
-              <Text style={styles.subtitle}>
-                {line.name} · {monthLabel(period.year, period.month)}
-              </Text>
-            </View>
+    <Sheet
+      onClose={onClose}
+      subtitle={`${line.name} · ${monthLabel(period.year, period.month)}`}
+      title="Registrar recebimento"
+      visible
+    >
+      <DateField label="Data do pagamento" onChange={setPaymentDate} value={paymentDate} />
 
-            <Pressable
-              accessibilityLabel="Fechar"
-              accessibilityRole="button"
-              onPress={onClose}
-              style={styles.close}
-            >
-              <X color={colors.text.secondary} size={20} />
-            </Pressable>
-          </View>
+      <Field
+        label="Valor recebido"
+        onChangeText={setAmountReceived}
+        placeholder="5000,00"
+        value={amountReceived}
+      />
 
-          <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-            <DateField label="Data do pagamento" onChange={setPaymentDate} value={paymentDate} />
+      <Field label="Observações" onChangeText={setNotes} placeholder="Opcional" value={notes} />
 
-            <Field
-              label="Valor recebido"
-              onChangeText={setAmountReceived}
-              placeholder="5000,00"
-              value={amountReceived}
-            />
+      {messages.map((message, index) => (
+        <Text key={`${message}-${index}`} style={styles.error} testID="form-error">
+          {message}
+        </Text>
+      ))}
 
-            <Field
-              label="Observações"
-              onChangeText={setNotes}
-              placeholder="Opcional"
-              value={notes}
-            />
-
-            {messages.map((message, index) => (
-              <Text key={`${message}-${index}`} style={styles.error} testID="form-error">
-                {message}
-              </Text>
-            ))}
-
-            <SubmitButton
-              label="Registrar pagamento"
-              onPress={submit}
-              pending={record.isPending}
-            />
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
+      <SubmitButton label="Registrar pagamento" onPress={submit} pending={record.isPending} />
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  /** A folha encosta no rodapé; o escurecido ocupa o resto e mantém a lista visível atrás. */
-  scrim: {
-    backgroundColor: colors.scrim,
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface.base,
-    borderColor: colors.border.subtle,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    borderTopWidth: 1,
-    // Teto, não altura: um formulário de três campos não precisa da tela inteira, e o `ScrollView`
-    // interno cuida do caso em que o teclado come o espaço restante.
-    maxHeight: '85%',
-    paddingTop: space.lg,
-  },
-  header: {
-    alignItems: 'flex-start',
-    borderBottomColor: colors.border.subtle,
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    gap: space.md,
-    paddingBottom: space.lg,
-    paddingHorizontal: space.lg,
-  },
-  heading: {
-    flex: 1,
-    gap: space.xs,
-  },
-  title: {
-    ...type.heading,
-    color: colors.text.primary,
-  },
-  subtitle: {
-    ...type.caption,
-    color: colors.text.secondary,
-  },
-  close: {
-    alignItems: 'center',
-    borderRadius: radius.pill,
-    height: space.xxl,
-    justifyContent: 'center',
-    width: space.xxl,
-  },
-  body: {
-    padding: space.lg,
-  },
   error: {
     ...type.caption,
     color: colors.status.negative,

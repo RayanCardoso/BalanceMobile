@@ -7,4 +7,5 @@
 
 export { Field } from './Field';
 export { Picker, type PickerOption } from './Picker';
+export { Sheet } from './Sheet';
 export { SubmitButton } from './SubmitButton';
