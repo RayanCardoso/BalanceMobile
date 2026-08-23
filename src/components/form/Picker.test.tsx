@@ -100,4 +100,18 @@ describe('a forma que o Picker toma', () => {
     expect(onChange).toHaveBeenCalledWith('c5');
     expect(screen.queryByText('Educação')).toBeNull();
   });
+
+  it('mostra o erro também quando desenha os chips', () => {
+    render(
+      <Picker
+        error="Escolha uma categoria."
+        label="Categoria"
+        onChange={jest.fn()}
+        options={five.slice(0, 4)}
+        selected={null}
+      />
+    );
+
+    expect(screen.getByText('Escolha uma categoria.')).toBeTruthy();
+  });
 });

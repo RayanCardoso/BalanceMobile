@@ -30,7 +30,15 @@ export function Picker<T extends string | number>({
   error?: string;
 }): React.JSX.Element {
   if (options.length <= CHIPS_UP_TO) {
-    return <OptionChips label={label} onChange={onChange} options={options} selected={selected} />;
+    return (
+      <OptionChips
+        error={error}
+        label={label}
+        onChange={onChange}
+        options={options}
+        selected={selected}
+      />
+    );
   }
 
   return (

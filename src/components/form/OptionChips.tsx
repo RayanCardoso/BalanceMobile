@@ -18,11 +18,13 @@ export function OptionChips<T extends string | number>({
   options,
   selected,
   onChange,
+  error,
 }: {
   label: string;
   options: PickerOption<T>[];
   selected: T | null;
   onChange: (value: T) => void;
+  error?: string;
 }): React.JSX.Element {
   return (
     <View style={fieldStyles.field}>
@@ -60,6 +62,12 @@ export function OptionChips<T extends string | number>({
           );
         })}
       </View>
+
+      {error === undefined ? null : (
+        <Text style={fieldStyles.error} testID="field-error">
+          {error}
+        </Text>
+      )}
     </View>
   );
 }

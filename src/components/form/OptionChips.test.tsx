@@ -31,4 +31,25 @@ describe('OptionChips', () => {
 
     expect(onChange).toHaveBeenCalledWith(2);
   });
+
+  it('mostra o erro que recebeu', () => {
+    render(
+      <OptionChips
+        error="Escolha um tipo."
+        label="Tipo"
+        onChange={jest.fn()}
+        options={types}
+        selected={null}
+      />
+    );
+
+    expect(screen.getByTestId('field-error')).toBeTruthy();
+    expect(screen.getByText('Escolha um tipo.')).toBeTruthy();
+  });
+
+  it('não mostra linha de erro quando não há erro', () => {
+    render(<OptionChips label="Tipo" onChange={jest.fn()} options={types} selected={1} />);
+
+    expect(screen.queryByTestId('field-error')).toBeNull();
+  });
 });
