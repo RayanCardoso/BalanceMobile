@@ -8,8 +8,7 @@ import { EXPENSE_TYPE_OPTIONS, type ExpenseType } from '@/types/expense';
 import { apiMessages } from '@/utils/errors/expenses';
 import { currentMonth, fromApiDate, monthLabel, toApiDate, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput } from '@/utils/money';
-import { DateField, Field, Picker, SubmitButton } from '@/components/form';
-import { MonthNavigator } from '@/components/MonthNavigator';
+import { DateField, Field, MonthField, Picker, SubmitButton } from '@/components/form';
 import { Screen } from '@/components/states';
 
 import { styles } from './RegisterExpenseScreen.styles';
@@ -172,7 +171,8 @@ export function RegisterExpenseScreen(): React.JSX.Element {
         </Pressable>
 
         {overriding ? (
-          <MonthNavigator
+          <MonthField
+            label="Mês de competência"
             month={overrideMonth.month}
             onChange={(year, month) => {
               setOverrideMonth({ year, month });

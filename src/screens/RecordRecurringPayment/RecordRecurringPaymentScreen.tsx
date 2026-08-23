@@ -10,8 +10,7 @@ import {
 import { apiMessages } from '@/utils/errors/recurring';
 import { currentMonth, toApiDate, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput } from '@/utils/money';
-import { DateField, Field, Picker, SubmitButton } from '@/components/form';
-import { MonthNavigator } from '@/components/MonthNavigator';
+import { DateField, Field, MonthField, Picker, SubmitButton } from '@/components/form';
 import { Screen } from '@/components/states';
 
 import { styles } from './RecordRecurringPaymentScreen.styles';
@@ -100,8 +99,8 @@ export function RecordRecurringPaymentScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <Text style={styles.sectionLabel}>Mês de referência</Text>
-      <MonthNavigator
+      <MonthField
+        label="Mês de referência"
         month={period.month}
         onChange={(year, month) => {
           setPeriod({ year, month });

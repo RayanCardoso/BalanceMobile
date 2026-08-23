@@ -6,7 +6,7 @@ import { INCOME_STATUS_LABEL, type IncomeStatus, type MonthlyIncomeLine } from '
 import { listErrorMessage } from '@/utils/errors/income';
 import { currentMonth } from '@/utils/dates';
 import { Money, StatusBadge, type StatusTone } from '@/components/Money';
-import { MonthNavigator } from '@/components/MonthNavigator';
+import { MonthTrend } from '@/components/MonthTrend';
 import { RecordIncomePaymentModal } from '@/components/RecordIncomePaymentModal';
 import { RegisterButton } from '@/components/RegisterButton';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
@@ -156,7 +156,7 @@ export function IncomeScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <MonthNavigator
+      <MonthTrend
         month={period.month}
         onChange={(year, month) => {
           setPeriod({ year, month });

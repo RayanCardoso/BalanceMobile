@@ -244,10 +244,11 @@ describe('the payload with an override (spec EXP AC4)', () => {
     fireEvent.press(screen.getByText('Definir o mês de competência'));
 
     await waitFor(() => {
-      expect(within(screen.getByTestId('competence-override')).getByText('Agosto de 2026')).toBeTruthy();
+      expect(screen.getByLabelText('Mês de competência, Agosto de 2026')).toBeTruthy();
     });
 
-    fireEvent.press(within(screen.getByTestId('competence-override')).getByText('Próximo mês'));
+    fireEvent.press(screen.getByLabelText('Mês de competência, Agosto de 2026'));
+    fireEvent.press(screen.getByText('Set'));
 
     fireEvent.changeText(screen.getByLabelText('Nome'), 'Passagem');
     fireEvent.changeText(screen.getByLabelText('Valor'), '480,00');

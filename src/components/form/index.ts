@@ -8,6 +8,7 @@
 export { DateField } from './DateField';
 export { Field } from './Field';
 export { FieldTrigger } from './FieldTrigger';
+export { MonthField } from './MonthField';
 export { Picker, type PickerOption } from './Picker';
 export { Sheet } from './Sheet';
 export { SubmitButton } from './SubmitButton';

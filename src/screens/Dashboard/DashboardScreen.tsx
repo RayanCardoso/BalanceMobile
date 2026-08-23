@@ -30,7 +30,7 @@ import {
 } from '@/utils/dashboard/projection';
 import { AccountCard } from '@/components/AccountCard';
 import { Money } from '@/components/Money';
-import { MonthNavigator } from '@/components/MonthNavigator';
+import { MonthTrend } from '@/components/MonthTrend';
 import { QuickActions } from '@/components/QuickActions';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
 import { card, colors, space } from '@/components/theme';
@@ -321,7 +321,7 @@ export function DashboardScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <MonthNavigator
+      <MonthTrend
         month={period.month}
         onChange={(year, month) => {
           setPeriod({ year, month });
