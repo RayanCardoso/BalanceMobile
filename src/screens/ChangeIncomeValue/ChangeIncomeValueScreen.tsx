@@ -6,8 +6,7 @@ import { useChangeIncomeValue, useIncomeMonth } from '@/hooks/useIncome';
 import { apiMessages } from '@/utils/errors/income';
 import { currentMonth, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput, parseOptionalInt } from '@/utils/money';
-import { Field, Picker, SubmitButton } from '@/components/form';
-import { DateField } from '@/components/DateField';
+import { DateField, Field, Picker, SubmitButton } from '@/components/form';
 import { Screen } from '@/components/states';
 
 import { styles } from './ChangeIncomeValueScreen.styles';

@@ -5,7 +5,9 @@
  * app checa vazio e formato de número, e o texto embaixo de um campo é o que a API disse sobre ele.
  */
 
+export { DateField } from './DateField';
 export { Field } from './Field';
+export { FieldTrigger } from './FieldTrigger';
 export { Picker, type PickerOption } from './Picker';
 export { Sheet } from './Sheet';
 export { SubmitButton } from './SubmitButton';

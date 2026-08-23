@@ -19,19 +19,19 @@ jest.mock('react-native-safe-area-context', () => {
 // setup: it stubs that native module out, so rendering the root under test doesn't throw.
 require('react-native-gesture-handler/jestSetup');
 
-// O picker de data é um módulo nativo: sob o Jest ele não tem implementação e o render estoura.
+// O calendário é uma árvore de quarenta e dois dias; renderizá-lo em cada teste de formulário
+// testaria a biblioteca, não a tela.
 //
-// O substituto expõe um alvo por evento — escolher e cancelar — para que uma tela use o campo de
-// data sem repetir o mock. Qual data ele devolve é decidido por `globalThis.__pickDate`: um teste
-// que precisa de uma data diferente da que o campo já mostra a escreve ali antes de tocar em
-// "escolher"; sem isso o substituto devolve o valor que recebeu, que é o comportamento de quem abre
-// o calendário e confirma sem mexer.
+// O substituto expõe um alvo por evento — escolher e cancelar. Qual data ele devolve é decidido por
+// `globalThis.__pickDate`: um teste que precisa de uma data diferente da que o campo já mostra a
+// escreve ali antes de tocar em "escolher"; sem isso o substituto devolve o valor que recebeu, que
+// é o comportamento de quem abre o calendário e confirma sem mexer.
 //
-// `DateField.test.tsx` tem o seu próprio mock, mais detalhado, porque lá o assunto é o componente;
-// aqui o assunto é só não derrubar as telas que o usam.
+// Os `testID` mantêm o nome que tinham quando o picker era nativo, e `DateField.test.tsx` mantém o
+// seu próprio mock, mais detalhado, porque lá o assunto é o componente.
 globalThis.__pickDate = null;
 
-jest.mock('@react-native-community/datetimepicker', () => {
+jest.mock('react-native-ui-datepicker', () => {
   const react = require('react');
   const rn = require('react-native');
 
@@ -51,17 +51,18 @@ jest.mock('@react-native-community/datetimepicker', () => {
 
   return {
     __esModule: true,
-    default: ({ onChange, value }) =>
+    useDefaultStyles: () => ({}),
+    default: ({ onChange, date }) =>
       react.createElement(rn.View, { testID: 'native-picker' }, [
         react.createElement(rn.Text, {
           key: 'set',
           testID: 'native-picker-set',
-          onPress: () => onChange({ type: 'set' }, chosen(value)),
+          onPress: () => onChange({ date: chosen(date) }),
         }),
         react.createElement(rn.Text, {
           key: 'dismiss',
           testID: 'native-picker-dismiss',
-          onPress: () => onChange({ type: 'dismissed' }, undefined),
+          onPress: () => onChange({ date: null }),
         }),
       ]),
   };

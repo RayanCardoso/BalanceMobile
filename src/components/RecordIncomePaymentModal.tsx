@@ -6,8 +6,7 @@ import type { MonthlyIncomeLine } from '@/types/income';
 import { apiMessages } from '@/utils/errors/income';
 import { monthLabel, toApiDate, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput } from '@/utils/money';
-import { DateField } from '@/components/DateField';
-import { Field, Sheet, SubmitButton } from '@/components/form';
+import { DateField, Field, Sheet, SubmitButton } from '@/components/form';
 import { colors, space, type } from '@/components/theme';
 
 /**

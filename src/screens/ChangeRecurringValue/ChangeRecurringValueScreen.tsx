@@ -5,8 +5,7 @@ import { useChangeRecurringValue, useRecurringExpenses } from '@/hooks/useRecurr
 import { apiMessages } from '@/utils/errors/recurring';
 import { todayApiDate } from '@/utils/dates';
 import { parseMoneyInput } from '@/utils/money';
-import { Field, Picker, SubmitButton } from '@/components/form';
-import { DateField } from '@/components/DateField';
+import { DateField, Field, Picker, SubmitButton } from '@/components/form';
 import { Screen } from '@/components/states';
 
 import { styles } from './ChangeRecurringValueScreen.styles';

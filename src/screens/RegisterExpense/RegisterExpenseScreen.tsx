@@ -8,8 +8,7 @@ import { EXPENSE_TYPE_OPTIONS, type ExpenseType } from '@/types/expense';
 import { apiMessages } from '@/utils/errors/expenses';
 import { currentMonth, fromApiDate, monthLabel, toApiDate, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput } from '@/utils/money';
-import { Field, Picker, SubmitButton } from '@/components/form';
-import { DateField } from '@/components/DateField';
+import { DateField, Field, Picker, SubmitButton } from '@/components/form';
 import { MonthNavigator } from '@/components/MonthNavigator';
 import { Screen } from '@/components/states';
 

@@ -7,8 +7,7 @@ import type { InstallmentPlan } from '@/types/expense';
 import { apiMessages } from '@/utils/errors/expenses';
 import { fromApiDate, monthLabel, todayApiDate } from '@/utils/dates';
 import { parseMoneyInput, parseOptionalInt } from '@/utils/money';
-import { Field, Picker, SubmitButton } from '@/components/form';
-import { DateField } from '@/components/DateField';
+import { DateField, Field, Picker, SubmitButton } from '@/components/form';
 import { Money } from '@/components/Money';
 import { Screen } from '@/components/states';
 
