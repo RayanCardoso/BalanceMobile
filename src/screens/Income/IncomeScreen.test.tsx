@@ -268,7 +268,8 @@ describe('moving between months', () => {
     expect(screen.getByText('Agosto de 2026')).toBeTruthy();
 
     stub('GET', '/income/2026/9', 200, monthBody('2026-09-01', [freelance]));
-    fireEvent.press(screen.getByLabelText('Próximo mês'));
+    // A tendência não tem setas: cada mês da linha é o próprio alvo.
+    fireEvent.press(screen.getByLabelText(/^Setembro de 2026,/));
 
     await waitFor(() => {
       expect(screen.getByText('Setembro de 2026')).toBeTruthy();

@@ -120,17 +120,18 @@ describe('MonthTrend', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('reports the previous and the next month from the arrows', () => {
+  /** Os dois vizinhos, para que um alvo deslocado por um slot não passe despercebido. */
+  it('reports the month on either side of the selected one', () => {
     const onChange = renderTrend();
 
-    fireEvent.press(screen.getByLabelText('Mês anterior'));
+    fireEvent.press(screen.getByLabelText('Julho de 2026, R$ 2.000,00'));
     expect(onChange).toHaveBeenCalledWith(2026, 7);
 
-    fireEvent.press(screen.getByLabelText('Próximo mês'));
+    fireEvent.press(screen.getByLabelText('Setembro de 2026, R$ 3.000,00'));
     expect(onChange).toHaveBeenCalledWith(2026, 9);
   });
 
-  it('crosses a year boundary through the arrows', () => {
+  it('crosses a year boundary', () => {
     const onChange = renderTrend({
       series: [
         { year: 2026, month: 10, value: 100 },
@@ -143,7 +144,7 @@ describe('MonthTrend', () => {
       month: 12,
     });
 
-    fireEvent.press(screen.getByLabelText('Próximo mês'));
+    fireEvent.press(screen.getByLabelText('Janeiro de 2027, R$ 400,00'));
 
     expect(onChange).toHaveBeenCalledWith(2027, 1);
   });
@@ -199,7 +200,7 @@ describe('MonthTrend', () => {
   it('changes nothing on its own, so the screen owns which month is loaded', () => {
     renderTrend();
 
-    fireEvent.press(screen.getByLabelText('Próximo mês'));
+    fireEvent.press(screen.getByLabelText('Setembro de 2026, R$ 3.000,00'));
 
     expect(screen.getByText('Agosto de 2026')).toBeTruthy();
   });

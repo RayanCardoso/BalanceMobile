@@ -13,11 +13,11 @@ import { formatMoney } from '@/utils/money';
 import { Money, StatusBadge, type StatusTone } from '@/components/Money';
 import { MonthNavigator } from '@/components/MonthNavigator';
 import { RegisterButton } from '@/components/RegisterButton';
+import { RowMenu } from '@/components/RowMenu';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
-import {CircleDollarSign, EllipsisVertical, Wallet} from "lucide-react-native";
+import { CircleDollarSign } from 'lucide-react-native';
 import { styles } from './IncomeScreen.styles';
 import { colors } from '@/components/theme';
-import { Menu, MenuTrigger, MenuOptions, MenuOption  } from "react-native-popup-menu";
 import { router } from 'expo-router';
 
 /**
@@ -104,54 +104,28 @@ export function IncomeScreen(): React.JSX.Element {
           >
             <View style={styles.rowHeader}>
               <Text style={styles.rowName}>{line.name}</Text>
-              <Menu>
-                <MenuTrigger>
-                  <EllipsisVertical
-                    size={20}
-                    color={colors.text.primary}
-                  />
-                </MenuTrigger>
-
-                <MenuOptions
-                  customStyles={{
-                    optionsContainer: {
-                      backgroundColor: colors.surface.raised,
-                      borderColor: colors.border.subtle,
-                      borderWidth: 1,
-                      borderRadius: 8,
-                      padding: 4,
-                      width: 220,
-                    },
-                    optionText: {
-                      color: colors.text.primary
-                    }
-                  }}
-                >
-                  <MenuOption
-                    onSelect={() =>
+              <RowMenu
+                actions={[
+                  {
+                    label: 'Registrar recebimento',
+                    onSelect: () =>
                       router.push({
                         pathname: '/income/payment',
-                        params: {
-                          incomeSourceId: line.incomeSourceId,
-                        },
-                      })
-                    }
-                    text="Registrar recebimento"
-                  />
-
-                  <MenuOption
-                    onSelect={() =>
+                        params: { incomeSourceId: line.incomeSourceId },
+                      }),
+                  },
+                  {
+                    label: 'Alterar valor',
+                    onSelect: () =>
                       router.push({
                         pathname: '/income/change-value',
-                        params: {
-                          incomeSourceId: line.incomeSourceId,
-                        },
-                      })
-                    }
-                    text="Alterar valor"
-                  />
-                </MenuOptions>
-              </Menu>
+                        params: { incomeSourceId: line.incomeSourceId },
+                      }),
+                  },
+                ]}
+                label={`Ações de ${line.name}`}
+                testID={`income-menu-${line.incomeSourceId}`}
+              />
             </View>
             <View style={styles.containerFigureAndLabel}>
               <View style={styles.containerFigure}>

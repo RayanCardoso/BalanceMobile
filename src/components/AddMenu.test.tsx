@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Landmark } from 'lucide-react-native';
 
-import { AddMenu } from '@/components/AddMenu';
+import { AddMenu, addOptionsFor } from '@/components/AddMenu';
 
 /**
  * `router` é o alvo da asserção: o que interessa provar é para onde cada opção leva, e o `router` do
@@ -71,7 +71,13 @@ describe('o botão de adicionar', () => {
    */
   describe('com um destino só', () => {
     const single = [
-      { href: '/accounts' as const, label: 'Nova conta', icon: Landmark, group: 'Cadastrar' },
+      {
+        href: '/accounts' as const,
+        label: 'Nova conta',
+        icon: Landmark,
+        group: 'Cadastrar',
+        scope: 'catalogue' as const,
+      },
     ];
 
     it('navega direto, sem abrir folha', () => {
@@ -87,5 +93,33 @@ describe('o botão de adicionar', () => {
 
       expect(screen.getByLabelText('Nova conta')).toBeTruthy();
     });
+  });
+});
+
+/**
+ * A fatia por assunto é o que faz uma folha só servir as três telas. Se cada tela declarasse os seus
+ * próprios destinos, um destino novo teria de nascer em três lugares - e nasceria em dois.
+ */
+describe('a fatia por assunto', () => {
+  it('mostra só os lançamentos de despesa quando a tela de Despesas pede os dela', () => {
+    render(<AddMenu options={addOptionsFor('expense')} />);
+    fireEvent.press(screen.getByTestId('add-menu-trigger'));
+
+    ['Nova despesa variável', 'Nova despesa recorrente', 'Novo parcelamento'].forEach((label) => {
+      expect(screen.getByLabelText(label)).toBeTruthy();
+    });
+
+    ['Nova receita', 'Nova conta', 'Nova pessoa', 'Nova categoria'].forEach((label) => {
+      expect(screen.queryByLabelText(label)).toBeNull();
+    });
+  });
+
+  it('mantém a ordem da lista, e não a ordem em que os assuntos foram pedidos', () => {
+    expect(addOptionsFor('catalogue', 'income').map((option) => option.label)).toEqual([
+      'Nova receita',
+      'Nova conta',
+      'Nova pessoa',
+      'Nova categoria',
+    ]);
   });
 });

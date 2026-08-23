@@ -34,12 +34,22 @@ import { colors, control, radius, space, type } from '@/components/theme';
  * `AccountCard` e os círculos que ele substituiu já faziam.
  */
 
+/**
+ * O assunto de uma opção, que é como uma tela pede a fatia que lhe interessa.
+ *
+ * É o que impede um `AddMenu` por tela: a tela de Despesas não declara os seus próprios destinos,
+ * ela pede `addOptionsFor('expense')` da mesma lista que o Resumo mostra inteira. Um destino novo
+ * nasce uma vez aqui e aparece nos dois lugares.
+ */
+export type AddScope = 'income' | 'expense' | 'catalogue';
+
 export type AddOption = {
   href: Href;
   label: string;
   icon: LucideIcon;
   /** O título da seção em que a opção aparece. Opções do mesmo grupo ficam juntas, na ordem daqui. */
   group: string;
+  scope: AddScope;
 };
 
 /**
@@ -49,29 +59,47 @@ export type AddOption = {
  * "Nova despesa variável" aqui e lá, e não "Despesa variável" num lugar e "Nova despesa" no outro.
  */
 export const ADD_OPTIONS: AddOption[] = [
-  { href: '/income/new', label: 'Nova receita', icon: Coins, group: 'Lançar' },
+  { href: '/income/new', label: 'Nova receita', icon: Coins, group: 'Lançar', scope: 'income' },
   {
     href: '/expenses/variable/new',
     label: 'Nova despesa variável',
     icon: ShoppingBag,
     group: 'Lançar',
+    scope: 'expense',
   },
   {
     href: '/expenses/recurring/new',
     label: 'Nova despesa recorrente',
     icon: CalendarClock,
     group: 'Lançar',
+    scope: 'expense',
   },
   {
     href: '/expenses/variable/installment-plan',
     label: 'Novo parcelamento',
     icon: CreditCard,
     group: 'Lançar',
+    scope: 'expense',
   },
-  { href: '/accounts', label: 'Nova conta', icon: Landmark, group: 'Cadastrar' },
-  { href: '/people', label: 'Nova pessoa', icon: UserPlus, group: 'Cadastrar' },
-  { href: '/categories', label: 'Nova categoria', icon: Tags, group: 'Cadastrar' },
+  { href: '/accounts', label: 'Nova conta', icon: Landmark, group: 'Cadastrar', scope: 'catalogue' },
+  { href: '/people', label: 'Nova pessoa', icon: UserPlus, group: 'Cadastrar', scope: 'catalogue' },
+  {
+    href: '/categories',
+    label: 'Nova categoria',
+    icon: Tags,
+    group: 'Cadastrar',
+    scope: 'catalogue',
+  },
 ];
+
+/**
+ * As opções de um ou mais assuntos, na ordem em que `ADD_OPTIONS` as declara.
+ *
+ * A ordem sai da lista e não da chamada de propósito: duas telas que peçam os mesmos assuntos em
+ * ordens diferentes mostrariam a mesma folha em duas ordens, e a folha é a mesma coisa nas duas.
+ */
+export const addOptionsFor = (...scopes: AddScope[]): AddOption[] =>
+  ADD_OPTIONS.filter((option) => scopes.includes(option.scope));
 
 /** Os grupos na ordem em que aparecem na lista, sem repetir nenhum. */
 const groupsOf = (options: AddOption[]): string[] => [

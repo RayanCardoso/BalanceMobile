@@ -447,7 +447,8 @@ describe('moving between months (spec DASH AC2)', () => {
       expect(balanceShows('R$ 5.529,50')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByLabelText('Próximo mês'));
+    // A tendência não tem setas: cada mês da linha é o próprio alvo.
+    fireEvent.press(screen.getByLabelText(/^Setembro de 2026,/));
 
     await waitFor(() => {
       expect(screen.getByText('Setembro de 2026')).toBeTruthy();
@@ -481,7 +482,8 @@ describe('moving between months (spec DASH AC2)', () => {
       expect(balanceShows('R$ 5.529,50')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByLabelText('Próximo mês'));
+    // A tendência não tem setas: cada mês da linha é o próprio alvo.
+    fireEvent.press(screen.getByLabelText(/^Setembro de 2026,/));
 
     // Asserted synchronously, with no `await` in between: the stubbed response resolves on a
     // microtask, which cannot run while this block is still executing.
@@ -556,7 +558,8 @@ describe('a negative balance (spec DASH AC5)', () => {
       expect(balanceShows('R$ 5.529,50')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByLabelText('Próximo mês'));
+    // A tendência não tem setas: cada mês da linha é o próprio alvo.
+    fireEvent.press(screen.getByLabelText(/^Setembro de 2026,/));
 
     await waitFor(() => {
       expect(within(screen.getByTestId('dashboard-balance')).getByText('-R$ 470,50')).toBeTruthy();

@@ -62,6 +62,7 @@ const energy = {
   personId: 'p1',
   categoryId: 'c2',
   accountId: 'a1',
+  type: 1 as const,
   dueDay: 10,
   isEstimate: true,
   expectedAmount: 150,
