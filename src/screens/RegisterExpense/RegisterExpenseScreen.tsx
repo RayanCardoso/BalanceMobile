@@ -68,8 +68,31 @@ export function RegisterExpenseScreen(): React.JSX.Element {
 
   const messages = register.isError ? apiMessages(register.error) : [];
 
+  /**
+   * O `closingDay` é o que separa um cartão de uma conta corrente. Um crédito precisa de um cartão —
+   * é o fechamento dele que decide o mês de competência (MAD-001) —, e um Pix não sai de um.
+   *
+   * O servidor aceita qualquer conta com qualquer tipo e continuará aceitando: isto não é uma regra
+   * que o app impõe, é uma escolha que o app deixa de oferecer. Continua sem filtrar por pessoa
+   * (spec EXP AC7): uma despesa de um pode sair da conta de outro, deliberadamente.
+   */
+  const isCredit = type === 0;
+
+  const accountOptions = (accounts.data ?? [])
+    .filter((account) => (isCredit ? account.closingDay !== null : account.closingDay === null))
+    .map((account) => ({ label: account.name, value: account.id }));
+
+  const chooseType = (next: ExpenseType): void => {
+    setType(next);
+
+    // Uma seleção que saiu da lista mas continua sendo enviada é pior que nenhuma: o usuário vê um
+    // picker sem nada marcado e a requisição leva o cartão de antes.
+    setAccountId(null);
+  };
+
   const submit = (): void => {
-    if (personId === null || categoryId === null || accountId === null) {
+    // Só o crédito exige conta: é o `closingDay` dela que decide o mês de competência.
+    if (personId === null || categoryId === null || (isCredit && accountId === null)) {
       return;
     }
 
@@ -120,7 +143,7 @@ export function RegisterExpenseScreen(): React.JSX.Element {
       ) : null}
 
       <View testID="type-picker">
-        <Picker label="Tipo" onChange={setType} options={EXPENSE_TYPE_OPTIONS} selected={type} />
+        <Picker label="Tipo" onChange={chooseType} options={EXPENSE_TYPE_OPTIONS} selected={type} />
       </View>
 
       <Field label="Valor" onChangeText={setAmount} placeholder="320,50" value={amount} />
@@ -140,12 +163,9 @@ export function RegisterExpenseScreen(): React.JSX.Element {
       {/* Every account of the household, whoever it belongs to (spec EXP AC7). */}
       <View testID="account-picker">
         <Picker
-          label="Conta"
+          label={isCredit ? 'Conta' : 'Conta (opcional)'}
           onChange={setAccountId}
-          options={(accounts.data ?? []).map((account) => ({
-            label: account.name,
-            value: account.id,
-          }))}
+          options={accountOptions}
           selected={accountId}
         />
       </View>

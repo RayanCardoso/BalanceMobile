@@ -68,8 +68,10 @@ export type VariableExpenseLine = {
   categoryId: string;
   categoryName: string;
   categoryPriority: ExpensePriority;
-  accountId: string;
-  accountName: string;
+  /** Null quando a despesa não saiu de uma conta cadastrada — um Pix, um débito solto. */
+  accountId: string | null;
+  /** Null, e não string vazia: uma conta sem nome e nenhuma conta são coisas diferentes. */
+  accountName: string | null;
   installmentNumber: number | null;
   installmentCount: number | null;
   installmentPlanId: string | null;
@@ -116,7 +118,8 @@ export type Expense = {
   type: ExpenseType;
   amount: number;
   categoryId: string;
-  accountId: string;
+  /** Null quando a despesa não saiu de uma conta cadastrada — um Pix, um débito solto. */
+  accountId: string | null;
   date: string;
   competenceMonth: string;
   installmentNumber: number | null;

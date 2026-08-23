@@ -76,6 +76,17 @@ const marinasCard = {
   limit: 3000,
 };
 
+/** Sem `closingDay`: não é cartão, então é de onde um Pix ou um débito sai. */
+const checking = {
+  id: 'a3',
+  name: 'Inter',
+  institution: 'Banco Inter',
+  personId: 'p1',
+  closingDay: null,
+  dueDay: null,
+  limit: null,
+};
+
 const registeredIn = (competenceMonth: string) => ({
   id: 'e2',
   name: 'Passagem',
@@ -462,5 +473,104 @@ describe('when the API rejects the expense', () => {
     // What the user typed survives, exactly as it does when the API rejects the request.
     expect(screen.getByLabelText('Nome').props.value).toBe('Passagem');
     expect(screen.getByLabelText('Valor').props.value).toBe('480,00');
+  });
+});
+
+/**
+ * O `closingDay` é o que separa um cartão de uma conta corrente, e é o que decide o mês de
+ * competência de uma compra no crédito. Oferecer um cartão para um Pix é oferecer a única escolha
+ * que não pode estar certa.
+ */
+describe('a conta segue o tipo da despesa', () => {
+  it('oferece só os cartões no crédito', async () => {
+    catalogue([rayan], [rayansCard, checking]);
+    renderForm();
+
+    await waitFor(() => {
+      expect(within(screen.getByTestId('account-picker')).getByText('Nubank')).toBeTruthy();
+    });
+
+    expect(within(screen.getByTestId('account-picker')).queryByText('Inter')).toBeNull();
+  });
+
+  it('oferece só as contas correntes no Pix', async () => {
+    catalogue([rayan], [rayansCard, checking]);
+    renderForm();
+
+    await waitFor(() => {
+      expect(within(screen.getByTestId('account-picker')).getByText('Nubank')).toBeTruthy();
+    });
+
+    fireEvent.press(within(screen.getByTestId('type-picker')).getByText('Pix'));
+
+    expect(within(screen.getByTestId('account-picker')).getByText('Inter')).toBeTruthy();
+    expect(within(screen.getByTestId('account-picker')).queryByText('Nubank')).toBeNull();
+  });
+
+  it('esquece a conta escolhida quando ela sai da lista', async () => {
+    catalogue([rayan], [rayansCard, checking]);
+    stub('POST', '/expense', 201, { ...registeredIn('2026-08-01'), accountId: null, type: 2 });
+    renderForm();
+
+    await waitFor(() => {
+      expect(within(screen.getByTestId('account-picker')).getByText('Nubank')).toBeTruthy();
+    });
+
+    fireEvent.press(within(screen.getByTestId('account-picker')).getByText('Nubank'));
+    fireEvent.press(within(screen.getByTestId('type-picker')).getByText('Pix'));
+
+    fireEvent.press(within(screen.getByTestId('category-picker')).getByText('Alimentação'));
+    fireEvent.changeText(screen.getByLabelText('Nome'), 'Almoço');
+    fireEvent.changeText(screen.getByLabelText('Valor'), '32,00');
+    fireEvent.press(screen.getByText('Registrar despesa'));
+
+    await waitFor(() => {
+      expect(bodySentTo('POST', '/expense')).toBeDefined();
+    });
+
+    // Não 'a1': aquele cartão deixou de ser uma escolha possível no momento em que o tipo mudou.
+    expect(expensePayload().accountId).toBeNull();
+    expect(expensePayload().type).toBe(2);
+  });
+});
+
+describe('quando a conta é obrigatória', () => {
+  it('registra um Pix sem nenhuma conta escolhida', async () => {
+    catalogue([rayan], [rayansCard]);
+    stub('POST', '/expense', 201, { ...registeredIn('2026-08-01'), accountId: null, type: 2 });
+    renderForm();
+
+    await waitFor(() => {
+      expect(within(screen.getByTestId('category-picker')).getByText('Alimentação')).toBeTruthy();
+    });
+
+    fireEvent.press(within(screen.getByTestId('type-picker')).getByText('Pix'));
+    fireEvent.press(within(screen.getByTestId('category-picker')).getByText('Alimentação'));
+    fireEvent.changeText(screen.getByLabelText('Nome'), 'Almoço');
+    fireEvent.changeText(screen.getByLabelText('Valor'), '32,00');
+    fireEvent.press(screen.getByText('Registrar despesa'));
+
+    await waitFor(() => {
+      expect(bodySentTo('POST', '/expense')).toBeDefined();
+    });
+
+    expect(expensePayload().accountId).toBeNull();
+  });
+
+  it('não envia um crédito sem conta', async () => {
+    catalogue([rayan], [rayansCard]);
+    renderForm();
+
+    await waitFor(() => {
+      expect(within(screen.getByTestId('category-picker')).getByText('Alimentação')).toBeTruthy();
+    });
+
+    fireEvent.press(within(screen.getByTestId('category-picker')).getByText('Alimentação'));
+    fireEvent.changeText(screen.getByLabelText('Nome'), 'Passagem');
+    fireEvent.changeText(screen.getByLabelText('Valor'), '480,00');
+    fireEvent.press(screen.getByText('Registrar despesa'));
+
+    // A guarda continua de pé: é o `closingDay` da conta que decide o mês de um crédito.
+    expect(bodySentTo('POST', '/expense')).toBeUndefined();
   });
 });

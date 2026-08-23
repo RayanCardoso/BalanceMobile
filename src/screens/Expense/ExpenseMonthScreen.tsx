@@ -64,7 +64,8 @@ function VariableLine({ line }: { line: VariableExpenseLine }): React.JSX.Elemen
       </Text>
 
       <Text style={styles.detail} testID={`variable-date-${line.expenseId}`}>
-        {line.date} · {line.accountName}
+        {/* Sem conta, a resposta para "de onde saiu" é a forma de pagamento. */}
+        {line.date} · {line.accountName ?? EXPENSE_TYPE_LABEL[line.type]}
       </Text>
 
       {/* Spec INST AC3: an installment shows its position out of the plan's total. */}

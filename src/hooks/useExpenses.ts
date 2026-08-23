@@ -38,7 +38,8 @@ export type RegisterExpenseInput = {
   type: ExpenseType;
   amount: number;
   categoryId: string;
-  accountId: string;
+  /** Obrigatória no crédito, opcional no débito e no Pix (spec EXP). */
+  accountId: string | null;
   date: string;
   competenceMonth: string | null;
 };
