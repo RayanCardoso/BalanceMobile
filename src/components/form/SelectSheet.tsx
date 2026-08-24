@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   rowSelected: {
     backgroundColor: colors.surface.selected,
-    borderColor: colors.border.default,
+    borderColor: colors.border.strong,
   },
   rowLabel: {
     ...type.body,

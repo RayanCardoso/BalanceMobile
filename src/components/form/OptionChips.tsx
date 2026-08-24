@@ -9,7 +9,7 @@ import { colors, control, radius, space, type } from '@/components/theme';
  * Poucas opções, todas visíveis: o controle certo quando ler a lista inteira custa menos que abrir
  * uma folha.
  *
- * O selecionado é `surface.selected` com `border.default` e um check — não `accent.base`. O azul de
+ * O selecionado é `surface.selected` com `border.strong` e um check — não `accent.base`. O azul de
  * destaque é da ação primária da tela, e um formulário com quatro chips azuis e um botão azul não
  * tem destaque nenhum. O check existe porque cor não pode ser o único sinal.
  */
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   optionSelected: {
     backgroundColor: colors.surface.selected,
-    borderColor: colors.border.default,
+    borderColor: colors.border.strong,
   },
   optionLabel: {
     ...type.label,

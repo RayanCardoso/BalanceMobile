@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   },
   step: {
     alignItems: 'center',
-    borderColor: colors.border.default,
+    borderColor: colors.border.strong,
     borderRadius: radius.pill,
     borderWidth: 1,
     height: control.size - space.md,
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   monthSelected: {
     backgroundColor: colors.surface.selected,
-    borderColor: colors.border.default,
+    borderColor: colors.border.strong,
   },
   monthLabel: {
     ...type.label,
