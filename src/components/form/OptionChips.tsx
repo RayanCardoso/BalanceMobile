@@ -30,38 +30,42 @@ export function OptionChips<T extends string | number>({
     <View style={fieldStyles.field}>
       <Text style={fieldStyles.label}>{label}</Text>
 
-      <View style={styles.options}>
-        {options.map((option, index) => {
-          const isSelected = option.value === selected;
+      {options.length === 0 ? (
+        <Text style={styles.empty}>Nenhuma opção disponível.</Text>
+      ) : (
+        <View style={styles.options}>
+          {options.map((option, index) => {
+            const isSelected = option.value === selected;
 
-          return (
-            // Duas entradas de catálogo podem legitimamente ter o mesmo nome, então o índice as
-            // mantém como opções separadas em vez de colapsá-las.
-            <Pressable
-              accessibilityLabel={option.label}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isSelected }}
-              key={`${String(option.value)}-${index}`}
-              onPress={() => {
-                onChange(option.value);
-              }}
-              style={[styles.option, isSelected ? styles.optionSelected : null]}
-            >
-              {isSelected ? (
-                // `lucide-react-native` forwards `testID` to the native SVG host as `data-testid`,
-                // which RNTL's `getByTestId` never sees (it only matches a host node's own `testID`
-                // prop). A plain `View` wrapper is the one host element the query can actually find.
-                <View testID="chip-check">
-                  <Check color={colors.text.primary} size={14} />
-                </View>
-              ) : null}
-              <Text style={[styles.optionLabel, isSelected ? styles.optionLabelSelected : null]}>
-                {option.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+            return (
+              // Duas entradas de catálogo podem legitimamente ter o mesmo nome, então o índice as
+              // mantém como opções separadas em vez de colapsá-las.
+              <Pressable
+                accessibilityLabel={option.label}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                key={`${String(option.value)}-${index}`}
+                onPress={() => {
+                  onChange(option.value);
+                }}
+                style={[styles.option, isSelected ? styles.optionSelected : null]}
+              >
+                {isSelected ? (
+                  // `lucide-react-native` forwards `testID` to the native SVG host as `data-testid`,
+                  // which RNTL's `getByTestId` never sees (it only matches a host node's own `testID`
+                  // prop). A plain `View` wrapper is the one host element the query can actually find.
+                  <View testID="chip-check">
+                    <Check color={colors.text.primary} size={14} />
+                  </View>
+                ) : null}
+                <Text style={[styles.optionLabel, isSelected ? styles.optionLabelSelected : null]}>
+                  {option.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
 
       {error === undefined ? null : (
         <Text style={fieldStyles.error} testID="field-error">
@@ -73,6 +77,10 @@ export function OptionChips<T extends string | number>({
 }
 
 const styles = StyleSheet.create({
+  empty: {
+    ...type.body,
+    color: colors.text.muted,
+  },
   options: {
     flexDirection: 'row',
     flexWrap: 'wrap',

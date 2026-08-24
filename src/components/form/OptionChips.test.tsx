@@ -52,4 +52,10 @@ describe('OptionChips', () => {
 
     expect(screen.queryByTestId('field-error')).toBeNull();
   });
+
+  it('diz que não há opções em vez de desenhar um vazio', () => {
+    render(<OptionChips label="Conta" onChange={jest.fn()} options={[]} selected={null} />);
+
+    expect(screen.getByText('Nenhuma opção disponível.')).toBeTruthy();
+  });
 });
