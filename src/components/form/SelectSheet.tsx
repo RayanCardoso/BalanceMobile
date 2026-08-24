@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
   },
   row: {
     alignItems: 'center',
+    backgroundColor: colors.surface.raised,
     borderColor: colors.border.subtle,
     borderRadius: radius.sm,
     borderWidth: 1,
