@@ -84,7 +84,7 @@ export function useIncomeMonth(year: number, month: number): UseQueryResult<Mont
 }
 
 /**
- * The months behind the trend line in the income screen's `MonthNavigator`.
+ * The months behind the trend line in the income screen's `MonthTrend`.
  *
  * The value of a month is `totalReceived` - what arrived, not `totalExpected`. The expected amount
  * is a forecast the screen already shows line by line; plotting it as history would draw months of

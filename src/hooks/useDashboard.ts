@@ -28,7 +28,7 @@ export function useDashboard(year: number, month: number): UseQueryResult<Monthl
 }
 
 /**
- * The months behind the trend line in the dashboard's `MonthNavigator`.
+ * The months behind the trend line in the dashboard's `MonthTrend`.
  *
  * The value of a month is `balance` - the API's own subtraction (MAD-001), already signed. A month
  * the user ended owing money in plots below the others because the number itself is negative, which

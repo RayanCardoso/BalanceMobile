@@ -3,7 +3,7 @@ import { useQueries } from '@tanstack/react-query';
 import { shiftMonth } from '@/utils/dates';
 
 /**
- * The window of months behind the trend line in `MonthNavigator`.
+ * The window of months behind the trend line in `MonthTrend`.
  *
  * It reads N months through **the same query keys the screens already use** (MAD-002), which is what
  * makes the chart nearly free:

@@ -165,7 +165,7 @@ export function RegisterExpenseScreen(): React.JSX.Element {
         />
       </View>
 
-      {/* Every account of the household, whoever it belongs to (spec EXP AC7). */}
+      {/* Only accounts of the kind the chosen type can use; still never filtered by person (spec EXP AC7). */}
       <View testID="account-picker">
         <Picker
           label={isCredit ? 'Conta' : 'Conta (opcional)'}

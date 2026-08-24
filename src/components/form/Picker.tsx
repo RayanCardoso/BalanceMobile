@@ -9,10 +9,9 @@ const CHIPS_UP_TO = 4;
 /**
  * A escolha de uma opção entre várias, nas duas formas que ela pode ter.
  *
- * **Quem escolhe a forma é o tamanho de `options`, nunca a tela.** É o mesmo princípio do
- * `MonthTrend`: as telas não escolhem um layout, só dizem que dados têm. Uma casa com três
- * categorias ganha chips sem ninguém configurar nada, e a mesma casa no dia em que tiver trinta
- * ganha a lista pelo mesmo motivo.
+ * **Quem escolhe a forma é o tamanho de `options`, nunca a tela.** As telas não escolhem um
+ * layout, só dizem que dados têm. Uma casa com três categorias ganha chips sem ninguém configurar
+ * nada, e a mesma casa no dia em que tiver trinta ganha a lista pelo mesmo motivo.
  */
 export function Picker<T extends string | number>({
   label,

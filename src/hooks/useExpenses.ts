@@ -87,7 +87,7 @@ export function useExpenseMonth(year: number, month: number): UseQueryResult<Mon
 }
 
 /**
- * The months behind the trend line in the expense screen's `MonthNavigator`.
+ * The months behind the trend line in the expense screen's `MonthTrend`.
  *
  * The value of a month is `totalCommitted`: variable purchases plus recurring bills, which is what
  * the month cost in full and the same total the screen prints under the lists. Plotting

@@ -58,8 +58,7 @@ const five = [
 
 /**
  * Quem escolhe a forma é o componente, pelo tamanho de `options` — as telas nunca escolhem, só
- * dizem que dados têm. É o mesmo princípio do `MonthTrend`, e é o que impede uma tela de passar a
- * saber de layout.
+ * dizem que dados têm. É o que impede uma tela de passar a saber de layout.
  */
 describe('a forma que o Picker toma', () => {
   it('desenha as opções direto quando são quatro ou menos', () => {
