@@ -49,7 +49,10 @@ export function DateField({
   error?: string;
 }): React.JSX.Element {
   const [open, setOpen] = useState(false);
-  const defaults = useDefaultStyles();
+  // Sem argumento, a biblioteca resolve `useColorScheme() ?? 'light'` — que em `react-native-web`
+  // lê `prefers-color-scheme` do navegador, ao contrário de iOS/Android, onde `userInterfaceStyle`
+  // do app.json já fixa o escuro. Balance não tem tema claro, então o escuro é fixado aqui também.
+  const defaults = useDefaultStyles('dark');
 
   const shown = formatBrDate(value);
 
@@ -103,8 +106,11 @@ export function DateField({
 /**
  * O calendário nas cores do app.
  *
- * Só as chaves que precisam mudar: `useDefaultStyles()` responde por toda a geometria, e reescrevê-la
- * aqui seria manter uma cópia do layout da biblioteca.
+ * Só as chaves que precisam mudar: `useDefaultStyles()` responde por toda chave que este objeto não
+ * nomeia. O merge com `{ ...defaults, ...calendar }` é raso, então uma chave nomeada aqui substitui
+ * por inteiro o estilo da biblioteca para ela, em vez de somar-se a ele — reescrever o layout inteiro
+ * aqui seria manter uma cópia do que a biblioteca já faz, por isso só as chaves que precisam mudar
+ * aparecem.
  *
  * Objeto literal e **não** `StyleSheet.create`: estes estilos são espalhados dentro do objeto que a
  * biblioteca monta (`{ ...defaults, ...calendar }`) e lidos por ela. `StyleSheet.create` existe para
