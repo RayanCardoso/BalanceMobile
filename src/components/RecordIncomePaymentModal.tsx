@@ -87,6 +87,7 @@ function PaymentForm({
 
   return (
     <Sheet
+      closeOnScrim={false}
       onClose={onClose}
       subtitle={`${line.name} · ${monthLabel(period.year, period.month)}`}
       title="Registrar recebimento"

@@ -23,12 +23,18 @@ export function Sheet({
   subtitle,
   visible,
   onClose,
+  closeOnScrim = true,
   children,
 }: {
   title: string;
   subtitle?: string;
   visible: boolean;
   onClose: () => void;
+  /**
+   * Se o toque no escurecido fecha a folha. `true` para os três pickers, que não perdem nada ao
+   * fechar assim; `false` para um formulário, que fecharia levando junto o que foi digitado.
+   */
+  closeOnScrim?: boolean;
   children: ReactNode;
 }): React.JSX.Element | null {
   if (!visible) {
@@ -39,12 +45,18 @@ export function Sheet({
     <Modal animationType="slide" onRequestClose={onClose} transparent visible>
       <View style={styles.scrim}>
         {/* O escurecido é o mesmo da gaveta: é a mesma ideia de "a tela continua ali atrás". */}
-        <Pressable
-          accessibilityLabel={`Fechar ${title} sem escolher`}
-          accessibilityRole="button"
-          onPress={onClose}
-          style={StyleSheet.absoluteFill}
-        />
+        {closeOnScrim ? (
+          <Pressable
+            accessibilityLabel={`Fechar ${title} sem escolher`}
+            accessibilityRole="button"
+            onPress={onClose}
+            style={StyleSheet.absoluteFill}
+          />
+        ) : (
+          // Um controle que não faz nada não pode ser anunciado como um: sem rótulo de
+          // acessibilidade e sem `Pressable`, este toque não fecha nada.
+          <View style={StyleSheet.absoluteFill} />
+        )}
 
         <View style={styles.sheet} testID="sheet">
           <View style={styles.header}>

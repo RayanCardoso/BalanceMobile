@@ -65,4 +65,29 @@ describe('Sheet', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('não fecha ao tocar fora quando quem abre pede para não fechar', () => {
+    const onClose = jest.fn();
+    render(
+      <Sheet closeOnScrim={false} onClose={onClose} title="Registrar recebimento" visible>
+        <Text>Alimentação</Text>
+      </Sheet>
+    );
+
+    expect(screen.queryByLabelText('Fechar Registrar recebimento sem escolher')).toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('continua fechando pelo botão do canto mesmo assim', () => {
+    const onClose = jest.fn();
+    render(
+      <Sheet closeOnScrim={false} onClose={onClose} title="Registrar recebimento" visible>
+        <Text>Alimentação</Text>
+      </Sheet>
+    );
+
+    fireEvent.press(screen.getByLabelText('Fechar'));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });
