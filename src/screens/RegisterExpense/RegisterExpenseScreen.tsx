@@ -83,6 +83,11 @@ export function RegisterExpenseScreen(): React.JSX.Element {
     .map((account) => ({ label: account.name, value: account.id }));
 
   const chooseType = (next: ExpenseType): void => {
+    // Um toque no chip já selecionado não é uma troca de tipo, e não pode custar a conta escolhida.
+    if (next === type) {
+      return;
+    }
+
     setType(next);
 
     // Uma seleção que saiu da lista mas continua sendo enviada é pior que nenhuma: o usuário vê um

@@ -532,6 +532,31 @@ describe('a conta segue o tipo da despesa', () => {
     expect(expensePayload().accountId).toBeNull();
     expect(expensePayload().type).toBe(2);
   });
+
+  it('não esquece a conta quando o tipo tocado é o que já estava', async () => {
+    catalogue([rayan], [rayansCard, checking]);
+    stub('POST', '/expense', 201, registeredIn('2026-08-01'));
+    renderForm();
+
+    await waitFor(() => {
+      expect(within(screen.getByTestId('account-picker')).getByText('Nubank')).toBeTruthy();
+    });
+
+    fireEvent.press(within(screen.getByTestId('account-picker')).getByText('Nubank'));
+    // Crédito já está selecionado: este toque não muda nada e não pode custar o cartão.
+    fireEvent.press(within(screen.getByTestId('type-picker')).getByText('Crédito'));
+
+    fireEvent.press(within(screen.getByTestId('category-picker')).getByText('Alimentação'));
+    fireEvent.changeText(screen.getByLabelText('Nome'), 'Passagem');
+    fireEvent.changeText(screen.getByLabelText('Valor'), '480,00');
+    fireEvent.press(screen.getByText('Registrar despesa'));
+
+    await waitFor(() => {
+      expect(bodySentTo('POST', '/expense')).toBeDefined();
+    });
+
+    expect(expensePayload().accountId).toBe('a1');
+  });
 });
 
 describe('quando a conta é obrigatória', () => {
