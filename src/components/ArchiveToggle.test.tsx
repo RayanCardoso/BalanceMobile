@@ -66,7 +66,7 @@ afterEach(() => {
 
 describe('archiving an active bill (spec REC AC7) - confirms first', () => {
   it('does not archive on the first press, only after confirming', async () => {
-    stubSequence('PUT', '/recurring-expense/r1/archive?archived=true', [{ status: 204, body: null }]);
+    stubSequence('PUT', '/RecurringExpense/r1/archive?archived=true', [{ status: 204, body: null }]);
 
     const Wrapper = createQueryWrapper(client);
     render(
@@ -77,13 +77,13 @@ describe('archiving an active bill (spec REC AC7) - confirms first', () => {
 
     fireEvent.press(screen.getByText('Arquivar'));
 
-    expect(callsTo('PUT', '/recurring-expense/r1/archive?archived=true')).toHaveLength(0);
+    expect(callsTo('PUT', '/RecurringExpense/r1/archive?archived=true')).toHaveLength(0);
     expect(screen.getByText('Arquivar esta conta?')).toBeTruthy();
 
     fireEvent.press(screen.getByText('Confirmar'));
 
     await waitFor(() => {
-      expect(callsTo('PUT', '/recurring-expense/r1/archive?archived=true')).toHaveLength(1);
+      expect(callsTo('PUT', '/RecurringExpense/r1/archive?archived=true')).toHaveLength(1);
     });
   });
 
@@ -99,14 +99,14 @@ describe('archiving an active bill (spec REC AC7) - confirms first', () => {
     fireEvent.press(screen.getByText('Cancelar'));
 
     expect(screen.queryByText('Arquivar esta conta?')).toBeNull();
-    expect(callsTo('PUT', '/recurring-expense/r1/archive?archived=true')).toHaveLength(0);
+    expect(callsTo('PUT', '/RecurringExpense/r1/archive?archived=true')).toHaveLength(0);
     expect(screen.getByText('Arquivar')).toBeTruthy();
   });
 });
 
 describe('unarchiving (spec REC AC8) - no confirmation needed', () => {
   it('unarchives on a single press', async () => {
-    stubSequence('PUT', '/recurring-expense/r1/archive?archived=false', [{ status: 204, body: null }]);
+    stubSequence('PUT', '/RecurringExpense/r1/archive?archived=false', [{ status: 204, body: null }]);
 
     const Wrapper = createQueryWrapper(client);
     render(
@@ -120,7 +120,7 @@ describe('unarchiving (spec REC AC8) - no confirmation needed', () => {
     fireEvent.press(screen.getByText('Desarquivar'));
 
     await waitFor(() => {
-      expect(callsTo('PUT', '/recurring-expense/r1/archive?archived=false')).toHaveLength(1);
+      expect(callsTo('PUT', '/RecurringExpense/r1/archive?archived=false')).toHaveLength(1);
     });
   });
 });
@@ -201,8 +201,8 @@ describe('the payment survives an archive/unarchive round trip', () => {
       { status: 200, body: monthWithout() },
       { status: 200, body: monthWith() },
     ]);
-    stubSequence('PUT', '/recurring-expense/r1/archive?archived=true', [{ status: 204, body: null }]);
-    stubSequence('PUT', '/recurring-expense/r1/archive?archived=false', [{ status: 204, body: null }]);
+    stubSequence('PUT', '/RecurringExpense/r1/archive?archived=true', [{ status: 204, body: null }]);
+    stubSequence('PUT', '/RecurringExpense/r1/archive?archived=false', [{ status: 204, body: null }]);
 
     const Wrapper = createQueryWrapper(client);
     render(

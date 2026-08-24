@@ -6,14 +6,22 @@
  * rule enforceable — a literal `#rrggbb` anywhere outside this file is a bug, because it is a colour
  * no other screen can see.
  *
- * The palette is built around a deep navy rather than neutral grey. Depth is expressed by *lifting*
- * a surface towards blue (`base` → `raised` → `overlay`), not by drop shadows: shadows barely read
- * against a near-black background on either platform, while a two-step lightness change does.
+ * The palette is built around a near-neutral graphite. It used to be a saturated navy, and that is
+ * the mistake this file now exists to prevent: with blue in the screen, in the card, in the row, in
+ * the input and in the bar, the one blue that means *this is the action* had nothing to stand out
+ * against. Colour is rationed here — the accent, the money statuses, and the bank cards. Everything
+ * else in the app is grey, which is what makes those three read as signal.
+ *
+ * Depth is still expressed by *lifting* a surface (`base` → `raised` → `overlay`), not by drop
+ * shadows: shadows barely read against a near-black background on either platform, while a two-step
+ * lightness change does.
  *
  * Contrast is checked against the surface a token is meant to sit on. `text.primary`,
- * `text.secondary` and `accent.base` all clear 4.5:1 on `surface.base` and `surface.raised`;
- * `text.muted` is at the 4.5:1 line and is for supporting copy only — never for the one word a
- * screen depends on.
+ * `text.secondary`, `text.muted` and `accent.text` all clear 4.5:1 on `surface.base` and
+ * `surface.raised`; `text.muted` sits closest to that line and is for supporting copy only — never
+ * for the one word a screen depends on. `accent.base` is a **fill**, not an ink: it clears 4.5:1
+ * against `text.onAccent` laid on top of it, and is itself too dark to be read as text on a dark
+ * surface. Where the accent has to *be* text — a link, a label, an icon — use `accent.text`.
  */
 
 import type { TextStyle } from 'react-native';
@@ -21,75 +29,87 @@ import type { TextStyle } from 'react-native';
 export const colors = {
   surface: {
     /** The screen itself. Nothing sits behind it. */
-    base: '#111827',
+    base: '#0F1113',
 
     /** Cards, list rows, inputs, the tab bar — anything laid on top of the screen. */
-    raised: '#0B1F44',
+    raised: '#17191D',
 
     /** Modals, menus and pressed rows: one step above a card. */
-    overlay: '#132A52',
+    overlay: '#1E2126',
 
     /** A row or chip that is selected, and the resting fill of a secondary control. */
-    selected: '#173B70',
+    selected: '#24272D',
   },
 
   border: {
-    default: 'rgb(51, 129, 255)',
-    
     /** Hairlines between rows and around inputs — present, not loud. */
-    subtle: '#23426F',
+    subtle: '#26292F',
 
     /** A focused input, or the edge of something that must be found quickly. */
-    strong: '#3566A3',
+    strong: '#3A3E46',
   },
 
   text: {
     /** Values, headings, anything the user reads to make a decision. */
-    primary: '#E5E7EB',
+    primary: '#F1F2F4',
 
     /** Labels and secondary lines. */
-    secondary: '#AAB8CF',
-
-    tertiary: "rgb(51, 129, 255)",
+    secondary: '#A0A5AD',
 
     /** Captions, placeholders, disabled copy. Never load-bearing. */
-    muted: '#7183A3',
+    muted: '#7C838E',
 
     /** Text and icons on top of `accent.base`. */
-    onAccent: '#06122A',
+    onAccent: '#FFFFFF',
   },
 
   accent: {
-    /** The single brand blue: primary buttons, links, the active destination. */
-    base: '#0D6EFD',
+    /**
+     * The single brand blue, as a **fill**: primary buttons, the plotted line, the active dot.
+     * Pair it with `text.onAccent`; do not set it as a text colour on a dark surface.
+     */
+    base: '#2F6FED',
 
     /** Its pressed state. */
-    pressed: '#0A5DD1',
+    pressed: '#2559C4',
 
-    /** A tinted fill for the accent — selected chips, informational panels. */
-    soft: '#102A56',
+    /** A tinted fill for the accent — selected chips, informational panels, the chart's area. */
+    soft: '#16233D',
+
+    /**
+     * The same blue lifted until it is legible *as ink* on `surface.base` and `surface.raised`.
+     *
+     * Two tokens rather than one because a colour cannot do both jobs at this lightness: dark enough
+     * for white to sit on it, light enough to be read against near-black. Choosing one value for
+     * both is how the old palette ended up with a button label at 4.1:1.
+     */
+    text: '#5A8DF2',
   },
 
   /**
    * O escurecido que separa a gaveta da tela atrás dela.
    */
-  scrim: 'rgba(6, 18, 42, 0.6)',
+  scrim: 'rgba(8, 9, 11, 0.64)',
 
   /**
    * Money and status.
    */
   status: {
-    positive: '#22C55E',
-    positiveSoft: '#102A1D',
+    positive: '#3FBF7F',
+    positiveSoft: '#12271D',
 
-    warning: '#F59E0B',
-    warningSoft: '#2E2312',
+    warning: '#E0A03A',
+    warningSoft: '#2A2113',
 
-    negative: '#EF4444',
-    negativeSoft: '#33161A',
+    negative: '#E5484D',
+    negativeSoft: '#2C1618',
 
-    neutral: 'rgb(51, 129, 255)',
-    neutralSoft: '#132A52',
+    /**
+     * "Nada aconteceu ainda" é uma ausência de estado, não um estado azul. Era o mesmo azul do
+     * `accent`, e um lançamento pendente competia com o botão da tela por atenção que não merecia.
+     */
+    neutral: '#7E8794',
+    neutralSoft: '#1E2126',
   },
 
   /**
@@ -103,8 +123,9 @@ export const colors = {
    * A chave é o nome normalizado (ver `src/utils/bank.ts`) e o casamento é por prefixo, então `nu`
    * cobre "Nubank" e "Nu Pagamentos", e `itau` cobre "Itaú Unibanco".
    *
-   * É a única superfície do app que não é azul-marinho, e é deliberado: um cartão é reconhecido pela
-   * cor antes de ser lido.
+   * É a única superfície colorida do app, e é deliberado: um cartão é reconhecido pela cor antes de
+   * ser lido. Num app que passou a ser cinza, essa é a razão de ela ter ficado — e a razão de não
+   * haver uma segunda.
    */
   bank: {
     nu: { fill: '#820AD1', ink: '#FFFFFF' },
@@ -160,7 +181,7 @@ export const radius = {
  * Os controles desenhados no `TopBar`. `size` é o alvo de toque — 44 é o mínimo confortável em
  * ambas as plataformas — e `bar` é a espessura de um traço do ☰.
  */
-export const control = { size: 44, bar: 2 } as const;
+export const control = { size: 44, bar: 2, fab: 56 } as const;
 
 /**
  * A geometria da linha de tendência sob o navegador de mês.
@@ -194,9 +215,17 @@ export const chart = {
 export const card = { width: 264, height: 156 } as const;
 
 export const type: Record<
-  'title' | 'heading' | 'body' | 'label' | 'caption' | 'money',
+  'hero' | 'title' | 'heading' | 'body' | 'label' | 'caption' | 'money',
   TextStyle
 > = {
+  /**
+   * O valor que É o assunto da tela — o saldo do mês no resumo, o total no mês de receitas e no de
+   * despesas. Um por tela, no topo, e nada mais neste tamanho.
+   *
+   * Existe separado de `money` porque um valor-manchete e um valor-de-linha não são o mesmo papel:
+   * dar 32pt a `money` engordaria toda coluna de lançamento junto.
+   */
+  hero: { fontSize: 32, fontWeight: '700', fontVariant: ['tabular-nums'], letterSpacing: -0.5 },
   /** Screen titles. */
   title: { fontSize: 22, fontWeight: '700' },
   /** Section headings and card titles. */

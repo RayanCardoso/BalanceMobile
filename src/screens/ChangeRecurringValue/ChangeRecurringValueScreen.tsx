@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
@@ -21,15 +22,24 @@ import { styles } from './ChangeRecurringValueScreen.styles';
  * No client-side check that the validity start is later than the current version's, and no check that
  * the reason is non-empty (MAD-001, MAD-004): `VALIDITY_START_MUST_BE_LATER` and
  * `CHANGE_REASON_REQUIRED` are the API's own rules, and a second copy here could disagree with them.
+ *
+ * `recurringExpenseId` chega por parâmetro quando quem abriu a tela foi o menu de uma linha do mês —
+ * ali a conta já foi escolhida, e repetir o seletor seria pedir de novo a mesma resposta. Pela rota
+ * direta, o seletor continua sendo a única forma de dizer qual conta é.
  */
 export function ChangeRecurringValueScreen(): React.JSX.Element {
+  const params = useLocalSearchParams<{ recurringExpenseId?: string }>();
+
   const bills = useRecurringExpenses();
   const change = useChangeRecurringValue();
 
-  const [recurringExpenseId, setRecurringExpenseId] = useState<string | null>(null);
+  const [pickedId, setPickedId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [validityStart, setValidityStart] = useState(() => todayApiDate());
   const [changeReason, setChangeReason] = useState('');
+
+  const recurringExpenseId = params.recurringExpenseId ?? pickedId;
+  const selected = bills.data?.find((bill) => bill.id === recurringExpenseId);
 
   const messages = change.isError ? apiMessages(change.error) : [];
 
@@ -56,14 +66,20 @@ export function ChangeRecurringValueScreen(): React.JSX.Element {
 
   return (
     <Screen>
-      <View testID="recurring-bill-picker">
-        <Picker
-          label="Conta"
-          onChange={setRecurringExpenseId}
-          options={(bills.data ?? []).map((bill) => ({ label: bill.name, value: bill.id }))}
-          selected={recurringExpenseId}
-        />
-      </View>
+      {params.recurringExpenseId === undefined ? (
+        <View testID="recurring-bill-picker">
+          <Picker
+            label="Conta"
+            onChange={setPickedId}
+            options={(bills.data ?? []).map((bill) => ({ label: bill.name, value: bill.id }))}
+            selected={pickedId}
+          />
+        </View>
+      ) : (
+        <Text style={styles.billName} testID="recurring-bill-name">
+          {selected?.name ?? '—'}
+        </Text>
+      )}
 
       <Field label="Novo valor" onChangeText={setAmount} placeholder="2400,00" value={amount} />
       <DateField

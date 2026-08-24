@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   destinationActive: {
     backgroundColor: colors.surface.selected,
-    color: colors.accent.base,
+    color: colors.accent.text,
   },
   footer: {
     borderTopColor: colors.border.subtle,
@@ -136,6 +136,6 @@ const styles = StyleSheet.create({
   },
   signOutLabel: {
     ...type.label,
-    color: colors.accent.base,
+    color: colors.accent.text,
   },
 });

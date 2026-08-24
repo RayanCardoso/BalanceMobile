@@ -13,7 +13,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { Money } from '@/components/Money';
-import { chart, colors, radius, space, type } from '@/components/theme';
+import { chart, colors, space, type } from '@/components/theme';
 import type { MonthValue } from '@/hooks/useMonthSeries';
 import { formatMoney } from '@/utils/money';
 import { monthAbbrev, monthLabel } from '@/utils/dates';
@@ -125,10 +125,10 @@ export function MonthTrend({
    * not answer at all, which is not this component's to fix but is this component's to survive. A
    * width of zero puts every point at the same x and draws the five months as one vertical line, so
    * the first paint uses what the layout already implies: `Screen` pads its content by `space.lg` on
-   * both sides and the card draws a 1pt border on each. The estimate is replaced the moment a real
-   * measurement arrives.
+   * both sides, and nothing else eats width. The estimate is replaced the moment a real measurement
+   * arrives.
    */
-  const estimate = Math.max(0, windowWidth - space.lg * 2 - 2);
+  const estimate = Math.max(0, windowWidth - space.lg * 2);
   const width = measured > 0 ? measured : estimate;
 
   // Read on the gesture's own callbacks, which close over the render they were created in. Kept in
@@ -217,7 +217,7 @@ export function MonthTrend({
         {selectedValue === null ? (
           <Text style={styles.absent}>—</Text>
         ) : (
-          <Money value={selectedValue} />
+          <Money style={styles.value} value={selectedValue} />
         )}
       </View>
 
@@ -310,7 +310,7 @@ export function MonthTrend({
                   fill={isSelected ? colors.accent.base : colors.border.strong}
                   key={`${entry.year}-${entry.month}`}
                   r={isSelected ? chart.dotSelected : chart.dot}
-                  stroke={isSelected ? colors.surface.raised : undefined}
+                  stroke={isSelected ? colors.surface.base : undefined}
                   strokeWidth={isSelected ? chart.dotRing : 0}
                 />
               );
@@ -337,52 +337,39 @@ export function MonthTrend({
         </Animated.View>
         </View>
       </View>
-
-      <Pressable
-        accessibilityLabel="Mês anterior"
-        accessibilityRole="button"
-        disabled={reach === 0}
-        onPress={move(-1)}
-        style={[styles.arrow, styles.arrowLeft]}
-      >
-        <ChevronLeftIcon color={colors.text.secondary} size={16} />
-      </Pressable>
-
-      <Pressable
-        accessibilityLabel="Próximo mês"
-        accessibilityRole="button"
-        disabled={reach === 0}
-        onPress={move(1)}
-        style={[styles.arrow, styles.arrowRight]}
-      >
-        <ChevronRightIcon color={colors.text.secondary} size={16} />
-      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  /**
+   * Sem cartão: o valor do mês é a primeira coisa da tela, e uma caixa em volta da primeira coisa
+   * da tela só a afasta da borda. `overflow` fica porque é ele que corta os meses que continuam
+   * para fora da janela enquanto o dedo arrasta.
+   */
   card: {
-    backgroundColor: colors.surface.raised,
-    borderColor: colors.border.subtle,
-    borderRadius: radius.md,
-    borderWidth: 1,
     gap: space.sm,
     overflow: 'hidden',
     paddingVertical: space.lg,
-    marginBottom: space.lg
+    marginBottom: space.sm,
   },
+  /** Alinhado à esquerda, com o resto da tela: um número deste tamanho centralizado vira pôster. */
   header: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: space.xs,
-    paddingHorizontal: space.lg,
   },
   month: {
-    ...type.label,
-    color: colors.text.secondary,
+    ...type.caption,
+    color: colors.text.muted,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  value: {
+    ...type.hero,
   },
   absent: {
-    ...type.money,
+    ...type.hero,
     color: colors.text.muted,
   },
   viewport: {

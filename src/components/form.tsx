@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
   },
   optionLabelSelected: {
-    color: colors.accent.base,
+    color: colors.accent.text,
   },
   submit: {
     alignItems: 'center',

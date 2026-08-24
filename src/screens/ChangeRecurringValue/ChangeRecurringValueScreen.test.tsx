@@ -12,15 +12,15 @@ jest.mock('@/utils/tokenStorage', () => ({
 }));
 
 /**
- * Hoje é fixado para que o rótulo do campo de data seja um literal. Sem isto o teste dependeria do
- * relógio da máquina: o `DateField` compõe o seu rótulo de acessibilidade com a data que mostra, e
- * essa data é hoje enquanto ninguém escolher outra.
+ * Os parâmetros da rota, trocáveis por teste: a tela tem duas portas de entrada e elas se distinguem
+ * exatamente por este objeto - o menu de uma linha do mês manda a conta junto, a rota direta não.
  */
 const TODAY = '2026-08-14';
 
-jest.mock('@/utils/dates', () => ({
-  ...jest.requireActual<Record<string, unknown>>('@/utils/dates'),
-  todayApiDate: () => '2026-08-14',
+let mockParams: Record<string, string> = {};
+
+jest.mock('expo-router', () => ({
+  useLocalSearchParams: () => mockParams,
 }));
 
 const BASE = 'http://10.0.2.2:5126/api';
@@ -42,7 +42,7 @@ const bodySentTo = (method: string, path: string): string | undefined => {
 };
 
 const changePayload = (): Record<string, unknown> =>
-  JSON.parse(bodySentTo('PUT', '/recurring-expense/value')!) as Record<string, unknown>;
+  JSON.parse(bodySentTo('PUT', '/RecurringExpense/value')!) as Record<string, unknown>;
 
 const bill = {
   id: 'r1',
@@ -103,7 +103,8 @@ beforeEach(() => {
   globalThis.fetch = fetchMock as unknown as typeof fetch;
   useSessionStore.setState({ token: 'issued-token', name: 'Rayan', status: 'signedIn' });
   client = createTestQueryClient();
-  stub('GET', '/recurring-expense', 200, { recurringExpenses: [bill] });
+  mockParams = {};
+  stub('GET', '/RecurringExpense', 200, { recurringExpenses: [bill] });
 });
 
 afterEach(() => {
@@ -118,7 +119,7 @@ afterEach(() => {
 
 describe('changing a recurring bills base value (spec REC AC6)', () => {
   it('sends the recurring expense id, the new amount, the validity start and the change reason', async () => {
-    stub('PUT', '/recurring-expense/value', 200, {
+    stub('PUT', '/RecurringExpense/value', 200, {
       ...bill,
       versions: [...bill.versions, { ...bill.versions[0], id: 'v2', amount: 2400, validityStart: '2026-09-01' }],
     });
@@ -132,7 +133,7 @@ describe('changing a recurring bills base value (spec REC AC6)', () => {
     fireEvent.press(screen.getByText('Salvar novo valor'));
 
     await waitFor(() => {
-      expect(bodySentTo('PUT', '/recurring-expense/value')).toBe(
+      expect(bodySentTo('PUT', '/RecurringExpense/value')).toBe(
         '{"recurringExpenseId":"r1","amount":2400,"validityStart":"2026-09-01","changeReason":"Reajuste anual"}'
       );
     });
@@ -141,7 +142,7 @@ describe('changing a recurring bills base value (spec REC AC6)', () => {
 
 describe('when the API rejects the change reason', () => {
   it('shows the message the API sent without a client-side check of its own', async () => {
-    stub('PUT', '/recurring-expense/value', 400, { errorMessages: ['O motivo é obrigatório.'] });
+    stub('PUT', '/RecurringExpense/value', 400, { errorMessages: ['O motivo é obrigatório.'] });
     renderScreen();
 
     await waitFor(() => {
@@ -162,7 +163,7 @@ describe('when the API rejects the change reason', () => {
 
 describe('when the API rejects the validity start', () => {
   it('shows the message the API sent without a client-side date-ordering check', async () => {
-    stub('PUT', '/recurring-expense/value', 400, {
+    stub('PUT', '/RecurringExpense/value', 400, {
       errorMessages: ['A vigência deve começar depois da versão atual.'],
     });
     renderScreen();
@@ -180,5 +181,38 @@ describe('when the API rejects the validity start', () => {
     });
 
     expect(changePayload().validityStart).toBe('2025-01-01');
+  });
+});
+
+/**
+ * Vindo do menu de uma linha do mês a conta já foi escolhida, e mostrar o seletor de novo seria
+ * pedir duas vezes a mesma resposta - com a chance de a segunda contradizer a primeira.
+ */
+describe('aberta pelo menu de uma conta do mês', () => {
+  it('não pede a conta de novo e envia a que o menu escolheu', async () => {
+    mockParams = { recurringExpenseId: 'r1' };
+    stub('PUT', '/RecurringExpense/value', 200, {
+      ...bill,
+      versions: [
+        ...bill.versions,
+        { ...bill.versions[0], id: 'v2', amount: 2400, validityStart: '2026-09-01' },
+      ],
+    });
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recurring-bill-name')).toHaveTextContent('Aluguel');
+    });
+
+    expect(screen.queryByTestId('recurring-bill-picker')).toBeNull();
+
+    fireEvent.changeText(screen.getByLabelText('Novo valor'), '2400,00');
+    fireEvent.changeText(screen.getByLabelText('Início da vigência'), '2026-09-01');
+    fireEvent.changeText(screen.getByLabelText('Motivo da alteração'), 'Reajuste anual');
+    fireEvent.press(screen.getByText('Salvar novo valor'));
+
+    await waitFor(() => {
+      expect(changePayload().recurringExpenseId).toBe('r1');
+    });
   });
 });
