@@ -127,7 +127,7 @@ const calendar = {
   today_label: { color: colors.accent.base },
   selected: {
     backgroundColor: colors.surface.selected,
-    borderColor: colors.border.default,
+    borderColor: colors.border.strong,
     borderRadius: radius.sm,
     borderWidth: 1,
   },

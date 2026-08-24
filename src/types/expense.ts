@@ -84,6 +84,8 @@ export type RecurringExpenseLine = {
   personId: string;
   categoryId: string;
   accountId: string;
+  /** The month's payment override when there is one, otherwise the bill's own payment type. */
+  type: ExpenseType;
   dueDay: number;
   isEstimate: boolean;
   expectedAmount: number | null;

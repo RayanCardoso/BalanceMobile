@@ -60,6 +60,7 @@ const energyLine = {
   personId: 'p1',
   categoryId: 'c2',
   accountId: 'a1',
+  type: 1,
   dueDay: 10,
   isEstimate: true,
   expectedAmount: 150,
@@ -78,6 +79,7 @@ const registerInput = {
   dueDay: 10,
   amount: 150,
   isEstimate: true,
+  type: 1 as const,
 };
 
 /** The API answers with the bill and the single version it created, starting in August. */
@@ -113,6 +115,7 @@ const paymentInput = {
   amountPaid: 187.4,
   notes: 'Conta veio mais alta',
   accountId: 'a1',
+  type: 1 as const,
 };
 
 const recordedPayment = {
@@ -132,6 +135,7 @@ const correctionInput = {
   amountPaid: 190.2,
   notes: 'Valor corrigido',
   accountId: 'a2',
+  type: 2 as const,
 };
 
 /** A re-price starting in **September**: August was priced under the old version and stays put. */
@@ -205,8 +209,8 @@ const stubThreeMonths = (): void => {
 };
 
 describe('listing recurring bills (spec REC-01, T51)', () => {
-  it('reads the recurringExpenses array of GET /api/recurring-expense', async () => {
-    stub('GET', '/recurring-expense', 200, { recurringExpenses: [registeredBill] });
+  it('reads the recurringExpenses array of GET /api/RecurringExpense', async () => {
+    stub('GET', '/RecurringExpense', 200, { recurringExpenses: [registeredBill] });
 
     const { result } = renderRecurringHook(() => useRecurringExpenses());
 
@@ -220,7 +224,7 @@ describe('listing recurring bills (spec REC-01, T51)', () => {
 
 describe('registering a recurring bill (spec REC AC1)', () => {
   it('sends the name, the person, the category, the account, the due day, the amount and the estimate flag', async () => {
-    stub('POST', '/recurring-expense', 201, registeredBill);
+    stub('POST', '/RecurringExpense', 201, registeredBill);
 
     const { result } = renderRecurringHook(() => useRegisterRecurringExpense());
     result.current.mutate(registerInput);
@@ -230,8 +234,8 @@ describe('registering a recurring bill (spec REC AC1)', () => {
     });
 
     // A literal string, so a renamed or reordered field cannot agree with itself (lesson L-010).
-    expect(bodySentTo('POST', '/recurring-expense')).toBe(
-      '{"name":"Energia","personId":"p1","categoryId":"c2","accountId":"a1","dueDay":10,"amount":150,"isEstimate":true}'
+    expect(bodySentTo('POST', '/RecurringExpense')).toBe(
+      '{"name":"Energia","personId":"p1","categoryId":"c2","accountId":"a1","dueDay":10,"amount":150,"isEstimate":true,"type":1}'
     );
   });
 
@@ -241,7 +245,7 @@ describe('registering a recurring bill (spec REC AC1)', () => {
    */
   it("refreshes every month from the version's validity start onward, and no earlier month", async () => {
     stubThreeMonths();
-    stub('POST', '/recurring-expense', 201, registeredBill);
+    stub('POST', '/RecurringExpense', 201, registeredBill);
 
     const { result } = renderThreeMonths(() => useRegisterRecurringExpense());
 
@@ -262,7 +266,7 @@ describe('registering a recurring bill (spec REC AC1)', () => {
   });
 
   it('refreshes the dashboards of those same months and no earlier one', async () => {
-    stub('POST', '/recurring-expense', 201, registeredBill);
+    stub('POST', '/RecurringExpense', 201, registeredBill);
 
     const dashboards = {
       july: jest.fn(async () => ({ totalCommitted: 0 })),
@@ -295,8 +299,8 @@ describe('registering a recurring bill (spec REC AC1)', () => {
 
   /** A newly registered bill has to appear in T37's list without a manual reload. */
   it('refreshes the recurring bills list', async () => {
-    stub('GET', '/recurring-expense', 200, { recurringExpenses: [] });
-    stub('POST', '/recurring-expense', 201, registeredBill);
+    stub('GET', '/RecurringExpense', 200, { recurringExpenses: [] });
+    stub('POST', '/RecurringExpense', 201, registeredBill);
 
     const { result } = renderRecurringHook(() => ({
       list: useRecurringExpenses(),
@@ -310,14 +314,14 @@ describe('registering a recurring bill (spec REC AC1)', () => {
     result.current.register.mutate(registerInput);
 
     await waitFor(() => {
-      expect(callsTo('GET', '/recurring-expense')).toHaveLength(2);
+      expect(callsTo('GET', '/RecurringExpense')).toHaveLength(2);
     });
   });
 });
 
 describe('recording what a bill cost in a month (spec REC AC3)', () => {
   it('sends the reference month, the payment date, the amount paid, the notes and the paying account', async () => {
-    stub('POST', '/recurring-expense/payment', 201, recordedPayment);
+    stub('POST', '/RecurringExpense/payment', 201, recordedPayment);
 
     const { result } = renderRecurringHook(() => useRegisterRecurringPayment());
     result.current.mutate(paymentInput);
@@ -326,8 +330,8 @@ describe('recording what a bill cost in a month (spec REC AC3)', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(bodySentTo('POST', '/recurring-expense/payment')).toBe(
-      '{"recurringExpenseId":"r1","referenceMonth":"2026-08-01","paymentDate":"2026-09-03","amountPaid":187.4,"notes":"Conta veio mais alta","accountId":"a1"}'
+    expect(bodySentTo('POST', '/RecurringExpense/payment')).toBe(
+      '{"recurringExpenseId":"r1","referenceMonth":"2026-08-01","paymentDate":"2026-09-03","amountPaid":187.4,"notes":"Conta veio mais alta","accountId":"a1","type":1}'
     );
   });
 
@@ -338,7 +342,7 @@ describe('recording what a bill cost in a month (spec REC AC3)', () => {
    */
   it('refreshes the month the payment refers to and not the month it was paid in', async () => {
     stubThreeMonths();
-    stub('POST', '/recurring-expense/payment', 201, recordedPayment);
+    stub('POST', '/RecurringExpense/payment', 201, recordedPayment);
 
     const { result } = renderThreeMonths(() => useRegisterRecurringPayment());
 
@@ -357,7 +361,7 @@ describe('recording what a bill cost in a month (spec REC AC3)', () => {
   });
 
   it("refreshes the referred month's dashboard and not the payment month's", async () => {
-    stub('POST', '/recurring-expense/payment', 201, recordedPayment);
+    stub('POST', '/RecurringExpense/payment', 201, recordedPayment);
 
     const august = jest.fn(async () => ({ totalCommitted: 150 }));
     const september = jest.fn(async () => ({ totalCommitted: 0 }));
@@ -385,7 +389,7 @@ describe('recording what a bill cost in a month (spec REC AC3)', () => {
 
 describe('correcting a recorded payment (spec REC AC5)', () => {
   it('addresses the payment by its own id and sends no second payment', async () => {
-    stub('PUT', '/recurring-expense/payment/pay-7', 200, recordedPayment);
+    stub('PUT', '/RecurringExpense/payment/pay-7', 200, recordedPayment);
 
     const { result } = renderRecurringHook(() => useUpdateRecurringPayment());
     result.current.mutate(correctionInput);
@@ -394,13 +398,13 @@ describe('correcting a recorded payment (spec REC AC5)', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(callsTo('PUT', '/recurring-expense/payment/pay-7')).toHaveLength(1);
+    expect(callsTo('PUT', '/RecurringExpense/payment/pay-7')).toHaveLength(1);
     // Spec REC AC4: a correction replaces the recorded payment rather than adding another.
-    expect(callsTo('POST', '/recurring-expense/payment')).toHaveLength(0);
+    expect(callsTo('POST', '/RecurringExpense/payment')).toHaveLength(0);
   });
 
-  it('sends only the amount, the payment date, the notes and the paying account', async () => {
-    stub('PUT', '/recurring-expense/payment/pay-7', 200, recordedPayment);
+  it('sends only the amount, the payment date, the notes, the paying account and the type', async () => {
+    stub('PUT', '/RecurringExpense/payment/pay-7', 200, recordedPayment);
 
     const { result } = renderRecurringHook(() => useUpdateRecurringPayment());
     result.current.mutate(correctionInput);
@@ -409,13 +413,13 @@ describe('correcting a recorded payment (spec REC AC5)', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(bodySentTo('PUT', '/recurring-expense/payment/pay-7')).toBe(
-      '{"paymentDate":"2026-09-04","amountPaid":190.2,"notes":"Valor corrigido","accountId":"a2"}'
+    expect(bodySentTo('PUT', '/RecurringExpense/payment/pay-7')).toBe(
+      '{"paymentDate":"2026-09-04","amountPaid":190.2,"notes":"Valor corrigido","accountId":"a2","type":2}'
     );
 
     // A correction never moves which month the payment belongs to, nor which version it was measured
     // against, nor which bill it is. Absent, not null: the API's request carries no such fields.
-    const payload = JSON.parse(bodySentTo('PUT', '/recurring-expense/payment/pay-7')!) as Record<
+    const payload = JSON.parse(bodySentTo('PUT', '/RecurringExpense/payment/pay-7')!) as Record<
       string,
       unknown
     >;
@@ -426,7 +430,7 @@ describe('correcting a recorded payment (spec REC AC5)', () => {
 
   it('refreshes the month the corrected payment belongs to, not the month it was corrected in', async () => {
     stubThreeMonths();
-    stub('PUT', '/recurring-expense/payment/pay-7', 200, recordedPayment);
+    stub('PUT', '/RecurringExpense/payment/pay-7', 200, recordedPayment);
 
     const { result } = renderThreeMonths(() => useUpdateRecurringPayment());
 
@@ -447,7 +451,7 @@ describe('correcting a recorded payment (spec REC AC5)', () => {
 
 describe('changing the base value (spec REC AC6)', () => {
   it('sends the bill, the new amount, the validity start and the change reason', async () => {
-    stub('PUT', '/recurring-expense/value', 200, repricedBill);
+    stub('PUT', '/RecurringExpense/value', 200, repricedBill);
 
     const { result } = renderRecurringHook(() => useChangeRecurringValue());
     result.current.mutate(changeInput);
@@ -456,7 +460,7 @@ describe('changing the base value (spec REC AC6)', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(bodySentTo('PUT', '/recurring-expense/value')).toBe(
+    expect(bodySentTo('PUT', '/RecurringExpense/value')).toBe(
       '{"recurringExpenseId":"r1","amount":180,"validityStart":"2026-09-01","changeReason":"Reajuste anual"}'
     );
   });
@@ -468,7 +472,7 @@ describe('changing the base value (spec REC AC6)', () => {
    */
   it('refreshes every month from the new validity start onward and leaves earlier months alone', async () => {
     stubThreeMonths();
-    stub('PUT', '/recurring-expense/value', 200, repricedBill);
+    stub('PUT', '/RecurringExpense/value', 200, repricedBill);
 
     const { result } = renderThreeMonths(() => useChangeRecurringValue());
 
@@ -491,7 +495,7 @@ describe('changing the base value (spec REC AC6)', () => {
 
 describe('archiving and unarchiving (spec REC AC7, AC8)', () => {
   it("archives through the bill's own route", async () => {
-    stub('PUT', '/recurring-expense/r1/archive?archived=true', 204, null);
+    stub('PUT', '/RecurringExpense/r1/archive?archived=true', 204, null);
 
     const { result } = renderRecurringHook(() => useArchiveRecurringExpense());
     result.current.mutate({ recurringExpenseId: 'r1', archived: true });
@@ -500,11 +504,11 @@ describe('archiving and unarchiving (spec REC AC7, AC8)', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(callsTo('PUT', '/recurring-expense/r1/archive?archived=true')).toHaveLength(1);
+    expect(callsTo('PUT', '/RecurringExpense/r1/archive?archived=true')).toHaveLength(1);
   });
 
   it('unarchives through the same route with the flag reversed', async () => {
-    stub('PUT', '/recurring-expense/r1/archive?archived=false', 204, null);
+    stub('PUT', '/RecurringExpense/r1/archive?archived=false', 204, null);
 
     const { result } = renderRecurringHook(() => useArchiveRecurringExpense());
     result.current.mutate({ recurringExpenseId: 'r1', archived: false });
@@ -513,7 +517,7 @@ describe('archiving and unarchiving (spec REC AC7, AC8)', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(callsTo('PUT', '/recurring-expense/r1/archive?archived=false')).toHaveLength(1);
+    expect(callsTo('PUT', '/RecurringExpense/r1/archive?archived=false')).toHaveLength(1);
   });
 
   /**
@@ -523,7 +527,7 @@ describe('archiving and unarchiving (spec REC AC7, AC8)', () => {
    */
   it('refreshes every month the app has cached, past and future alike', async () => {
     stubThreeMonths();
-    stub('PUT', '/recurring-expense/r1/archive?archived=true', 204, null);
+    stub('PUT', '/RecurringExpense/r1/archive?archived=true', 204, null);
 
     const julyDashboard = jest.fn(async () => ({ totalCommitted: 150 }));
 
@@ -555,8 +559,8 @@ describe('archiving and unarchiving (spec REC AC7, AC8)', () => {
 
   /** The list itself carries the flag this toggle just flipped, so T37 needs a fresh read too. */
   it('refreshes the recurring bills list', async () => {
-    stub('GET', '/recurring-expense', 200, { recurringExpenses: [registeredBill] });
-    stub('PUT', '/recurring-expense/r1/archive?archived=true', 204, null);
+    stub('GET', '/RecurringExpense', 200, { recurringExpenses: [registeredBill] });
+    stub('PUT', '/RecurringExpense/r1/archive?archived=true', 204, null);
 
     const { result } = renderRecurringHook(() => ({
       list: useRecurringExpenses(),
@@ -570,7 +574,7 @@ describe('archiving and unarchiving (spec REC AC7, AC8)', () => {
     result.current.archive.mutate({ recurringExpenseId: 'r1', archived: true });
 
     await waitFor(() => {
-      expect(callsTo('GET', '/recurring-expense')).toHaveLength(2);
+      expect(callsTo('GET', '/RecurringExpense')).toHaveLength(2);
     });
   });
 });

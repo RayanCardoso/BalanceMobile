@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { space } from '@/components/theme';
+import { control, space } from '@/components/theme';
 
 import { stateStyles } from './styles';
 
@@ -14,9 +14,21 @@ import { stateStyles } from './styles';
  *
  * Rola por padrão porque a alternativa é cada tela de formulário descobrir sozinha, uma de cada
  * vez, que não cabe num aparelho menor.
+ *
+ * `floating` é o que fica *por cima* da rolagem — hoje só o botão de adicionar do resumo. Ele é
+ * irmão do `ScrollView`, e não filho: um filho rolaria junto com a lista e deixaria de ser um botão
+ * flutuante. Quando existe, a borda de baixo do conteúdo cresce o tamanho dele, senão o último
+ * cartão da tela nasce debaixo do botão e nunca é alcançável por rolagem.
  */
-export function Screen({ children }: { children: ReactNode }): React.JSX.Element {
+export function Screen({
+  children,
+  floating,
+}: {
+  children: ReactNode;
+  floating?: ReactNode;
+}): React.JSX.Element {
   const insets = useSafeAreaInsets();
+  const reserved = floating === undefined ? 0 : control.fab + space.lg;
 
   return (
     <KeyboardAvoidingView
@@ -27,13 +39,20 @@ export function Screen({ children }: { children: ReactNode }): React.JSX.Element
       <ScrollView
         // `content` já tem `space.lg` nas quatro bordas; somar `insets.bottom` aqui é a barra de
         // gestos do Android por cima dessa borda, não no lugar dela.
-        contentContainerStyle={[stateStyles.content, { paddingBottom: insets.bottom + space.lg }]}
+        contentContainerStyle={[
+          stateStyles.content,
+          { paddingBottom: insets.bottom + space.lg + reserved },
+        ]}
         keyboardShouldPersistTaps="handled"
         style={stateStyles.scroll}
         testID="screen-scroll"
       >
         {children}
       </ScrollView>
+
+      {floating === undefined ? null : (
+        <View style={[stateStyles.floating, { bottom: insets.bottom + space.lg }]}>{floating}</View>
+      )}
     </KeyboardAvoidingView>
   );
 }

@@ -43,6 +43,14 @@ export const stateStyles = StyleSheet.create({
     flexGrow: 1,
     padding: space.lg,
   },
+  /**
+   * `right` e não `alignItems`: o container é posicionado, então ele encosta na borda direita sem
+   * esticar por cima da tela inteira e sem interceptar toques que eram da lista.
+   */
+  floating: {
+    position: 'absolute',
+    right: space.lg,
+  },
   centered: {
     alignItems: 'center',
     gap: space.md,
@@ -63,6 +71,6 @@ export const stateStyles = StyleSheet.create({
   },
   retryLabel: {
     ...type.label,
-    color: colors.accent.base,
+    color: colors.accent.text,
   },
 });

@@ -49,7 +49,13 @@ export type RegisterRecurringExpenseInput = {
   type: ExpenseType;
 };
 
-/** Spec REC AC3: the reference month is the bill's month, the payment date is the day it was paid. */
+/**
+ * Spec REC AC3: the reference month is the bill's month, the payment date is the day it was paid.
+ *
+ * `type` is nullable because the API declares it nullable (`ExpenseType?`): it overrides the bill's
+ * own payment type **for this month only**, and null means "keep the bill's own". Typing it as
+ * required here would force every caller to invent a type it may not have been asked for.
+ */
 export type RegisterRecurringPaymentInput = {
   recurringExpenseId: string;
   referenceMonth: string;
@@ -57,12 +63,15 @@ export type RegisterRecurringPaymentInput = {
   amountPaid: number;
   notes: string | null;
   accountId: string | null;
-  type: ExpenseType;
+  type: ExpenseType | null;
 };
 
 /**
  * Spec REC AC5 - a correction carries only what was paid. `paymentId` addresses the payment in the
  * URL; the reference month and the frozen version are not the client's to move.
+ *
+ * `type` is the same per-month override the registration carries, and omitting it clears a previous
+ * one - which is why it is sent explicitly rather than left out of the body.
  */
 export type UpdateRecurringPaymentInput = {
   paymentId: string;
@@ -70,6 +79,7 @@ export type UpdateRecurringPaymentInput = {
   amountPaid: number;
   notes: string | null;
   accountId: string | null;
+  type: ExpenseType | null;
 };
 
 /** Spec REC AC6. */
@@ -198,13 +208,14 @@ export function useUpdateRecurringPayment(): UseMutationResult<
   const client = useQueryClient();
 
   return useMutation({
-    // Spec REC AC5 - the four fields a correction may change, built here so no caller can widen it.
+    // Spec REC AC5 - the fields a correction may change, built here so no caller can widen it.
     mutationFn: (input: UpdateRecurringPaymentInput) =>
       put<RecurringExpensePayment>(`/RecurringExpense/payment/${input.paymentId}`, {
         paymentDate: input.paymentDate,
         amountPaid: input.amountPaid,
         notes: input.notes,
         accountId: input.accountId,
+        type: input.type,
       }),
     onSuccess: (payment) => invalidateMonthOf(client, payment.referenceMonth),
   });

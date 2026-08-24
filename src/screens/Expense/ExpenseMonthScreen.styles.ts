@@ -8,20 +8,15 @@ export const styles = StyleSheet.create({
     marginTop: space.sm,
   },
   sectionContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginTop: space.sm
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: space.sm + 2,
+    marginTop: space.sm,
   },
   sectionTitle: {
     ...type.heading,
     color: colors.text.primary,
-    fontSize: 16
-  },
-  total: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    fontSize: 16,
   },
   list: {
     gap: space.sm,
@@ -33,6 +28,13 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     gap: space.xs,
     padding: space.md,
+  },
+  /** O nome à esquerda e os três pontinhos à direita, como na linha de receita. */
+  rowHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: space.sm,
   },
   rowName: {
     ...type.body,
@@ -67,66 +69,4 @@ export const styles = StyleSheet.create({
     color: colors.text.muted,
     fontSize: 16,
   },
-  containerCardExpenseInformation: {
-    width: "100%",
-    padding: space.xl,
-    backgroundColor: colors.surface.raised,
-    borderColor: colors.border.subtle,
-    borderRadius: radius.md,
-    borderWidth: 1,
-  },
-
-  expenseHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space.md,
-    marginBottom: space.xl,
-  },
-
-  walletIcon: {
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surface.raised,
-    borderRadius: 999,
-  },
-
-  expenseTitle: {
-    ...type.body,
-    color: colors.text.primary,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-
-  expenseInformation: {
-    width: "100%",
-    marginBottom: space.xl,
-  },
-
-  expenseLabel: {
-    ...type.caption,
-    color: colors.text.secondary,
-    fontSize: 13,
-    marginBottom: space.xs,
-  },
-
-  expenseAmount: {
-    marginBottom: space.xs,
-  },
-
-  expenseQuantity: {
-    ...type.caption,
-    color: colors.text.secondary,
-    fontSize: 13,
-  },
-
-  containerRegisterButton: {
-    width: "100%",
-    alignItems: "center",
-    gap: 10
-  },
-
-  registerButton: {
-    width: "100%",
-  },
 });
-

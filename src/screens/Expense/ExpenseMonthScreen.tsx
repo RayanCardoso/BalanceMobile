@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { router } from 'expo-router';
 import { Text, View } from 'react-native';
+import { BarChart3, Repeat } from 'lucide-react-native';
 
 import { PRIORITY_LABEL } from '@/types/priority';
 import { useExpenseMonth, useExpenseMonthSeries } from '@/hooks/useExpenses';
@@ -12,14 +14,14 @@ import {
 } from '@/types/expense';
 import { listErrorMessage } from '@/utils/errors/expenses';
 import { currentMonth } from '@/utils/dates';
+import { AddMenu, addOptionsFor } from '@/components/AddMenu';
 import { Money, StatusBadge, type StatusTone } from '@/components/Money';
 import { MonthTrend } from '@/components/MonthTrend';
-import { RegisterButton } from '@/components/RegisterButton';
+import { RowMenu, type RowAction } from '@/components/RowMenu';
 import { EmptyState, ErrorState, Loading, Screen } from '@/components/states';
+import { colors } from '@/components/theme';
 
 import { styles } from './ExpenseMonthScreen.styles';
-import { BarChart3, Calendar, Repeat, Wallet } from 'lucide-react-native';
-import { colors } from '@/components/theme';
 
 /**
  * Spec EXP AC1 - the month's variable expenses and its recurring bills as two separate groups.
@@ -34,8 +36,9 @@ import { colors } from '@/components/theme';
  * dash rather than R$ 0,00 (spec edge case) - the same distinction the income month draws for a
  * variable source.
  *
- * Nothing here adds anything up. `totalCommitted` is the API's own figure (MAD-001): the rule that
- * counts an estimate for an unpaid bill and the paid amount for an arrived one lives in the server.
+ * Nothing here adds anything up, and nothing here is a form. Lançar uma despesa é o botão flutuante,
+ * que é o mesmo `AddMenu` do Resumo pedindo só o que é despesa; agir sobre uma linha que já existe é
+ * o menu da própria linha. As duas coisas moram onde o usuário está olhando quando pensa nelas.
  */
 
 /** Colour is a second signal beside the label, which is what the criterion actually names. */
@@ -78,7 +81,50 @@ function VariableLine({ line }: { line: VariableExpenseLine }): React.JSX.Elemen
   );
 }
 
-function RecurringLine({ line }: { line: RecurringExpenseLine }): React.JSX.Element {
+/**
+ * O que o menu de uma conta recorrente oferece, que depende do que já aconteceu com ela neste mês.
+ *
+ * `paymentId` é o que separa os dois primeiros verbos, e é o mesmo campo que a tela de pagamento lê
+ * para escolher entre POST e PUT (spec REC AC4): oferecer "Registrar pagamento" numa conta já paga
+ * levaria a um `PAYMENT_ALREADY_RECORDED`, e oferecer "Corrigir pagamento" numa conta que não chegou
+ * levaria a uma tela sem nada para corrigir. Alterar o valor base não depende do mês: é a linha do
+ * tempo da conta, e vale a partir da vigência que a tela de lá pedir (spec REC AC6).
+ */
+const recurringActions = (
+  line: RecurringExpenseLine,
+  period: { year: number; month: number }
+): RowAction[] => [
+  {
+    label: line.paymentId === null ? 'Registrar pagamento' : 'Corrigir pagamento',
+    onSelect: () => {
+      router.push({
+        pathname: '/expenses/recurring/payment',
+        params: {
+          recurringExpenseId: line.recurringExpenseId,
+          year: period.year,
+          month: period.month,
+        },
+      });
+    },
+  },
+  {
+    label: 'Alterar valor',
+    onSelect: () => {
+      router.push({
+        pathname: '/expenses/recurring/change-value',
+        params: { recurringExpenseId: line.recurringExpenseId },
+      });
+    },
+  },
+];
+
+function RecurringLine({
+  line,
+  period,
+}: {
+  line: RecurringExpenseLine;
+  period: { year: number; month: number };
+}): React.JSX.Element {
   // The bill has arrived when an actual amount exists; until then the expected one stands in, and
   // an estimated expected amount is provisional.
   const paid = line.actualAmount !== null;
@@ -88,7 +134,15 @@ function RecurringLine({ line }: { line: RecurringExpenseLine }): React.JSX.Elem
 
   return (
     <View style={styles.row} testID={`recurring-line-${line.recurringExpenseId}`}>
-      <Text style={styles.rowName}>{line.name}</Text>
+      <View style={styles.rowHeader}>
+        <Text style={styles.rowName}>{line.name}</Text>
+
+        <RowMenu
+          actions={recurringActions(line, period)}
+          label={`Ações de ${line.name}`}
+          testID={`recurring-menu-${line.recurringExpenseId}`}
+        />
+      </View>
 
       <View style={styles.figure}>
         <Text style={styles.figureLabel} testID={`recurring-dueday-${line.recurringExpenseId}`}>
@@ -144,56 +198,10 @@ export function ExpenseMonthScreen(): React.JSX.Element {
 
     return (
       <View style={styles.sections}>
-        <View style={styles.containerCardExpenseInformation}>
-          <View style={styles.expenseHeader}>
-            <View style={styles.walletIcon}>
-              <Wallet
-                size={23}
-                color={colors.text.primary}
-              />
-            </View>
-
-            <Text style={styles.expenseTitle}>
-              Resumo das despesas
-            </Text>
-          </View>
-
-          <View style={styles.expenseInformation}>
-            <Text style={styles.expenseLabel}>
-              Total comprometido
-            </Text>
-
-            <View style={styles.expenseAmount}>
-              <Money value={month.data.totalCommitted} />
-            </View>
-          </View>
-
-          <View style={styles.containerRegisterButton}>
-            <RegisterButton
-              icon={BarChart3}
-              href="/expenses/variable/new"
-              label="Nova despesa variável"
-              style={styles.registerButton}
-            />
-            <RegisterButton
-              icon={Repeat}
-              href="/expenses/recurring/new"
-              label="Nova despesa recorrente"
-              style={styles.registerButton}
-            />
-            <RegisterButton
-              icon={Calendar}
-              href="/expenses/variable/installment-plan"
-              label="Novo parcelamento"
-              style={styles.registerButton}
-            />
-          </View>
-        </View>
-
         <View style={styles.sectionContainer}>
           <BarChart3 size={16} color={colors.text.primary} />
           <View>
-            <Text style={styles.sectionTitle}>Despesas variáveis</Text> 
+            <Text style={styles.sectionTitle}>Despesas variáveis</Text>
           </View>
         </View>
 
@@ -205,19 +213,19 @@ export function ExpenseMonthScreen(): React.JSX.Element {
           )}
         </View>
 
-
-        <View style={styles.sectionContainer}> 
+        <View style={styles.sectionContainer}>
           <Repeat size={16} color={colors.text.primary} />
           <View>
             <Text style={styles.sectionTitle}>Contas recorrentes</Text>
           </View>
         </View>
+
         <View style={styles.list} testID="recurring-line-list">
           {recurringLines.length === 0 ? (
             <Text style={styles.detail}>Nenhuma conta recorrente neste mês.</Text>
           ) : (
             recurringLines.map((line) => (
-              <RecurringLine key={line.recurringExpenseId} line={line} />
+              <RecurringLine key={line.recurringExpenseId} line={line} period={period} />
             ))
           )}
         </View>
@@ -226,7 +234,7 @@ export function ExpenseMonthScreen(): React.JSX.Element {
   };
 
   return (
-    <Screen>
+    <Screen floating={<AddMenu options={addOptionsFor('expense')} />}>
       <MonthTrend
         month={period.month}
         onChange={(year, month) => {

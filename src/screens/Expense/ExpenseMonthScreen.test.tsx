@@ -10,6 +10,14 @@ jest.mock('@/utils/tokenStorage', () => ({
   clearToken: jest.fn(),
 }));
 
+/**
+ * O `router` é o que as asserções do menu olham: para onde uma opção leva, e com qual conta, é a
+ * única coisa que o menu decide - o resto é da tela de destino.
+ */
+jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
+
+const { router } = require('expo-router') as { router: { push: jest.Mock } };
+
 /** Pinned so every month label asserted below is a literal (lesson L-010). */
 jest.mock('@/utils/dates', () => ({
   ...jest.requireActual<Record<string, unknown>>('@/utils/dates'),
@@ -62,6 +70,7 @@ const energy = {
   personId: 'p1',
   categoryId: 'c2',
   accountId: 'a1',
+  type: 1,
   dueDay: 10,
   isEstimate: true,
   expectedAmount: 150,
@@ -120,6 +129,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   stubs.clear();
   fetchMock.mockReset();
+  router.push.mockClear();
   fetchMock.mockImplementation(async (url: string, init: { method: string }) => {
     const found = stubs.get(`${init.method} ${url}`);
 
@@ -296,22 +306,6 @@ describe('a bill with no version in effect', () => {
   });
 });
 
-/** MAD-001: the committed total is the API's figure, never one the client adds up. */
-describe('the committed total', () => {
-  it("renders the API's own total rather than the sum of the lines on screen", async () => {
-    // The lines shown add up to 470,50; the API says 500,00, and the API's rule is the one that
-    // counts. A screen doing its own arithmetic would render R$ 470,50 here.
-    stub('GET', '/expense/2026/8', 200, monthBody([market], [energy], 500));
-    renderScreen();
-
-    await waitFor(() => {
-      expect(screen.getByTestId('expense-total-committed')).toBeTruthy();
-    });
-
-    expect(within(screen.getByTestId('expense-total-committed')).getByText('R$ 500,00')).toBeTruthy();
-  });
-});
-
 /** UX-01: the four states a list screen can be in. */
 describe('the screen states', () => {
   it('shows a loading indicator before the month arrives', () => {
@@ -363,7 +357,8 @@ describe('the screen states', () => {
       expect(screen.getByText('Agosto de 2026')).toBeTruthy();
     });
 
-    fireEvent.press(screen.getByLabelText('Próximo mês'));
+    // A tendência não tem setas: cada mês da linha é o próprio alvo.
+    fireEvent.press(screen.getByLabelText(/^Setembro de 2026,/));
 
     await waitFor(() => {
       expect(within(screen.getByTestId('variable-line-list')).getByText('Notebook')).toBeTruthy();
@@ -372,3 +367,110 @@ describe('the screen states', () => {
     expect(screen.getByText('Setembro de 2026')).toBeTruthy();
   });
 });
+
+/**
+ * Spec REC AC3, AC4 e AC6 alcançados de onde a conta está sendo lida.
+ *
+ * `paymentId` é o que decide qual verbo o menu oferece, porque é o mesmo campo que a tela de destino
+ * lê para escolher entre POST e PUT: oferecer "Registrar pagamento" numa conta já paga levaria a um
+ * `PAYMENT_ALREADY_RECORDED`, e é por isso que os dois rótulos são asserção separada e não uma só.
+ */
+describe('o menu de uma conta recorrente', () => {
+  const openMenu = async (id: string): Promise<void> => {
+    await waitFor(() => {
+      expect(screen.getByTestId(`recurring-line-${id}`)).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId(`recurring-menu-${id}`));
+  };
+
+  it('leva ao pagamento da conta escolhida, no mês que está na tela', async () => {
+    stub('GET', '/expense/2026/8', 200, monthBody([], [energy]));
+    renderScreen();
+
+    await openMenu('r1');
+    fireEvent.press(screen.getByLabelText('Registrar pagamento'));
+
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/expenses/recurring/payment',
+      params: { recurringExpenseId: 'r1', year: 2026, month: 8 },
+    });
+  });
+
+  it('oferece corrigir, e não registrar, quando o mês já tem pagamento', async () => {
+    stub('GET', '/expense/2026/8', 200, monthBody([], [energyPaid]));
+    renderScreen();
+
+    await openMenu('r1');
+
+    expect(screen.getByLabelText('Corrigir pagamento')).toBeTruthy();
+    expect(screen.queryByLabelText('Registrar pagamento')).toBeNull();
+  });
+
+  it('leva à alteração do valor base carregando a conta junto', async () => {
+    stub('GET', '/expense/2026/8', 200, monthBody([], [energy]));
+    renderScreen();
+
+    await openMenu('r1');
+    fireEvent.press(screen.getByLabelText('Alterar valor'));
+
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/expenses/recurring/change-value',
+      params: { recurringExpenseId: 'r1' },
+    });
+  });
+
+  // Cada linha manda a sua própria conta: um menu que fechasse sobre a última renderizada mandaria
+  // sempre a mesma, e as duas telas de destino agiriam sobre a conta errada.
+  it('manda a conta da linha em que foi aberto, e não a de outra', async () => {
+    stub('GET', '/expense/2026/8', 200, monthBody([], [energy, rent]));
+    renderScreen();
+
+    await openMenu('r2');
+    fireEvent.press(screen.getByLabelText('Alterar valor'));
+
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/expenses/recurring/change-value',
+      params: { recurringExpenseId: 'r2' },
+    });
+  });
+});
+
+/**
+ * Lançar deixou de ser três botões dentro de um cartão de resumo e passou a ser o mesmo botão
+ * flutuante do Resumo, pedindo só o que é despesa. O que esta tela prova é o recorte: uma receita
+ * lançada a partir de Despesas seria a folha do Resumo em lugar errado.
+ */
+describe('o botão de adicionar da tela', () => {
+  it('oferece os três lançamentos de despesa e nenhum outro', async () => {
+    stub('GET', '/expense/2026/8', 200, monthBody([market], [energy]));
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('variable-line-list')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('add-menu-trigger'));
+
+    ['Nova despesa variável', 'Nova despesa recorrente', 'Novo parcelamento'].forEach((label) => {
+      expect(screen.getByLabelText(label)).toBeTruthy();
+    });
+
+    expect(screen.queryByLabelText('Nova receita')).toBeNull();
+  });
+
+  it('leva ao cadastro escolhido', async () => {
+    stub('GET', '/expense/2026/8', 200, monthBody([market], [energy]));
+    renderScreen();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('variable-line-list')).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByTestId('add-menu-trigger'));
+    fireEvent.press(screen.getByLabelText('Nova despesa recorrente'));
+
+    expect(router.push).toHaveBeenCalledWith('/expenses/recurring/new');
+  });
+});
+

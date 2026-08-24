@@ -58,16 +58,10 @@ export function RegisterIncomeSourceScreen(): React.JSX.Element {
       setExpectedDay('');
     };
 
-    if (type === 1) {
-      register.mutate({ name, type: 1, personId }, { onSuccess });
-
-      return;
-    }
-
     register.mutate(
       {
         name,
-        type: 0,
+        type,
         personId,
         amount: parseMoneyInput(amount) ?? 0,
         expectedDay: parseOptionalInt(expectedDay) ?? 0,
@@ -91,17 +85,13 @@ export function RegisterIncomeSourceScreen(): React.JSX.Element {
         />
       ) : null}
 
-      {type === 0 ? (
-        <>
-          <Field label="Valor" onChangeText={setAmount} placeholder="5000,00" value={amount} />
-          <Field
-            label="Dia esperado"
-            onChangeText={setExpectedDay}
-            placeholder="5"
-            value={expectedDay}
-          />
-        </>
-      ) : null}
+      <Field label="Valor" onChangeText={setAmount} placeholder="5000,00" value={amount} />
+      <Field
+        label="Dia esperado"
+        onChangeText={setExpectedDay}
+        placeholder="5"
+        value={expectedDay}
+      />
 
       {messages.map((message, index) => (
         <Text key={`${message}-${index}`} style={styles.error} testID="form-error">
